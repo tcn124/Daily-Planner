@@ -128,3 +128,4 @@ Subject colours are generated from one hue so any new subject fits the system:
 Those curves reproduce the design's own swatches closely — Math `#b5bdff` /
 `#3749e7` / `#6d7ae8` and Biology `#b5ffbf` / `#23ba50` / `#71e682`. Subjects with
 no hue fall back to the neutral greys of the design's Meeting card.
+
