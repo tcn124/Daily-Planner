@@ -1,0 +1,61 @@
+export type ItemType = 'assignment' | 'event';
+export type ViewMode = 'grid' | 'list';
+export type DaysVisible = 3 | 5 | 7;
+
+export interface Subject {
+  id: string;
+  name: string;
+  /** 0–359, or null for the neutral grey surface. All shades derive from this. */
+  hue: number | null;
+}
+
+export interface Item {
+  id: string;
+  type: ItemType;
+  subjectId: string | null;
+  description: string;
+  /** Free text as typed, e.g. "1:15pm". Empty string when unset. */
+  time: string;
+  /** 'YYYY-MM-DD' */
+  date: string;
+  done: boolean;
+  createdAt: number;
+}
+
+export interface RecurringItem {
+  id: string;
+  subjectId: string | null;
+  title: string;
+  /** 'YYYY-MM-DD', inclusive */
+  startDate: string;
+  /** 'YYYY-MM-DD', inclusive */
+  endDate: string;
+  done: boolean;
+}
+
+export interface TodoItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface Settings {
+  daysVisible: DaysVisible;
+  /** 'YYYY-MM-DD' — leftmost day of the visible window */
+  anchorDate: string;
+  view: ViewMode;
+  /**
+   * Relative heights of the Assignments / Events / Recurring bands. Weights
+   * rather than pixels, so the grid still stretches to fill any window size.
+   */
+  bandWeights: [number, number, number];
+}
+
+export interface PlannerState {
+  version: 1;
+  subjects: Subject[];
+  items: Item[];
+  recurring: RecurringItem[];
+  todos: TodoItem[];
+  settings: Settings;
+}

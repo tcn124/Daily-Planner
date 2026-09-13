@@ -1,0 +1,50 @@
+/*
+ * Design tokens measured from "MacBook Air - 5" in the Figma file
+ * (GIAksgZji959PtPgTJFDid, node 46:5).
+ */
+:root {
+  /* Type families. Futura ships with macOS; Inter and Lato load from Google. */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: Futura, 'Futura PT', 'Avenir Next', 'Century Gothic', sans-serif;
+  --font-chip: 'Lato', var(--font-ui);
+
+  /* Neutrals */
+  --line: #d9d9d9;          /* every divider in the design, drawn at 0.5px */
+  --surface: #ffffff;
+  --surface-muted: #fafafa; /* day-header band, footer, nav buttons */
+  --chip-bg: #eee;
+  --chip-ink: #767676;
+  --ink-strong: #363636;    /* today's date + weekday */
+  --ink-label: #525252;     /* TO-DO: */
+  --ink-muted: #999999;     /* weekday names, rail labels, footer actions */
+  --ink-faint: #cfcfcf;     /* inactive date numbers */
+
+  /* Neutral card tones (the Meeting card) */
+  --card-neutral-fill: #ededed;
+  --card-neutral-label: #8c8c8c;
+  --card-neutral-desc: #cbcbcb;
+
+  /* Type scale */
+  --fs-title: 34px;         /* "August 2026" */
+  --fs-weekday: 17px;
+  --fs-date: 17px;
+  --fs-rail: 13px;
+  --fs-card: 13.7px;
+  --fs-todo: 18px;
+  --fs-action: 16.7px;
+  --fs-chip: 13.5px;
+  --tracking-card: -0.05em;
+  --tracking-action: -0.05em;
+
+  /* Geometry */
+  --rail-w: 60px;
+  --titlebar-h: 60px;
+  --dayhead-h: 50px;
+  --footer-h: 60px;
+  --card-h: 38px;
+  --card-inset: 4px;        /* 165px card inside a 174px column */
+  --card-bar-w: 3px;
+  --card-radius: 4px;
+  --card-radius-left: 2px;
+  --nav-size: 30px;
+}
