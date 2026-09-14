@@ -9,52 +9,10 @@
   background: var(--surface);
 }
 
-.list__header {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 20px 12px;
-}
-
-.list__heading {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.list__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--fs-21);
-  font-weight: 600;
-}
-
-.list__sub {
-  font-size: var(--fs-11-5);
-  color: var(--ink-45);
-}
-
-.list__controls {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.list__controls .btn {
-  padding: 4px 9px;
-  font-size: var(--fs-12);
-  font-weight: 400;
-  color: var(--ink-70);
-}
-
 .list__body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  border-top: 1px solid var(--line);
 }
 
 /* Group heading ---------------------------------------------------------- */

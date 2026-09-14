@@ -36,7 +36,6 @@
   width: var(--track-w);
   display: grid;
   grid-template-columns: repeat(var(--total-days), minmax(0, 1fr));
-  border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   background: var(--surface-alt);
 }

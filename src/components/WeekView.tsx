@@ -5,6 +5,7 @@ import {
   useState,
   type CSSProperties,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { usePlanner } from '../store/plannerStore';
 import {
   addDays,
@@ -20,10 +21,12 @@ import { RecurringBand } from './RecurringBand';
 import { TodoStrip } from './TodoStrip';
 import type { ComposerValue } from './ItemComposer';
 import type { ItemType } from '../types';
-import { AppHeader } from './AppHeader';
+import { WeekBar } from './WeekBar';
 import { BandHeader } from './BandHeader';
 
 interface Props {
+  /** The top bar's content slot; the week's controls render into it. */
+  slot: HTMLElement | null;
   onOpenDay: (date: string) => void;
 }
 
@@ -44,7 +47,7 @@ const SETTLE_FALLBACK_MS = 100;
 
 const HAS_SCROLLEND = typeof window !== 'undefined' && 'onscrollend' in window;
 
-export function WeekView({ onOpenDay }: Props) {
+export function WeekView({ slot, onOpenDay }: Props) {
   const { state, dispatch } = usePlanner();
   const { subjects, items, recurring, todos, settings } = state;
   const [composer, setComposer] = useState<ComposerTarget | null>(null);
@@ -302,16 +305,20 @@ export function WeekView({ onOpenDay }: Props) {
         } as CSSProperties
       }
     >
-      <AppHeader
-        window={window_}
-        onNewItem={() =>
-          setComposer({
-            date: window_.includes(today) ? today : window_[0],
-            type: 'assignment',
-            itemId: null,
-          })
-        }
-      />
+      {slot &&
+        createPortal(
+          <WeekBar
+            window={window_}
+            onNewItem={() =>
+              setComposer({
+                date: window_.includes(today) ? today : window_[0],
+                type: 'assignment',
+                itemId: null,
+              })
+            }
+          />,
+          slot,
+        )}
 
       <div className="dayscroll" ref={scrollerRef} onScroll={onScroll}>
       <div className="dayhead">

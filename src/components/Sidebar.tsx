@@ -7,7 +7,6 @@ import type { ViewMode } from '../types';
 
 interface Props {
   collapsed: boolean;
-  onToggleCollapsed: () => void;
   onOpenSettings: () => void;
 }
 
@@ -42,7 +41,7 @@ function IconToday() {
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapsed, onOpenSettings }: Props) {
+export function Sidebar({ collapsed, onOpenSettings }: Props) {
   const { state, dispatch } = usePlanner();
   const { subjects, items, recurring, settings } = state;
   const today = todayISO();
@@ -99,12 +98,6 @@ export function Sidebar({ collapsed, onToggleCollapsed, onOpenSettings }: Props)
   if (collapsed) {
     return (
       <aside className="sidebar sidebar--collapsed">
-        <button type="button" className="sidebar__rail-btn sidebar__rail-btn--expand"
-          title="Expand sidebar" aria-label="Expand sidebar" onClick={onToggleCollapsed}>
-          »
-        </button>
-        <span className="sidebar__avatar" aria-hidden="true">CN</span>
-
         <button type="button" className="sidebar__rail-btn" aria-label="Week view"
           title="Week" data-active={settings.view === 'grid'} onClick={() => setView('grid')}>
           <IconWeek />
@@ -137,20 +130,6 @@ export function Sidebar({ collapsed, onToggleCollapsed, onOpenSettings }: Props)
 
   return (
     <aside className="sidebar">
-      <div className="sidebar__brand">
-        <div className="sidebar__brand-text">
-          <span className="sidebar__name">Planner</span>
-          <span className="sidebar__sub">
-            {items.length + recurring.length} item
-            {items.length + recurring.length === 1 ? '' : 's'}
-          </span>
-        </div>
-        <button type="button" className="sidebar__toggle" title="Collapse sidebar"
-          aria-label="Collapse sidebar" onClick={onToggleCollapsed}>
-          «
-        </button>
-      </div>
-
       <nav className="sidebar__group sidebar__group--nav">
         <button type="button" className="sidebar__row sidebar__row--nav"
           data-active={settings.view === 'grid'} onClick={() => setView('grid')}>

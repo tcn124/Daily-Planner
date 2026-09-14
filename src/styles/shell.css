@@ -2,10 +2,17 @@
 
 .app {
   display: flex;
+  flex-direction: column;
   height: 100%;
   min-width: 900px;
   overflow: hidden;
   background: var(--surface);
+}
+
+.app__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
 .planner {
@@ -16,33 +23,143 @@
   overflow: hidden;
 }
 
-/* ------------------------------------------------ overlay title bar */
+/* ------------------------------------------------------------ top bar */
 
 /*
- * On the desktop the title bar is transparent and title-less, with the
- * traffic lights floating over the top-left of our content. Each column
- * pads its top by the bar's height so nothing sits under them, and an
- * invisible strip across that band lets the window be dragged and zoomed
- * the way the bar used to.
+ * One grey strip across the whole window. On the desktop it sits where the
+ * native title bar was: the traffic lights float over its left end, the bar
+ * is the window's drag handle (double-click zooms), and the brand text starts
+ * past the lights. In a browser there are no lights, so the inset shrinks.
  */
 html[data-titlebar='overlay'] {
-  --titlebar-inset: 28px;
+  --brand-inset: 80px;
 }
 
-.titlebar-drag {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--titlebar-inset);
-  z-index: 100;
+.topbar {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: var(--topbar-h);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--line);
+  user-select: none;
 }
 
-.sidebar,
-.planner,
-.list,
-.daypage {
-  padding-top: var(--titlebar-inset);
+/* Pinned just past the traffic lights, on their line. */
+.topbar__toggle {
+  position: absolute;
+  left: var(--brand-inset);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+  color: var(--ink-40);
+  font-size: 18px;
+  line-height: 1;
+  z-index: 1;
+}
+
+.topbar__toggle:hover {
+  background: var(--surface-active);
+  color: var(--ink);
+}
+
+.topbar__slot {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * What a view renders into the slot. Three columns with equal flexible sides,
+ * so the middle is centred on the bar itself — not on whatever is left after
+ * the traffic lights and the toggle, which the leading column reserves.
+ */
+.viewbar {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.viewbar__lead {
+  /* lights + toggle + breathing room */
+  padding-left: calc(var(--brand-inset) + 24px + 12px);
+  min-width: 0;
+}
+
+.viewbar__center {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Bar controls all sit at one height so they line up with the traffic lights. */
+.viewbar .btn,
+.viewbar .navgroup__today,
+.viewbar .stepper__btn,
+.viewbar .stepper__value {
+  height: 26px;
+  line-height: 26px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.viewbar .navgroup__arrow {
+  height: 26px;
+}
+
+.viewbar__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: var(--track-title);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.viewbar__year {
+  color: var(--ink-40);
+  margin-left: 0.25em;
+}
+
+.viewbar__eyebrow {
+  font-size: var(--fs-11);
+  font-weight: 500;
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--ink-45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viewbar__actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  /* Inset here rather than on the grid, so the centre column stays centred. */
+  padding-right: 14px;
+}
+
+/* The day page's breadcrumb reads as plain text rather than a title. */
+.viewbar--crumb .viewbar__center {
+  gap: 10px;
+  font-size: var(--fs-12-5);
+  color: var(--ink-45);
 }
 
 /* ----------------------------------------------------------- sidebar */
@@ -62,53 +179,7 @@ html[data-titlebar='overlay'] {
   width: var(--rail-w);
   align-items: center;
   gap: 6px;
-  padding: calc(var(--titlebar-inset) + 14px) 0 14px;
-}
-
-.sidebar__brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 14px 12px 10px;
-}
-
-.sidebar__brand-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-  min-width: 0;
-}
-
-.sidebar__name {
-  font-size: var(--fs-13);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sidebar__sub {
-  font-size: var(--fs-11);
-  color: var(--ink-45);
-}
-
-.sidebar__toggle {
-  margin-left: auto;
-  flex: none;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-card);
-  color: var(--ink-40);
-  font-size: 21px;
-  line-height: 1;
-}
-
-.sidebar__toggle:hover {
-  background: var(--surface-active);
-  color: var(--ink);
+  padding: 12px 0 14px;
 }
 
 .sidebar__group {
@@ -119,7 +190,7 @@ html[data-titlebar='overlay'] {
 }
 
 .sidebar__group--nav {
-  padding: 6px 8px;
+  padding: 8px 8px 6px;
 }
 
 .sidebar__group-head {
@@ -316,26 +387,6 @@ html[data-titlebar='overlay'] {
   color: var(--ink);
 }
 
-.sidebar__rail-btn--expand {
-  color: var(--ink-60);
-  font-size: 14px;
-}
-
-.sidebar__avatar {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  margin: 4px 0 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 5px;
-  background: var(--accent-solid);
-  color: var(--on-accent);
-  font-size: var(--fs-11);
-  font-weight: 600;
-}
-
 .sidebar__rule {
   flex: none;
   width: 22px;
@@ -359,55 +410,6 @@ html[data-titlebar='overlay'] {
 
 .sidebar__rail-spacer {
   margin-top: auto;
-}
-
-/* ------------------------------------------------------------ header */
-
-.appbar {
-  flex: none;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 20px var(--header-pad-x) 14px;
-}
-
-.appbar__heading {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.appbar__eyebrow {
-  font-size: var(--fs-11-5);
-  font-weight: 500;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-45);
-  white-space: nowrap;
-}
-
-.appbar__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--fs-title);
-  font-weight: 600;
-  letter-spacing: var(--track-title);
-  line-height: 1.1;
-  white-space: nowrap;
-}
-
-.appbar__year {
-  color: var(--ink-40);
-  margin-left: 0.25em;
-}
-
-.appbar__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
 }
 
 /* Prev / Today / Next share one outlined group with hairline dividers. */

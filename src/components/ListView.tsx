@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { usePlanner } from '../store/plannerStore';
 import { dayName, dayOfMonth, formatSpan, isWithin, monthShort, todayISO } from '../lib/dates';
 import { spanDates } from '../lib/recurring';
@@ -61,7 +62,12 @@ const SORT_LABEL: Record<SortBy, string> = {
   subject: 'Sort: Subject',
 };
 
-export function ListView() {
+interface Props {
+  /** The top bar's content slot; the list's title and controls render into it. */
+  slot: HTMLElement | null;
+}
+
+export function ListView({ slot }: Props) {
   const { state, dispatch } = usePlanner();
   const { subjects, items, recurring, todos } = state;
   const [groupBy, setGroupBy] = useState<GroupBy>('day');
@@ -243,17 +249,19 @@ export function ListView() {
 
   return (
     <div className="list">
-      <header className="list__header">
-        <div className="list__heading">
-          <h1 className="list__title">List</h1>
-          <span className="list__sub">
+      {slot && createPortal(
+      <div className="viewbar">
+        <div className="viewbar__lead" data-tauri-drag-region />
+        <div className="viewbar__center" data-tauri-drag-region>
+          <h1 className="viewbar__title" data-tauri-drag-region>List</h1>
+          <span className="viewbar__eyebrow" data-tauri-drag-region>
             {dates.length
               ? `${formatSpan([dates[0], dates[dates.length - 1]])} · `
               : ''}
             {allRows.length} item{allRows.length === 1 ? '' : 's'}
           </span>
         </div>
-        <div className="list__controls">
+        <div className="viewbar__actions">
           <button
             type="button"
             className="btn"
@@ -275,7 +283,9 @@ export function ListView() {
             {SORT_LABEL[sortBy]}
           </button>
         </div>
-      </header>
+      </div>,
+        slot,
+      )}
 
       <div className="list__body" ref={bodyRef}>
         {sections.map((section) => (

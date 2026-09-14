@@ -64,8 +64,9 @@
 
   /* ---- Geometry -------------------------------------------------------- */
   --sidebar-w: 236px;
-  /* Height of the desktop window's transparent title bar; 0 in a browser. */
-  --titlebar-inset: 0px;
+  --topbar-h: 36px;
+  /* Room for the desktop's traffic lights before the brand text; none in a browser. */
+  --brand-inset: 16px;
   --rail-w: 52px;          /* collapsed sidebar */
   --band-head-h: 30px;
   --todo-h: 52px;

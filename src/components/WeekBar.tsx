@@ -19,23 +19,25 @@ function Chevron() {
   );
 }
 
-export function AppHeader({ window: window_, onNewItem }: Props) {
+/** The week view's contribution to the top bar: month, range, nav, day count, new item. */
+export function WeekBar({ window: window_, onNewItem }: Props) {
   const { state, dispatch } = usePlanner();
   const { anchorDate, daysVisible } = state.settings;
 
   return (
-    <header className="appbar">
-      <div className="appbar__heading">
-        <div className="appbar__eyebrow">
-          Week {isoWeek(anchorDate)} · {formatSpan(window_)}
-        </div>
-        <h1 className="appbar__title">
+    <div className="viewbar">
+      <div className="viewbar__lead" data-tauri-drag-region />
+      <div className="viewbar__center" data-tauri-drag-region>
+        <h1 className="viewbar__title" data-tauri-drag-region>
           {monthLong(anchorDate)}
-          <span className="appbar__year">{year(anchorDate)}</span>
+          <span className="viewbar__year">{year(anchorDate)}</span>
         </h1>
+        <span className="viewbar__eyebrow" data-tauri-drag-region>
+          Week {isoWeek(anchorDate)} · {formatSpan(window_)}
+        </span>
       </div>
 
-      <div className="appbar__actions">
+      <div className="viewbar__actions">
         <div className="navgroup">
           <button
             type="button"
@@ -71,6 +73,6 @@ export function AppHeader({ window: window_, onNewItem }: Props) {
           New item
         </button>
       </div>
-    </header>
+    </div>
   );
 }

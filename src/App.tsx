@@ -14,27 +14,48 @@ export function App() {
   // they live here rather than in `settings` — no schema change, no migration.
   const [focusedDate, setFocusedDate] = useState<string | null>(null);
 
+  /*
+   * The top bar has a slot the current view fills with its own controls (month
+   * and nav for the week, title and grouping for the list, breadcrumb for a
+   * day). Views render into it through a portal, so the node has to exist in
+   * state before they can target it.
+   */
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+
+  const view = focusedDate ? (
+    <DayPage
+      date={focusedDate}
+      slot={slot}
+      onClose={() => setFocusedDate(null)}
+      onNavigate={setFocusedDate}
+    />
+  ) : state.settings.view === 'grid' ? (
+    <WeekView slot={slot} onOpenDay={setFocusedDate} />
+  ) : (
+    <ListView slot={slot} />
+  );
+
   return (
     <div className="app">
-      {/* Where the native title bar was: drag to move, double-click to zoom. */}
-      <div className="titlebar-drag" data-tauri-drag-region />
-      <Sidebar
-        collapsed={collapsed}
-        onToggleCollapsed={() => setCollapsed((c) => !c)}
-        onOpenSettings={() => setSettingsOpen(true)}
-      />
+      {/* Owns the title zone: on the desktop this is where the traffic lights
+          float, and the whole bar doubles as the window's drag handle. */}
+      <header className="topbar" data-tauri-drag-region>
+        <button
+          type="button"
+          className="topbar__toggle"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          onClick={() => setCollapsed((c) => !c)}
+        >
+          {collapsed ? '»' : '«'}
+        </button>
+        <div className="topbar__slot" ref={setSlot} data-tauri-drag-region />
+      </header>
 
-      {focusedDate ? (
-        <DayPage
-          date={focusedDate}
-          onClose={() => setFocusedDate(null)}
-          onNavigate={setFocusedDate}
-        />
-      ) : state.settings.view === 'grid' ? (
-        <WeekView onOpenDay={setFocusedDate} />
-      ) : (
-        <ListView />
-      )}
+      <div className="app__body">
+        <Sidebar collapsed={collapsed} onOpenSettings={() => setSettingsOpen(true)} />
+        {view}
+      </div>
 
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
     </div>

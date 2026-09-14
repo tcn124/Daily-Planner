@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePlanner } from '../store/plannerStore';
 import { subjectChipBg, subjectChipInk } from '../lib/color';
 import {
@@ -17,6 +18,8 @@ import type { Item } from '../types';
 
 interface Props {
   date: string;
+  /** The top bar's content slot; the breadcrumb and day nav render into it. */
+  slot: HTMLElement | null;
   onClose: () => void;
   onNavigate: (date: string) => void;
 }
@@ -32,7 +35,7 @@ function Chevron() {
   );
 }
 
-export function DayPage({ date, onClose, onNavigate }: Props) {
+export function DayPage({ date, slot, onClose, onNavigate }: Props) {
   const { state, dispatch } = usePlanner();
   const { subjects, items, recurring, notes } = state;
   const [composing, setComposing] = useState(false);
@@ -73,15 +76,19 @@ export function DayPage({ date, onClose, onNavigate }: Props) {
 
   return (
     <div className="daypage">
-      <div className="daypage__bar">
-        <button type="button" className="daypage__crumb" onClick={onClose}>
-          Week
-        </button>
-        <span aria-hidden="true">/</span>
-        <span className="daypage__crumb-current">
-          {dayName(date).slice(0, 3)}, {monthShort(date)} {dayOfMonth(date)}
-        </span>
-        <span className="daypage__bar-nav">
+      {slot && createPortal(
+      <div className="viewbar viewbar--crumb">
+        <div className="viewbar__lead" data-tauri-drag-region />
+        <div className="viewbar__center" data-tauri-drag-region>
+          <button type="button" className="daypage__crumb" onClick={onClose}>
+            Week
+          </button>
+          <span aria-hidden="true">/</span>
+          <span className="daypage__crumb-current">
+            {dayName(date).slice(0, 3)}, {monthShort(date)} {dayOfMonth(date)}
+          </span>
+        </div>
+        <span className="viewbar__actions daypage__bar-nav">
           <button type="button" aria-label="Previous day"
             onClick={() => onNavigate(addDays(date, -1))}>
             <Chevron />
@@ -91,7 +98,9 @@ export function DayPage({ date, onClose, onNavigate }: Props) {
             <Chevron />
           </button>
         </span>
-      </div>
+      </div>,
+        slot,
+      )}
 
       <div className="daypage__body">
         <div className="daypage__heading">
