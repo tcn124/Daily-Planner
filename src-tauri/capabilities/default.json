@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Save and open a planner backup the user picks in a native dialog.",
+  "description": "Save and open a planner backup in a native dialog; let the frameless window be dragged and zoomed from its top strip.",
   "windows": [
     "main"
   ],
@@ -12,6 +12,8 @@
     "dialog:allow-confirm",
     "dialog:allow-message",
     "fs:allow-read-text-file",
-    "fs:allow-write-text-file"
+    "fs:allow-write-text-file",
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize"
   ]
 }

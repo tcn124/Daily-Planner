@@ -1,0 +1,200 @@
+/* Reset and document-level defaults. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--ink);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Shared primitives ------------------------------------------------------ */
+
+/* Pale pill carrying a subject name. Colours are applied inline per subject. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  padding: 2px 6px;
+  border-radius: var(--radius-chip);
+  font-size: var(--fs-10-5);
+  font-weight: 600;
+  line-height: 1.35;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.count {
+  margin-left: auto;
+  flex: none;
+  font-size: var(--fs-11);
+  color: var(--ink-35);
+}
+
+.eyebrow {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+/* Buttons ---------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  font-size: var(--fs-12-5);
+  font-weight: 500;
+  color: var(--ink-70);
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+
+.btn--primary {
+  background: var(--accent-solid);
+  border-color: var(--accent-solid);
+  color: var(--on-accent);
+  padding: 6px 12px;
+}
+
+.btn--primary:hover {
+  background: var(--accent-solid-hover);
+  border-color: var(--accent-solid-hover);
+  color: var(--on-accent);
+}
+
+.btn--ghost {
+  border-color: transparent;
+}
+
+.btn--danger {
+  color: var(--danger);
+  border-color: var(--danger-line);
+}
+
+.btn--danger:hover {
+  background: var(--missed-badge-bg);
+  color: var(--danger);
+}
+
+/* Checkbox --------------------------------------------------------------- */
+
+.checkbox {
+  flex: none;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.3px solid var(--ink-30);
+  border-radius: 3px;
+  background: transparent;
+}
+
+.checkbox:hover {
+  border-color: var(--ink-45);
+}
+
+.checkbox[data-checked='true'] {
+  background: var(--accent-solid);
+  border-color: var(--accent-solid);
+}
+
+.checkbox[data-checked='true']::after {
+  content: '✓';
+  font-size: 9px;
+  line-height: 1;
+  color: var(--on-accent);
+}
+
+/* Delete control ---------------------------------------------------------- */
+
+/*
+ * The design gives items no delete affordance at all, so this is drawn small
+ * and revealed on hover by whichever surface hosts it.
+ */
+.kill {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  color: var(--ink-30);
+}
+
+.kill:hover {
+  background: var(--surface-active);
+  color: var(--ink-70);
+}
+
+.kill::before,
+.kill::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 1px;
+  background: currentColor;
+}
+
+.kill::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.kill::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}

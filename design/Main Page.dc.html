@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,400&amp;family=Source+Serif+4:opsz,wght@8..60,400..600&amp;display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 40px; background: #e9e9e6; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; color: #37352f; -webkit-font-smoothing: antialiased; }
+  a { color: #37352f; text-decoration: none; border-bottom: 1px solid rgba(55,53,47,0.25); }
+  a:hover { color: #1a6dd4; border-bottom-color: rgba(26,109,212,0.4); }
+</style>
+</helmet>
+
+
+<div style="width:1280px;height:800px;display:flex;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:10px;overflow:hidden;box-shadow:0 18px 44px rgba(15,15,15,0.10)">
+
+        <sc-if value="{{ sidebarCollapsed }}" hint-placeholder-val="{{ false }}">
+        <aside style="width:52px;flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0;background:#f7f7f5;border-right:1px solid rgba(55,53,47,0.09)">
+          <div onClick="{{ toggleSidebar }}" title="Expand sidebar" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;color:rgba(55,53,47,0.5);font-size:14px" style-hover="background:rgba(55,53,47,0.07);color:#37352f">»</div>
+          <div style="width:22px;height:22px;flex:none;border-radius:5px;background:#37352f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;margin:4px 0 8px">CN</div>
+          <div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:rgba(55,53,47,0.07)"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#37352f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5"></rect><path d="M1.75 6.25h12.5M6 6.25v7M10 6.25v7"></path></svg></div>
+          <div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px" style-hover="background:rgba(55,53,47,0.05)"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="rgba(55,53,47,0.55)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"></path></svg></div>
+          <div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px" style-hover="background:rgba(55,53,47,0.05)"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="rgba(55,53,47,0.55)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.75"></circle><path d="M8 4.75V8l2.25 1.6"></path></svg></div>
+          <div style="width:22px;height:1px;background:rgba(55,53,47,0.1);margin:6px 0"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:2px 0">
+            <span style="width:9px;height:9px;border-radius:50%;background:#5b76c9"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#8a5fc4"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#c47c3a"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#4a9a63"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#9b9a94"></span>
+          </div>
+          <div style="margin-top:auto;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:rgba(55,53,47,0.45);font-size:12px" style-hover="background:rgba(55,53,47,0.05)">⚙</div>
+        </aside>
+        </sc-if>
+
+        <sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
+        <aside style="width:236px;flex:none;display:flex;flex-direction:column;background:#f7f7f5;border-right:1px solid rgba(55,53,47,0.09)">
+          <div style="display:flex;align-items:center;gap:9px;padding:14px 12px 10px">
+
+            <div style="display:flex;flex-direction:column;line-height:1.2">
+              <span style="font-size:13px;font-weight:600">Carter's Planner</span>
+              <span style="font-size:11px;color:rgba(55,53,47,0.45)">Fall quarter</span>
+            </div>
+            <div onClick="{{ toggleSidebar }}" title="Collapse sidebar" style="margin-left: auto; width: 26px; height: 26px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: pointer; color: rgba(55,53,47,0.4); font-size: 21px" style-hover="background:rgba(55,53,47,0.07);color:#37352f">«</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:1px;padding:6px 8px">
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;background:rgba(55,53,47,0.06);font-size:13.5px;font-weight:500">
+              <span style="width:16px;height:16px;flex:none;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#37352f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5"></rect><path d="M1.75 6.25h12.5M6 6.25v7M10 6.25v7"></path></svg></span>Week
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13.5px;color:rgba(55,53,47,0.72)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:16px;height:16px;flex:none;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="rgba(55,53,47,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"></path></svg></span>List
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13.5px;color:rgba(55,53,47,0.72)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:16px;height:16px;flex:none;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="rgba(55,53,47,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.75"></circle><path d="M8 4.75V8l2.25 1.6"></path></svg></span>Today
+              <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.4)">4</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:1px;padding:14px 8px 6px">
+            <div style="padding:0 8px 4px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(55,53,47,0.4)">Subjects</div>
+            <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.78)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#5b76c9"></span>Economics
+              <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">6</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.78)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#8a5fc4"></span>Political Science
+              <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">4</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.78)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#c47c3a"></span>Journalism
+              <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">3</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.78)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#4a9a63"></span>History
+              <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">2</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.78)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#9b9a94"></span>Meeting
+              <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">2</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.45)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:7px;text-align:center">+</span>New subject
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:1px;padding:14px 8px 6px">
+            <div style="display:flex;align-items:center;gap:6px;padding:0 8px 4px">
+              <span style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(55,53,47,0.4)">Missed</span>
+              <span style="font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:10px;background:#f7e3e0;color:#8c352a">3</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;padding:5px 8px;border-radius:5px;cursor:pointer" style-hover="background:rgba(55,53,47,0.045)">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#c25a4b"></span>
+                <span style="font-size:13px;color:rgba(55,53,47,0.82);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Problem set 3</span>
+              </div>
+              <span style="padding-left:15px;font-size:11px;color:rgba(55,53,47,0.42)">Economics · 6 days late</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;padding:5px 8px;border-radius:5px;cursor:pointer" style-hover="background:rgba(55,53,47,0.045)">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#c25a4b"></span>
+                <span style="font-size:13px;color:rgba(55,53,47,0.82);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Discussion post 2</span>
+              </div>
+              <span style="padding-left:15px;font-size:11px;color:rgba(55,53,47,0.42)">Poli Sci · 4 days late</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;padding:5px 8px;border-radius:5px;cursor:pointer" style-hover="background:rgba(55,53,47,0.045)">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#c25a4b"></span>
+                <span style="font-size:13px;color:rgba(55,53,47,0.82);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Source memo</span>
+              </div>
+              <span style="padding-left:15px;font-size:11px;color:rgba(55,53,47,0.42)">Journalism · 2 days late</span>
+            </div>
+            <div style="padding:5px 8px;font-size:12px;color:rgba(55,53,47,0.45);border-radius:5px;cursor:pointer" style-hover="background:rgba(55,53,47,0.045);color:#37352f">Reschedule all →</div>
+          </div>
+
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:2px;padding:10px 8px 12px;border-top:1px solid rgba(55,53,47,0.08)">
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.6)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:14px;text-align:center;font-size:12px">⚙</span>Edit planner
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.6)" style-hover="background:rgba(55,53,47,0.045)">
+              <span style="width:14px;text-align:center;font-size:12px">↧</span>Export backup
+            </div>
+          </div>
+        </aside>
+        </sc-if>
+
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+          <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:20px 26px 14px">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-size:11.5px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:rgba(55,53,47,0.42)">Week 3 · Aug 24 – 30</div>
+              <h2 style="margin:0;font-family:'Source Serif 4',Georgia,serif;font-size:29px;font-weight:600;letter-spacing:-0.01em;line-height:1.1;white-space:nowrap">August <span style="color:rgba(55,53,47,0.4)">2026</span></h2>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="display:flex;align-items:center;border:1px solid rgba(55,53,47,0.12);border-radius:6px;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:center;width:30px;height:27px;border-right:1px solid rgba(55,53,47,0.1)" style-hover="background:rgba(55,53,47,0.04)"><svg viewBox="0 0 30 30" width="13" height="13" fill="none" aria-hidden="true"><path d="M9.83287 15.0052C9.83702 14.8599 9.86607 14.7271 9.92003 14.6067C9.97398 14.4864 10.057 14.3702 10.1691 14.2581L16.4071 8.21929C16.5856 8.04082 16.8055 7.95159 17.067 7.95159C17.2413 7.95159 17.399 7.99309 17.5401 8.0761C17.6854 8.15911 17.7995 8.27117 17.8826 8.41228C17.9697 8.5534 18.0133 8.71111 18.0133 8.88543C18.0133 9.14275 17.9158 9.36895 17.7207 9.56402L12.0803 14.999L17.7207 20.4401C17.9158 20.6393 18.0133 20.8655 18.0133 21.1187C18.0133 21.2972 17.9697 21.457 17.8826 21.5981C17.7995 21.7392 17.6854 21.8512 17.5401 21.9343C17.399 22.0214 17.2413 22.065 17.067 22.065C16.8055 22.065 16.5856 21.9737 16.4071 21.7911L10.1691 15.7522C10.0528 15.6402 9.96776 15.524 9.9138 15.4036C9.85985 15.2791 9.83287 15.1463 9.83287 15.0052Z" fill="rgba(55,53,47,0.55)"></path></svg></div>
+                <div style="padding:5px 12px;font-size:12.5px;font-weight:500;border-right:1px solid rgba(55,53,47,0.1)" style-hover="background:rgba(55,53,47,0.04)">Today</div>
+                <div style="display:flex;align-items:center;justify-content:center;width:30px;height:27px" style-hover="background:rgba(55,53,47,0.04)"><svg viewBox="0 0 30 30" width="13" height="13" fill="none" aria-hidden="true" style="transform:scaleX(-1)"><path d="M9.83287 15.0052C9.83702 14.8599 9.86607 14.7271 9.92003 14.6067C9.97398 14.4864 10.057 14.3702 10.1691 14.2581L16.4071 8.21929C16.5856 8.04082 16.8055 7.95159 17.067 7.95159C17.2413 7.95159 17.399 7.99309 17.5401 8.0761C17.6854 8.15911 17.7995 8.27117 17.8826 8.41228C17.9697 8.5534 18.0133 8.71111 18.0133 8.88543C18.0133 9.14275 17.9158 9.36895 17.7207 9.56402L12.0803 14.999L17.7207 20.4401C17.9158 20.6393 18.0133 20.8655 18.0133 21.1187C18.0133 21.2972 17.9697 21.457 17.8826 21.5981C17.7995 21.7392 17.6854 21.8512 17.5401 21.9343C17.399 22.0214 17.2413 22.065 17.067 22.065C16.8055 22.065 16.5856 21.9737 16.4071 21.7911L10.1691 15.7522C10.0528 15.6402 9.96776 15.524 9.9138 15.4036C9.85985 15.2791 9.83287 15.1463 9.83287 15.0052Z" fill="rgba(55,53,47,0.55)"></path></svg></div>
+              </div>
+              <div style="padding:6px 11px;font-size:12.5px;font-weight:500;color:rgba(55,53,47,0.7);border:1px solid rgba(55,53,47,0.12);border-radius:6px" style-hover="background:rgba(55,53,47,0.04)">7 days</div>
+              <div style="padding:6px 12px;font-size:12.5px;font-weight:500;background:#37352f;color:#fff;border-radius:6px" style-hover="background:#4a4740">New item</div>
+            </div>
+          </header>
+
+          <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid rgba(55,53,47,0.09);border-bottom:1px solid rgba(55,53,47,0.09);background:#fcfcfb">
+            <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.8)">Monday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.42)">24</span></div>
+            <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07);background:#f6f6f4"><span style="font-size:14.5px;font-weight:700;color:#37352f">Tuesday</span><span style="font-size:12px;font-weight:600;color:#fff;background:#37352f;border-radius:4px;padding:1px 6px">25</span></div>
+            <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.8)">Wednesday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.42)">26</span></div>
+            <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.8)">Thursday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.42)">27</span></div>
+            <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.8)">Friday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.42)">28</span></div>
+            <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.5)">Saturday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.34)">29</span></div>
+            <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.5)">Sunday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.34)">30</span></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid rgba(55,53,47,0.07);background:#fff">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #37352F">Assignments</span>
+            <span style="font-size:11px;color:rgba(55,53,47,0.3)">9 due</span>
+            <span style="font-size:11px;color:rgba(55,53,47,0.3);margin-left:4px">▾</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));flex:1.35;min-height:0;border-bottom:1px solid rgba(55,53,47,0.09)">
+            <div onMouseEnter="{{ enter.c0 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)">
+              <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2);box-shadow:0 2px 6px rgba(15,15,15,0.07)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#e8ecfa;color:#2f4380">Economics</span><span style="margin-left:auto;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.22);border-radius:3px"></span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Problem set 4, ch. 7–8</div>
+                <div style="font-size:11px;color:rgba(55,53,47,0.45)">11:59 pm</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#e4f1e9;color:#245a3c">History</span><span style="margin-left:auto;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.22);border-radius:3px"></span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Reading response</div>
+              </div>
+              <div style="{{ addStyle.c0 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c1 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);background:#fcfcfb">
+              <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#f0e8fa;color:#4d307c">Poli Sci</span><span style="margin-left:auto;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.22);border-radius:3px"></span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Memo draft — 900 words</div>
+                <div style="font-size:11px;color:rgba(55,53,47,0.45)">5:00 pm</div>
+              </div>
+              <div style="{{ addStyle.c1 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c2 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)">
+              <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#fbeade;color:#7a451c">Journalism</span><span style="margin-left:auto;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.22);border-radius:3px"></span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Interview transcript</div>
+              </div>
+              <div style="{{ addStyle.c2 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c3 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)">
+              <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fbfbfa;border:1px solid rgba(55,53,47,0.1);border-radius:6px">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#eeeeeb;color:#6a6862">Economics</span><span style="margin-left:auto;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.2);border-radius:3px;background:#37352f;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center">✓</span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:rgba(55,53,47,0.4);text-decoration:line-through">Quiz 2 — study guide</div>
+              </div>
+              <div style="{{ addStyle.c3 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c4 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)">
+              <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#e8ecfa;color:#2f4380">Economics</span><span style="margin-left:auto;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.22);border-radius:3px"></span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Problem set 5</div>
+                <div style="font-size:11px;color:rgba(55,53,47,0.45)">11:59 pm</div>
+              </div>
+              <div style="{{ addStyle.c4 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c5 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);background:#fcfcfb">
+              <div style="{{ addStyle.c5 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c6 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;background:#fcfcfb">
+              <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#f0e8fa;color:#4d307c">Poli Sci</span><span style="margin-left:auto;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.22);border-radius:3px"></span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Seminar prep reading</div>
+              </div>
+              <div style="{{ addStyle.c6 }}">+ Add</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid rgba(55,53,47,0.07);background:#fff">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #37352F">Events</span>
+            <span style="font-size:11px;color:rgba(55,53,47,0.3)">5 this week</span>
+            <span style="font-size:11px;color:rgba(55,53,47,0.3);margin-left:4px">▾</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));flex:0.95;min-height:0;border-bottom:1px solid rgba(55,53,47,0.09)">
+            <div onMouseEnter="{{ enter.c7 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)">
+              <div style="display:flex;flex-direction:column;gap:4px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#eeeeeb;color:#6a6862">Meeting</span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Advisor check-in</div>
+                <div style="font-size:11px;color:rgba(55,53,47,0.45)">2:30 pm · Kresge</div>
+              </div>
+              <div style="{{ addStyle.c7 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c8 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);background:#fcfcfb">
+              <div style="display:flex;flex-direction:column;gap:4px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#fbeade;color:#7a451c">Journalism</span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Source interview</div>
+                <div style="font-size:11px;color:rgba(55,53,47,0.45)">10:00 am</div>
+              </div>
+              <div style="{{ addStyle.c8 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c9 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)">
+              <div style="{{ addStyle.c9 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c10 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)">
+              <div style="display:flex;flex-direction:column;gap:4px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#e4f1e9;color:#245a3c">History</span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Office hours</div>
+                <div style="font-size:11px;color:rgba(55,53,47,0.45)">1:00 pm</div>
+              </div>
+              <div style="{{ addStyle.c10 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c11 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)">
+              <div style="{{ addStyle.c11 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c12 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);background:#fcfcfb">
+              <div style="display:flex;flex-direction:column;gap:4px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2)">
+                <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#eeeeeb;color:#6a6862">Meeting</span></div>
+                <div style="font-size:12.5px;line-height:1.35;color:#37352f">Study group</div>
+                <div style="font-size:11px;color:rgba(55,53,47,0.45)">11:00 am · Main Library</div>
+              </div>
+              <div style="{{ addStyle.c12 }}">+ Add</div>
+            </div>
+            <div onMouseEnter="{{ enter.c13 }}" onMouseLeave="{{ leave }}" style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;background:#fcfcfb">
+              <div style="{{ addStyle.c13 }}">+ Add</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid rgba(55,53,47,0.07);background:#fff">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #37352F">Recurring</span>
+            <span style="font-size:11px;color:rgba(55,53,47,0.3)">3 active</span>
+            <span style="font-size:11px;color:rgba(55,53,47,0.3);margin-left:4px">▾</span>
+          </div>
+          <div style="display:flex;flex-direction:column;flex:1;min-height:0">
+            <div style="position:relative;flex:1;min-height:0;padding:10px 0">
+              <div style="position: absolute; left: 6px; width: 416px; top: 12px; display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #fff; border: 1px solid rgba(55,53,47,0.11); border-left: 3px solid #5b76c9; border-radius: 6px; box-shadow: 0 1px 2px rgba(15,15,15,0.04); height: 16px">
+                <span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#e8ecfa;color:#2f4380">Economics</span>
+                <span style="font-size:12.5px;color:#37352f">Midterm review sessions</span>
+                <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.4)">Mon – Wed</span>
+              </div>
+              <div style="position: absolute; left: 28.571429%; width: 572px; top: 56px; display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #fff; border: 1px solid rgba(55,53,47,0.11); border-left: 3px solid #c47c3a; border-radius: 6px; box-shadow: 0 1px 2px rgba(15,15,15,0.04); height: 18px">
+                <span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#fbeade;color:#7a451c">Journalism</span>
+                <span style="font-size:12.5px;color:#37352f">Feature story reporting window</span>
+                <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.4)">Wed – Sat</span>
+              </div>
+              <div style="position:absolute;left:14.285714%;width:28.571429%;top:102px;display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fbfbfa;border:1px solid rgba(55,53,47,0.1);border-left:3px solid #4a9a63;border-radius:6px">
+                <span style="font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:4px;background:#e4f1e9;color:#245a3c">History</span>
+                <span style="font-size:12.5px;color:#37352f">Archive visit block</span>
+                <span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.4)">Tue – Wed</span>
+              </div>
+
+            </div>
+          </div>
+
+          <sc-if value="{{ showTodoStrip }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:12px;padding:0 26px;height:52px;flex:none;border-top:1px solid rgba(55,53,47,0.09);background:#fcfcfb">
+            <span style="font-size:11.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:rgba(55,53,47,0.45)">To-do</span>
+            <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+              <span style="display:flex;align-items:center;gap:6px;padding:4px 9px;font-size:12px;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:14px">Return library books <span style="color:rgba(55,53,47,0.3)">×</span></span>
+              <span style="display:flex;align-items:center;gap:6px;padding:4px 9px;font-size:12px;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:14px">Email Prof. Ruiz <span style="color:rgba(55,53,47,0.3)">×</span></span>
+              <span style="display:flex;align-items:center;gap:6px;padding:4px 9px;font-size:12px;background:#f4f4f2;border:1px solid rgba(55,53,47,0.08);border-radius:14px;color:rgba(55,53,47,0.4);text-decoration:line-through">Print readings</span>
+              <span style="padding:4px 9px;font-size:12px;color:rgba(55,53,47,0.35);border:1px dashed rgba(55,53,47,0.16);border-radius:14px">+ Add note</span>
+            </div>
+
+          </div>
+          </sc-if>
+        </div>
+      </div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1360,"height":880},"showTodoStrip":{"editor":"boolean","default":true,"tsType":"boolean","section":"Layout"},"sidebarCollapsedDefault":{"editor":"boolean","default":false,"tsType":"boolean","section":"Layout"}}'>
+class Component extends DCLogic {
+  state = { collapsed: null, hover: null };
+  renderVals() {
+    const collapsed = this.state.collapsed ?? (this.props.sidebarCollapsedDefault ?? false);
+    const enter = {}, addStyle = {};
+    for (let i = 0; i < 14; i++) {
+      const key = 'c' + i;
+      enter[key] = () => { if (this.state.hover !== key) this.setState({ hover: key }); };
+      const on = this.state.hover === key;
+      addStyle[key] = {
+        padding: '6px 9px',
+        fontSize: 12,
+        borderRadius: 6,
+        cursor: 'pointer',
+        color: on ? 'rgba(55,53,47,0.55)' : 'rgba(55,53,47,0.3)',
+        background: on ? 'rgba(55,53,47,0.045)' : 'transparent',
+        opacity: on ? 1 : 0,
+        transition: 'opacity 120ms ease, background 120ms ease',
+      };
+    }
+    return {
+      showTodoStrip: this.props.showTodoStrip ?? true,
+      sidebarOpen: !collapsed,
+      sidebarCollapsed: collapsed,
+      toggleSidebar: () => this.setState({ collapsed: !collapsed }),
+      enter,
+      addStyle,
+      leave: () => this.setState({ hover: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

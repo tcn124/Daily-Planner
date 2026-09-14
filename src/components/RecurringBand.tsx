@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RecurringItem, Subject } from '../types';
 import { addDays, daysBetween } from '../lib/dates';
+import { ROW_H } from '../lib/recurring';
 import { RecurringBar } from './RecurringBar';
-import { SubjectSelect } from './SubjectSelect';
-
-const ROW_H = 44;
+import { SubjectChips } from './SubjectChips';
 
 interface Props {
   anchorDate: string;
@@ -14,14 +13,17 @@ interface Props {
   onCreate: (item: Omit<RecurringItem, 'id'>) => void;
   onUpdate: (id: string, patch: Partial<RecurringItem>) => void;
   onDelete: (id: string) => void;
-  onToggle: (id: string) => void;
+  onToggleDay: (id: string, date: string) => void;
   onCreateSubject: (name: string, hue: number | null) => string;
 }
 
-interface Placed {
+interface Span {
   item: RecurringItem;
   startIndex: number;
   span: number;
+}
+
+interface Placed extends Span {
   row: number;
 }
 
@@ -38,7 +40,19 @@ interface EditorState {
 type Drag =
   | { mode: 'create'; anchorIndex: number; currentIndex: number }
   /** `fixedIndex` is the edge that stays put — the opposite one follows the cursor. */
-  | { mode: 'resize'; id: string; fixedIndex: number };
+  | { mode: 'resize'; id: string; fixedIndex: number; originIndex: number; moved: boolean }
+  /** The whole bar follows the cursor, keeping its length. */
+  | {
+      mode: 'move';
+      id: string;
+      grabIndex: number;
+      lastIndex: number;
+      startDate: string;
+      endDate: string;
+      moved: boolean;
+    };
+
+const PROBE_ID = '__probe__';
 
 const clamp = (n: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, n));
@@ -47,9 +61,7 @@ const clamp = (n: number, lo: number, hi: number) =>
  * Greedy row packing — a bar drops into the first row where it doesn't
  * collide with anything already placed there.
  */
-function packRows(
-  spans: { item: RecurringItem; startIndex: number; span: number }[],
-): Placed[] {
+function packRows(spans: Span[]): Placed[] {
   const rows: { start: number; end: number }[][] = [];
   return spans
     .slice()
@@ -77,15 +89,21 @@ export function RecurringBand({
   onCreate,
   onUpdate,
   onDelete,
-  onToggle,
+  onToggleDay,
   onCreateSubject,
 }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
+  /**
+   * A resize or move ends with mouseup on the bar, and the browser follows
+   * that with a click — which would open the editor. This flags the click
+   * that belongs to a drag so it can be ignored.
+   */
+  const swallowNextClick = useRef(false);
 
   // Bars that overlap the visible window, clamped to it.
-  const visible = recurring
+  const visible: Span[] = recurring
     .map((item) => {
       const rawStart = daysBetween(anchorDate, item.startDate);
       const rawEnd = daysBetween(anchorDate, item.endDate);
@@ -94,12 +112,24 @@ export function RecurringBand({
       const endIndex = clamp(rawEnd, 0, days - 1);
       return { item, startIndex, span: endIndex - startIndex + 1 };
     })
-    .filter((v): v is NonNullable<typeof v> => v !== null);
+    .filter((v): v is Span => v !== null);
 
   const placed = packRows(visible);
-  const nextFreeRow = placed.length
-    ? Math.max(...placed.map((p) => p.row)) + 1
-    : 0;
+
+  /**
+   * Where a bar over [startIndex, endIndex] will actually land once it exists,
+   * found by packing it alongside everything already there. The preview and
+   * the new-bar editor use this, so they sit exactly where the bar will —
+   * not in a fresh row at the bottom that the real bar then jumps out of.
+   */
+  function rowFor(startIndex: number, endIndex: number): number {
+    const probe: Span = {
+      item: { id: PROBE_ID } as RecurringItem,
+      startIndex,
+      span: endIndex - startIndex + 1,
+    };
+    return packRows([...visible, probe]).find((p) => p.item.id === PROBE_ID)!.row;
+  }
 
   function indexFromClientX(clientX: number): number {
     const rect = trackRef.current?.getBoundingClientRect();
@@ -121,28 +151,46 @@ export function RecurringBand({
       const index = indexFromClientX(e.clientX);
       if (active.mode === 'create') {
         setDrag({ ...active, currentIndex: index });
-      } else {
-        const { id, fixedIndex } = active;
-        const lo = Math.min(index, fixedIndex);
-        const hi = Math.max(index, fixedIndex);
-        onUpdate(id, {
+      } else if (active.mode === 'resize') {
+        const lo = Math.min(index, active.fixedIndex);
+        const hi = Math.max(index, active.fixedIndex);
+        onUpdate(active.id, {
           startDate: addDays(anchorDate, lo),
           endDate: addDays(anchorDate, hi),
         });
+        if (index !== active.originIndex && !active.moved) {
+          setDrag({ ...active, moved: true });
+        }
+      } else {
+        if (index === active.lastIndex) return;
+        const delta = index - active.grabIndex;
+        onUpdate(active.id, {
+          startDate: addDays(active.startDate, delta),
+          endDate: addDays(active.endDate, delta),
+        });
+        setDrag({ ...active, lastIndex: index, moved: true });
       }
     }
 
     function onUp(e: globalThis.MouseEvent) {
       if (active.mode === 'create') {
         const index = indexFromClientX(e.clientX);
+        const lo = Math.min(active.anchorIndex, index);
+        const hi = Math.max(active.anchorIndex, index);
         setEditor({
           id: null,
-          startIndex: Math.min(active.anchorIndex, index),
-          endIndex: Math.max(active.anchorIndex, index),
-          row: nextFreeRow,
+          startIndex: lo,
+          endIndex: hi,
+          row: rowFor(lo, hi),
           subjectId: null,
           title: '',
         });
+      } else if (active.moved) {
+        // The click that follows this mouseup is the tail of the drag.
+        swallowNextClick.current = true;
+        window.setTimeout(() => {
+          swallowNextClick.current = false;
+        }, 0);
       }
       setDrag(null);
     }
@@ -154,7 +202,7 @@ export function RecurringBand({
       window.removeEventListener('mouseup', onUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [drag, anchorDate, days, nextFreeRow]);
+  }, [drag, anchorDate, days]);
 
   function commitEditor() {
     if (!editor) return;
@@ -167,7 +215,7 @@ export function RecurringBand({
     if (editor.id) {
       onUpdate(editor.id, payload);
     } else {
-      onCreate({ ...payload, done: false });
+      onCreate({ ...payload, doneDates: [] });
     }
     setEditor(null);
   }
@@ -211,12 +259,16 @@ export function RecurringBand({
           key={item.id}
           item={item}
           subject={subjects.find((s) => s.id === item.subjectId) ?? null}
+          dates={Array.from({ length: span }, (_, i) =>
+            addDays(anchorDate, startIndex + i),
+          )}
           leftFrac={startIndex / days}
           widthFrac={span / days}
           row={row}
-          onToggle={() => onToggle(item.id)}
+          onToggleDay={(date) => onToggleDay(item.id, date)}
           onDelete={() => onDelete(item.id)}
-          onEdit={() =>
+          onEdit={() => {
+            if (swallowNextClick.current) return;
             setEditor({
               id: item.id,
               startIndex,
@@ -224,15 +276,31 @@ export function RecurringBand({
               row,
               subjectId: item.subjectId,
               title: item.title,
-            })
-          }
-          onResizeStart={(edge) =>
+            });
+          }}
+          onResizeStart={(edge, e) => {
+            const originIndex = indexFromClientX(e.clientX);
             setDrag({
               mode: 'resize',
               id: item.id,
               fixedIndex: edge === 'start' ? startIndex + span - 1 : startIndex,
-            })
-          }
+              originIndex,
+              moved: false,
+            });
+          }}
+          onMoveStart={(e) => {
+            e.preventDefault();
+            const grabIndex = indexFromClientX(e.clientX);
+            setDrag({
+              mode: 'move',
+              id: item.id,
+              grabIndex,
+              lastIndex: grabIndex,
+              startDate: item.startDate,
+              endDate: item.endDate,
+              moved: false,
+            });
+          }}
         />
       ))}
 
@@ -241,7 +309,7 @@ export function RecurringBand({
           className="rec-preview"
           style={{
             ...geometry(preview.start, preview.span),
-            top: 6 + nextFreeRow * ROW_H,
+            top: 6 + rowFor(preview.start, preview.start + preview.span - 1) * ROW_H,
           }}
         />
       )}
@@ -262,14 +330,6 @@ export function RecurringBand({
             }
           }}
         >
-          <div className="rec-editor__subject">
-            <SubjectSelect
-              subjects={subjects}
-              value={editor.subjectId}
-              onChange={(subjectId) => setEditor({ ...editor, subjectId })}
-              onCreate={onCreateSubject}
-            />
-          </div>
           <input
             className="field rec-editor__title"
             placeholder="What is it?"
@@ -277,17 +337,20 @@ export function RecurringBand({
             value={editor.title}
             onChange={(e) => setEditor({ ...editor, title: e.target.value })}
           />
-          <button type="button" className="btn btn--primary" onClick={commitEditor}>
-            {editor.id ? 'Save' : 'Add'}
-          </button>
-          <button
-            type="button"
-            className="btn btn--icon"
-            aria-label="Cancel"
-            onClick={() => setEditor(null)}
-          >
-            <span className="kill" aria-hidden="true" />
-          </button>
+          <SubjectChips
+            subjects={subjects}
+            value={editor.subjectId}
+            onChange={(subjectId) => setEditor({ ...editor, subjectId })}
+            onCreate={onCreateSubject}
+          />
+          <div className="rec-editor__actions">
+            <button type="button" className="btn btn--primary" onClick={commitEditor}>
+              {editor.id ? 'Save' : 'Add'}
+            </button>
+            <button type="button" className="btn" onClick={() => setEditor(null)}>
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>

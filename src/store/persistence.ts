@@ -1,5 +1,6 @@
-import type { PlannerState, Subject } from '../types';
-import { createInitialState } from './defaults';
+import type { PlannerState, RecurringItem, Subject } from '../types';
+import { clampDays, createInitialState } from './defaults';
+import { spanDates } from '../lib/recurring';
 import { hexToHue } from '../lib/color';
 import { isTauri } from '../lib/platform';
 
@@ -34,6 +35,31 @@ function isPlannerState(value: unknown): value is PlannerState {
     typeof s.settings === 'object' &&
     s.settings !== null
   );
+  // `notes` is deliberately not required: states written before day notes
+  // existed are still valid and get an empty map on read.
+}
+
+/**
+ * Recurring items used to carry one `done` flag for the whole span; they now
+ * track completion per day. A span that was marked done becomes every day in
+ * it checked off, so nothing the user had ticked is lost.
+ */
+function migrateRecurring(recurring: RecurringItem[]): RecurringItem[] {
+  return recurring.map((r) => {
+    if (Array.isArray(r.doneDates)) return r;
+    const { done, ...rest } = r as RecurringItem & { done?: boolean };
+    return { ...rest, doneDates: done ? spanDates(rest as RecurringItem) : [] };
+  });
+}
+
+/** Day notes arrived after v1 shipped, so older saves simply have none. */
+function migrateNotes(notes: unknown): Record<string, string> {
+  if (typeof notes !== 'object' || notes === null) return {};
+  return Object.fromEntries(
+    Object.entries(notes as Record<string, unknown>).filter(
+      ([, v]) => typeof v === 'string',
+    ),
+  ) as Record<string, string>;
 }
 
 export function loadState(): PlannerState {
@@ -50,8 +76,10 @@ export function loadState(): PlannerState {
     return {
       ...parsed,
       subjects: migrateSubjects(parsed.subjects),
+      recurring: migrateRecurring(parsed.recurring),
+      notes: migrateNotes(parsed.notes),
       settings: {
-        daysVisible: merged.daysVisible,
+        daysVisible: clampDays(merged.daysVisible),
         anchorDate: merged.anchorDate,
         view: merged.view,
         bandWeights: merged.bandWeights,
@@ -91,7 +119,13 @@ function parseBackup(text: string): PlannerState {
   return {
     ...parsed,
     subjects: migrateSubjects(parsed.subjects),
-    settings: { ...base.settings, ...parsed.settings },
+    recurring: migrateRecurring(parsed.recurring),
+    notes: migrateNotes(parsed.notes),
+    settings: {
+      ...base.settings,
+      ...parsed.settings,
+      daysVisible: clampDays(parsed.settings.daysVisible ?? base.settings.daysVisible),
+    },
   };
 }
 

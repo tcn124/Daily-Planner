@@ -1,8 +1,10 @@
 # Weekly Planner
 
-A weekly student planner built from the Figma design `ToDoList`. Assignments,
-events, and multi-day recurring bars across a scrolling day window, plus a list
-view and a to-do scratchpad.
+A weekly student planner. Assignments, events, and multi-day recurring bars
+across a scrolling day window, plus a sidebar, a list view, a day page, and a
+to-do strip.
+
+The interface follows the design canvas in `design/` — see [Design](#design).
 
 ## Requirements
 
@@ -56,21 +58,36 @@ move it to another Mac.
 
 | Action | How |
 | --- | --- |
-| Move the window one day | `‹` / `›` at the top right, or the ← / → arrow keys |
-| Add an assignment or event | Click a `+` (or any empty space) in a day cell |
+| Move the window one day | `‹` / `›` in the header, or the ← / → arrow keys |
+| Jump to today | **Today** in the header, or **Today** in the sidebar |
+| Add an assignment or event | Hover a day cell and click **+ Add**, or **New item** in the header |
 | Edit an item | Click the card body |
-| Complete an item | Hover it and click the checkbox — the card dims and strikes through |
+| Move an item between bands | Open it and change **Band** in the composer |
+| Complete an item | Click the checkbox — the card dims and strikes through |
 | Delete an item | Hover it and click the ✕ beside the checkbox |
 | Add a recurring bar | Click and drag across the Recurring row; it snaps to whole days |
 | Resize a recurring bar | Drag either end |
-| Add a to-do note | The `+` at the right of the To-Do strip, then Enter |
-| Switch views | `list` / `weekly` in the bottom right |
-| Subjects, day count, backups | `edit` in the bottom right |
+| Move a recurring bar | Drag its body to other days; it keeps its length |
+| Tick off one day of a recurring bar | The checkbox under that day — the bar reads as done once every day is ticked |
+| Move an item to another day | Drag its card (or its row in the list) onto the day |
+| Collapse a band | Click its section header |
+| Resize the bands | Drag the top edge of a band header; double-click to reset |
+| Open a single day | Click a day name in the header row |
+| Note on a day | The notes box at the foot of the day page |
+| Add a to-do note | **+ Add note** in the To-Do strip, then Enter |
+| Switch views | **Week** / **List** in the sidebar — the list shows every day that has something on it, with no window, and opens scrolled to today |
+| Group or sort the list | **Group** / **Sort** in the list header |
+| Reschedule everything overdue | **Reschedule all →** under Missed in the sidebar |
+| Days shown in the week | The **− / +** stepper in the header (or in Edit planner), anywhere from 1 to 14 |
+| Subjects, day count, backups | **Edit planner** at the foot of the sidebar |
 
-Subjects can be created inline from any subject dropdown via **New subject…**,
-or managed in the Edit panel. Each subject is defined by a single hue: the card
-background is a pale tint of it and the marker bar beside the name is a deep,
-saturated version of the same hue.
+The sidebar lists each subject with a live item count, and collects anything
+still open whose day has passed under **Missed** — each can be ticked off or
+deleted right there, and clicking its name jumps to that day.
+
+Subjects can be created inline from the composer's subject row via **+ New**, or
+managed in the Edit planner panel. Each subject is defined by a single hue — see
+[Design](#design) for how the chip and dot colours are derived from it.
 
 ## Data
 
@@ -79,9 +96,16 @@ desktop app keeps its store in `~/Library/WebKit/com.carternishi.weeklyplanner`;
 the browser version keeps a separate one in the browser profile. The two do not
 share data.
 
-Use **Edit → Export JSON** for a real backup, and **Import JSON** to restore it
-or move to another machine. Both open native macOS save/open panels in the
-desktop app, and fall back to browser downloads when running `npm run dev`.
+Use **Export backup** in the sidebar (or **Edit planner → Export JSON**) for a
+real backup, and **Import JSON** to restore it or move to another machine. Both
+open native macOS save/open panels in the desktop app, and fall back to browser
+downloads when running `npm run dev`.
+
+Destructive actions — deleting a subject, replacing everything on import, and
+**Reset all data** — ask for confirmation in an in-app dialog. `window.confirm`
+is deliberately not used: embedded webviews suppress it (it returns false
+without ever showing, silently blocking the action) and Tauri's WebView returns
+true without showing, which would bypass the guard entirely.
 
 ## Layout of the code
 
@@ -93,11 +117,18 @@ src/
     plannerStore.tsx    reducer + context, the single source of truth
     persistence.ts      localStorage, export, import
     defaults.ts         seed subjects and swatches
+  lib/oklch.ts          OKLab/OKLCH ↔ sRGB, with a gamut clamp
   styles/
-    tokens.css          colors, type scale, and grid metrics from Figma
-    global.css          all component styling
+    tokens.css          colors, type scale, and geometry from the design canvas
+    global.css          import hub — the files below, in cascade order
+    base.css            reset, shared primitives (chip, checkbox, ✕, buttons)
+    shell.css           sidebar, header, to-do strip
+    week.css            day header, band headers, cells, cards, recurring
+    list.css            list view
+    day.css             day page
+    overlays.css        composer, edit-planner panel, confirm dialog
   components/           one file per piece of UI
-  assets/fonts/         Inter + Lato, vendored so the app works offline
+  assets/fonts/         DM Sans + Source Serif 4, vendored so the app works offline
 src-tauri/
   tauri.conf.json       window size, bundle identifier, CSP
   capabilities/         which native APIs the frontend may call
@@ -107,25 +138,48 @@ src-tauri/
 
 ## Design
 
-The visual language follows **MacBook Air - 5** (node `46:5`) in the Figma file
-`ToDoList`: hairline `#d9d9d9` dividers instead of black rules, borderless cards
-with a 3px colour bar down the left edge, a large `August 2026` masthead, rotated
-rail labels, and uppercase Futura for chrome text.
+The visual language comes from the design canvas in `design/` — `Main Page.dc.html`
+for the week grid, `Supporting Screens.dc.html` for the list view, day page,
+composer and edit-planner panel. Those two files are the source of truth for
+every size and colour; read the inline `style="…"` attributes for exact values.
 
-Values in `tokens.css` were measured from that frame rather than eyeballed — the
-60px rail, 60/50px header bands, 244/162/256px row ratio, 174px columns and the
-38px card all come straight from the source. Weeks start on Monday, as the design
-shows.
+It is one ink colour at varying alpha over warm surfaces: `#37352f` on `#fff`,
+`#f7f7f5` and `#fcfcfb`, with borders from `rgba(55,53,47,0.07)` to `0.12`.
+Items are white cards with a 1px border, a 6px radius and a pale subject chip.
+Chrome is DM Sans; the mastheads are Source Serif 4. Weeks start on Monday.
 
-Subject colours are generated from one hue so any new subject fits the system:
+Values in `tokens.css` were measured from the canvas rather than eyeballed — the
+236px sidebar, 52px collapsed rail, 30px band headers, 52px to-do strip, 6px card
+radius and 8px/9px card padding all come straight from the source.
+
+### Subject colours
+
+Subjects store a single hue (0–359) and every colour is derived from it, so any
+new subject fits the system automatically:
 
 | Role | Derivation |
 | --- | --- |
-| Card fill | `hsl(h 100% 85%)` |
-| Subject name and marker bar | `hsl(h 72% 45%)` |
-| Description line | `hsl(h 68% 66%)` |
+| Chip background | `oklch(94.6% 0.021 H)` |
+| Chip text | `oklch(41.2% 0.089 H)` |
+| Sidebar dot, recurring bar edge | `oklch(61.2% 0.123 H)` |
+| Row hover tint | `oklch(97% 0.012 H)` |
 
-Those curves reproduce the design's own swatches closely — Math `#b5bdff` /
-`#3749e7` / `#6d7ae8` and Biology `#b5ffbf` / `#23ba50` / `#71e682`. Subjects with
-no hue fall back to the neutral greys of the design's Meeting card.
+`H` is the stored hue mapped onto the OKLCH wheel by `hslHueToOkHue` in
+`src/lib/oklch.ts`; subjects with no hue fall back to neutral grey.
+
+The derivation is done in OKLCH rather than HSL because HSL cannot hold a
+consistent perceptual weight across hues — at a fixed saturation, `hsl(h 100% 85%)`
+reads far lighter at yellow than at blue. Across the canvas's four subjects the
+measured HSL saturations swing 32 → 78, while in OKLCH the same swatches sit at
+near-constant lightness and chroma, which is what makes one formula viable.
+
+The constants above are fitted to **minimise the worst-case** error rather than
+the average: the canvas's own swatches are hand-picked and not internally
+consistent (their chip-ink chroma alone ranges 0.077–0.124), so no single
+constant reproduces all four exactly. Minimax keeps every subject equally close
+instead of matching two and visibly missing the others.
+
+Colours are emitted as hex from JS, not as CSS `oklch()`, so the out-of-gamut
+clamp stays under our control — naive per-channel clipping turns a saturated
+orange into a visibly wrong brown.
 

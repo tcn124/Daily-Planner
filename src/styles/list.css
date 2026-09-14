@@ -1,0 +1,224 @@
+/* List view — the agenda grouped by day or subject. */
+
+.list {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.list__header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 12px;
+}
+
+.list__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.list__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-21);
+  font-weight: 600;
+}
+
+.list__sub {
+  font-size: var(--fs-11-5);
+  color: var(--ink-45);
+}
+
+.list__controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.list__controls .btn {
+  padding: 4px 9px;
+  font-size: var(--fs-12);
+  font-weight: 400;
+  color: var(--ink-70);
+}
+
+.list__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+}
+
+/* Group heading ---------------------------------------------------------- */
+
+.list__group {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 20px;
+  background: var(--surface-head);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.list__group-name {
+  font-size: var(--fs-12);
+  font-weight: 600;
+}
+
+.list__group-date {
+  font-size: var(--fs-12);
+  color: var(--ink-40);
+}
+
+.list__group-today {
+  font-size: var(--fs-11);
+  color: var(--ink-45);
+}
+
+.list__group--today {
+  background: #f6f6f3;
+  border-top: 1px solid var(--line-soft);
+}
+
+.list__group--today .list__group-name {
+  font-weight: 700;
+}
+
+.list__group--today .list__group-date {
+  font-weight: 600;
+  color: var(--on-accent);
+  background: var(--accent-solid);
+  border-radius: 3px;
+  padding: 0 5px;
+}
+
+/* Rows ------------------------------------------------------------------- */
+
+.list__row {
+  display: grid;
+  grid-template-columns: 96px 118px 1fr 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--line-faint);
+  cursor: pointer;
+  text-align: left;
+}
+
+.list__row:hover {
+  background: #fafaf9;
+}
+
+.list__pill {
+  justify-self: start;
+  background: var(--surface-active);
+  color: var(--ink-60);
+}
+
+.list__subject {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-12);
+  min-width: 0;
+}
+
+.list__subject-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.list__desc {
+  font-size: var(--fs-13);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list__time {
+  color: var(--ink-40);
+  font-size: var(--fs-11-5);
+}
+
+.list__row-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list__kill {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.list__row:hover .list__kill,
+.list__kill:focus-visible {
+  opacity: 1;
+}
+
+.list__row--done {
+  opacity: 0.55;
+}
+
+/* Drag and drop --------------------------------------------------------- */
+
+/* The row being dragged stays in place, faded, until it lands. */
+.list__row--dragging {
+  opacity: 0.35;
+}
+
+/* A dragged item is over this group: tint the whole section and mark its
+   header, which is sticky and so stays visible however long the group is. */
+.list__section--drop {
+  background: var(--surface-hover);
+}
+
+.list__section--drop .list__group {
+  box-shadow: inset 0 0 0 1.5px var(--ink-30);
+}
+
+.list__row--done .list__desc {
+  text-decoration: line-through;
+}
+
+.list__new {
+  display: block;
+  width: 100%;
+  padding: 10px 20px;
+  font-size: var(--fs-12-5);
+  color: var(--ink-30);
+  text-align: left;
+}
+
+.list__new:hover {
+  color: var(--ink-60);
+  background: #fafaf9;
+}
+
+/* The composer is inline here rather than a popover, so it needs no anchor. */
+.list__composer {
+  position: relative;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--line-faint);
+}
+
+.list__composer .composer {
+  position: static;
+  width: 340px;
+  box-shadow: var(--shadow-panel);
+}

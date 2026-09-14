@@ -1,50 +1,88 @@
 /*
- * Design tokens measured from "MacBook Air - 5" in the Figma file
- * (GIAksgZji959PtPgTJFDid, node 46:5).
+ * Design tokens measured from the Claude Design canvas in `design/`
+ * ("Main Page.dc.html" and "Supporting Screens.dc.html").
+ *
+ * Three layers: primitives, type, geometry. Subject colours are NOT here —
+ * they are generated per-hue in src/lib/color.ts and applied inline.
  */
 :root {
-  /* Type families. Futura ships with macOS; Inter and Lato load from Google. */
-  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: Futura, 'Futura PT', 'Avenir Next', 'Century Gothic', sans-serif;
-  --font-chip: 'Lato', var(--font-ui);
+  /* ---- Primitives ------------------------------------------------------ */
+  /* The whole design is one ink colour at varying alpha over warm surfaces. */
+  --ink: #37352f;
+  --ink-82: rgba(55, 53, 47, 0.82);
+  --ink-70: rgba(55, 53, 47, 0.7);
+  --ink-60: rgba(55, 53, 47, 0.6);
+  --ink-45: rgba(55, 53, 47, 0.45);
+  --ink-40: rgba(55, 53, 47, 0.4);
+  --ink-35: rgba(55, 53, 47, 0.35);
+  --ink-30: rgba(55, 53, 47, 0.3);
 
-  /* Neutrals */
-  --line: #d9d9d9;          /* every divider in the design, drawn at 0.5px */
   --surface: #ffffff;
-  --surface-muted: #fafafa; /* day-header band, footer, nav buttons */
-  --chip-bg: #eee;
-  --chip-ink: #767676;
-  --ink-strong: #363636;    /* today's date + weekday */
-  --ink-label: #525252;     /* TO-DO: */
-  --ink-muted: #999999;     /* weekday names, rail labels, footer actions */
-  --ink-faint: #cfcfcf;     /* inactive date numbers */
+  --surface-sunken: #f7f7f5;  /* sidebar, notes box, composer fields */
+  --surface-alt: #fcfcfb;     /* alternating day columns, to-do strip */
+  --surface-head: #fafaf8;    /* list-view day group headers */
+  --surface-today: #f6f6f4;   /* today's column in the day header */
+  --surface-hover: rgba(55, 53, 47, 0.045);
+  --surface-active: rgba(55, 53, 47, 0.07);
 
-  /* Neutral card tones (the Meeting card) */
-  --card-neutral-fill: #ededed;
-  --card-neutral-label: #8c8c8c;
-  --card-neutral-desc: #cbcbcb;
+  --line-strong: rgba(55, 53, 47, 0.12); /* shell border, button outlines */
+  --line: rgba(55, 53, 47, 0.09);        /* band separators */
+  --line-soft: rgba(55, 53, 47, 0.07);   /* day column separators */
+  --line-faint: rgba(55, 53, 47, 0.06);  /* list row separators */
 
-  /* Type scale */
-  --fs-title: 34px;         /* "August 2026" */
-  --fs-weekday: 17px;
-  --fs-date: 17px;
-  --fs-rail: 13px;
-  --fs-card: 13.7px;
-  --fs-todo: 18px;
-  --fs-action: 16.7px;
-  --fs-chip: 13.5px;
-  --tracking-card: -0.05em;
-  --tracking-action: -0.05em;
+  --accent-solid: #37352f;    /* primary button fill, today's date pill */
+  --accent-solid-hover: #4a4740;
+  --on-accent: #ffffff;
 
-  /* Geometry */
-  --rail-w: 60px;
-  --titlebar-h: 60px;
-  --dayhead-h: 50px;
-  --footer-h: 60px;
-  --card-h: 38px;
-  --card-inset: 4px;        /* 165px card inside a 174px column */
-  --card-bar-w: 3px;
-  --card-radius: 4px;
-  --card-radius-left: 2px;
+  --danger: #a13b2f;
+  --danger-line: rgba(161, 59, 47, 0.25);
+  --missed-dot: #c25a4b;
+  --missed-badge-bg: #f7e3e0;
+  --missed-badge-ink: #8c352a;
+
+  /* ---- Type ------------------------------------------------------------ */
+  --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  --fs-10-5: 10.5px;  /* subject chips */
+  --fs-11: 11px;      /* section eyebrows, counts, meta */
+  --fs-11-5: 11.5px;  /* header eyebrow, day-page meta */
+  --fs-12: 12px;      /* to-do chips, breadcrumb, secondary buttons */
+  --fs-12-5: 12.5px;  /* card description, recurring bar text, buttons */
+  --fs-13: 13px;      /* sidebar rows, list row text */
+  --fs-13-5: 13.5px;  /* sidebar nav rows */
+  --fs-14: 14px;      /* day-page item rows */
+  --fs-14-5: 14.5px;  /* weekday names */
+  --fs-18: 18px;      /* "Edit planner" panel title */
+  --fs-21: 21px;      /* "List" panel title */
+  --fs-title: 29px;   /* "August 2026" */
+  --fs-day-title: 34px; /* "August 25" on the day page */
+
+  --track-eyebrow: 0.06em;
+  --track-section: 0.05em;
+  --track-title: -0.01em;
+
+  /* ---- Geometry -------------------------------------------------------- */
+  --sidebar-w: 236px;
+  /* Height of the desktop window's transparent title bar; 0 in a browser. */
+  --titlebar-inset: 0px;
+  --rail-w: 52px;          /* collapsed sidebar */
+  --band-head-h: 30px;
+  --todo-h: 52px;
+  --header-pad-x: 26px;
+
+  --radius-card: 6px;      /* item cards, buttons, recurring bars */
+  --radius-shell: 10px;    /* panels, popovers */
+  --radius-chip: 4px;      /* subject chips */
+  --radius-row: 5px;       /* sidebar rows */
+  --radius-pill: 14px;     /* to-do chips */
+
+  --card-bar-w: 3px;       /* recurring bar's coloured left border */
+  --checkbox-size: 13px;
   --nav-size: 30px;
+
+  --shadow-card: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-card-hover: 0 2px 6px rgba(15, 15, 15, 0.07);
+  --shadow-panel: 0 12px 32px rgba(15, 15, 15, 0.08);
+  --shadow-pop: 0 14px 34px rgba(15, 15, 15, 0.14);
 }

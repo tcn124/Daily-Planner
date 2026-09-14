@@ -1,0 +1,76 @@
+import { usePlanner } from '../store/plannerStore';
+import { formatSpan, isoWeek, monthLong, year } from '../lib/dates';
+import { DaysStepper } from './DaysStepper';
+
+interface Props {
+  window: string[];
+  onNewItem: () => void;
+}
+
+/** The chevron from the design's nav buttons; flipped with CSS for "next". */
+function Chevron() {
+  return (
+    <svg viewBox="0 0 30 30" width="13" height="13" fill="none" aria-hidden="true">
+      <path
+        d="M9.83287 15.0052C9.83702 14.8599 9.86607 14.7271 9.92003 14.6067C9.97398 14.4864 10.057 14.3702 10.1691 14.2581L16.4071 8.21929C16.5856 8.04082 16.8055 7.95159 17.067 7.95159C17.2413 7.95159 17.399 7.99309 17.5401 8.0761C17.6854 8.15911 17.7995 8.27117 17.8826 8.41228C17.9697 8.5534 18.0133 8.71111 18.0133 8.88543C18.0133 9.14275 17.9158 9.36895 17.7207 9.56402L12.0803 14.999L17.7207 20.4401C17.9158 20.6393 18.0133 20.8655 18.0133 21.1187C18.0133 21.2972 17.9697 21.457 17.8826 21.5981C17.7995 21.7392 17.6854 21.8512 17.5401 21.9343C17.399 22.0214 17.2413 22.065 17.067 22.065C16.8055 22.065 16.5856 21.9737 16.4071 21.7911L10.1691 15.7522C10.0528 15.6402 9.96776 15.524 9.9138 15.4036C9.85985 15.2791 9.83287 15.1463 9.83287 15.0052Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export function AppHeader({ window: window_, onNewItem }: Props) {
+  const { state, dispatch } = usePlanner();
+  const { anchorDate, daysVisible } = state.settings;
+
+  return (
+    <header className="appbar">
+      <div className="appbar__heading">
+        <div className="appbar__eyebrow">
+          Week {isoWeek(anchorDate)} · {formatSpan(window_)}
+        </div>
+        <h1 className="appbar__title">
+          {monthLong(anchorDate)}
+          <span className="appbar__year">{year(anchorDate)}</span>
+        </h1>
+      </div>
+
+      <div className="appbar__actions">
+        <div className="navgroup">
+          <button
+            type="button"
+            className="navgroup__arrow"
+            aria-label="Previous day"
+            onClick={() => dispatch({ type: 'settings/shift', direction: -1 })}
+          >
+            <Chevron />
+          </button>
+          <button
+            type="button"
+            className="navgroup__today"
+            onClick={() => dispatch({ type: 'settings/today' })}
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            className="navgroup__arrow navgroup__arrow--next"
+            aria-label="Next day"
+            onClick={() => dispatch({ type: 'settings/shift', direction: 1 })}
+          >
+            <Chevron />
+          </button>
+        </div>
+
+        <DaysStepper
+          value={daysVisible}
+          onChange={(days) => dispatch({ type: 'settings/days', days })}
+        />
+
+        <button type="button" className="btn btn--primary" onClick={onNewItem}>
+          New item
+        </button>
+      </div>
+    </header>
+  );
+}

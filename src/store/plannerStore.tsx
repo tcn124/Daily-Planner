@@ -16,8 +16,8 @@ import type {
   Subject,
   ViewMode,
 } from '../types';
-import { addDays, startOfWeek, todayISO } from '../lib/dates';
-import { createInitialState, uid } from './defaults';
+import { addDays, todayISO } from '../lib/dates';
+import { clampDays, createInitialState, uid } from './defaults';
 import { loadState, saveState } from './persistence';
 
 export type Action =
@@ -28,7 +28,7 @@ export type Action =
   | { type: 'recurring/add'; item: Omit<RecurringItem, 'id'> }
   | { type: 'recurring/update'; id: string; patch: Partial<RecurringItem> }
   | { type: 'recurring/delete'; id: string }
-  | { type: 'recurring/toggle'; id: string }
+  | { type: 'recurring/toggleDay'; id: string; date: string }
   | { type: 'todo/add'; text: string }
   | { type: 'todo/toggle'; id: string }
   | { type: 'todo/delete'; id: string }
@@ -41,6 +41,7 @@ export type Action =
   | { type: 'settings/today' }
   | { type: 'settings/bandWeights'; weights: [number, number, number] }
   | { type: 'settings/view'; view: ViewMode }
+  | { type: 'note/set'; date: string; text: string }
   | { type: 'state/replace'; state: PlannerState }
   | { type: 'state/reset' };
 
@@ -65,6 +66,14 @@ function reducer(state: PlannerState, action: Action): PlannerState {
 
     case 'item/delete':
       return { ...state, items: state.items.filter((i) => i.id !== action.id) };
+
+    case 'note/set': {
+      // Blank notes are dropped rather than stored, so `notes` stays sparse.
+      const notes = { ...state.notes };
+      if (action.text.trim()) notes[action.date] = action.text;
+      else delete notes[action.date];
+      return { ...state, notes };
+    }
 
     case 'item/toggle':
       return {
@@ -94,12 +103,19 @@ function reducer(state: PlannerState, action: Action): PlannerState {
         recurring: state.recurring.filter((r) => r.id !== action.id),
       };
 
-    case 'recurring/toggle':
+    case 'recurring/toggleDay':
       return {
         ...state,
-        recurring: state.recurring.map((r) =>
-          r.id === action.id ? { ...r, done: !r.done } : r,
-        ),
+        recurring: state.recurring.map((r) => {
+          if (r.id !== action.id) return r;
+          const done = r.doneDates.includes(action.date);
+          return {
+            ...r,
+            doneDates: done
+              ? r.doneDates.filter((d) => d !== action.date)
+              : [...r.doneDates, action.date],
+          };
+        }),
       };
 
     case 'todo/add': {
@@ -159,7 +175,7 @@ function reducer(state: PlannerState, action: Action): PlannerState {
     case 'settings/days':
       return {
         ...state,
-        settings: { ...state.settings, daysVisible: action.days },
+        settings: { ...state.settings, daysVisible: clampDays(action.days) },
       };
 
     case 'settings/anchor':
@@ -178,19 +194,12 @@ function reducer(state: PlannerState, action: Action): PlannerState {
         },
       };
 
-    case 'settings/today': {
-      // A full week snaps to its Monday; shorter windows simply start on today
-      // so the current day is always the first column.
-      const today = todayISO();
+    case 'settings/today':
+      // Today is always the leftmost column, whatever the window size.
       return {
         ...state,
-        settings: {
-          ...state.settings,
-          anchorDate:
-            state.settings.daysVisible === 7 ? startOfWeek(today) : today,
-        },
+        settings: { ...state.settings, anchorDate: todayISO() },
       };
-    }
 
     case 'settings/bandWeights':
       return {

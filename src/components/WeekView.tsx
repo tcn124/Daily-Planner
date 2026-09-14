@@ -1,32 +1,171 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { usePlanner } from '../store/plannerStore';
 import {
+  addDays,
   buildWindow,
   dayName,
   dayOfMonth,
-  monthLong,
+  isWithin,
   todayISO,
-  year,
 } from '../lib/dates';
 import { DEFAULT_BAND_WEIGHTS, uid } from '../store/defaults';
 import { DayCell, type ComposerTarget } from './DayCell';
 import { RecurringBand } from './RecurringBand';
-import { ScratchpadFooter } from './ScratchpadFooter';
+import { TodoStrip } from './TodoStrip';
 import type { ComposerValue } from './ItemComposer';
-import { BandResizer } from './BandResizer';
-import navPrev from '../assets/nav-prev.svg';
+import type { ItemType } from '../types';
+import { AppHeader } from './AppHeader';
+import { BandHeader } from './BandHeader';
 
 interface Props {
-  onOpenSettings: () => void;
+  onOpenDay: (date: string) => void;
 }
 
-export function WeekView({ onOpenSettings }: Props) {
+type BandKey = 'assignments' | 'events' | 'recurring';
+
+/**
+ * Days rendered off-screen either side of the visible window, so sideways
+ * scrolling has somewhere to go before the anchor is re-based.
+ */
+const BUFFER = 7;
+
+/**
+ * Fallback only, for engines without `scrollend`: how long the scroll must be
+ * quiet before we treat the gesture as finished. Where `scrollend` exists the
+ * browser tells us the exact moment, guess-free.
+ */
+const SETTLE_FALLBACK_MS = 100;
+
+const HAS_SCROLLEND = typeof window !== 'undefined' && 'onscrollend' in window;
+
+export function WeekView({ onOpenDay }: Props) {
   const { state, dispatch } = usePlanner();
   const { subjects, items, recurring, todos, settings } = state;
   const [composer, setComposer] = useState<ComposerTarget | null>(null);
+  const [collapsed, setCollapsed] = useState<Record<BandKey, boolean>>({
+    assignments: false,
+    events: false,
+    recurring: false,
+  });
 
-  const window_ = buildWindow(settings.anchorDate, settings.daysVisible);
   const today = todayISO();
+
+  // What the user is meant to be looking at — drives counts and the header.
+  const window_ = buildWindow(settings.anchorDate, settings.daysVisible);
+  // What is actually in the DOM: the visible window plus a buffer either side.
+  const trackStart = addDays(settings.anchorDate, -BUFFER);
+  const totalDays = settings.daysVisible + BUFFER * 2;
+  const trackWindow = buildWindow(trackStart, totalDays);
+
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const settleRef = useRef<number | undefined>(undefined);
+  /** Scroll/scrollend events before this timestamp are ones we caused by re-parking. */
+  const ignoreScrollUntil = useRef(0);
+  /**
+   * The dates currently in the DOM, kept fresh every render. The settle handler
+   * reads the resting day out of this rather than doing arithmetic on
+   * `settings.anchorDate`, which by then may be a render behind.
+   */
+  const trackRef = useRef(trackWindow);
+  trackRef.current = trackWindow;
+
+  const columnWidth = () => {
+    const el = scrollerRef.current;
+    return el ? el.clientWidth / settings.daysVisible : 0;
+  };
+
+  /**
+   * Park the viewport on the anchor day after any anchor change, so the
+   * rendered window slides under a stationary viewport and the re-base is
+   * invisible.
+   *
+   * Setting `scrollLeft` fires scroll and scrollend events of our own making.
+   * Left alone they would trigger a settle, and a burst of arrow presses would
+   * then re-anchor from whatever the settle happened to see — which skipped and
+   * reversed days. So: drop any pending settle, and ignore events for a moment
+   * after. Those events land within a frame, so the window is kept short.
+   */
+  const parkedOnce = useRef(false);
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    const w = columnWidth();
+    if (!el || !w) return;
+    window.clearTimeout(settleRef.current);
+    const target = BUFFER * w;
+    const park = () => {
+      if (Math.abs(el.scrollLeft - target) >= 1) el.scrollLeft = target;
+    };
+    // On a page reload the browser may restore a stale scroll position a frame
+    // or two after we first park, and a settle would then honour it. Give the
+    // first park a longer quiet window and re-assert it once layout is stable.
+    const first = !parkedOnce.current;
+    parkedOnce.current = true;
+    ignoreScrollUntil.current = performance.now() + (first ? 400 : 120);
+    park();
+    if (first) {
+      requestAnimationFrame(() => requestAnimationFrame(park));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.anchorDate, settings.daysVisible]);
+
+  useEffect(() => () => window.clearTimeout(settleRef.current), []);
+
+  /**
+   * A card mid-drag pins the grid: re-anchoring would slide the days under the
+   * cursor and change which cell is about to receive the drop.
+   */
+  const draggingRef = useRef<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  /**
+   * CSS scroll-snap does the snapping; this only re-bases the anchor to
+   * whichever day came to rest on the left once the gesture is over.
+   */
+  const settle = () => {
+    if (draggingRef.current !== null) return;
+    if (performance.now() < ignoreScrollUntil.current) return;
+    const el = scrollerRef.current;
+    const w = columnWidth();
+    if (!el || !w) return;
+    const column = Math.round(el.scrollLeft / w);
+    if (column === BUFFER) return;
+    // Absolute, not relative: read the date actually sitting in that column.
+    const next = trackRef.current[column];
+    if (next) dispatch({ type: 'settings/anchor', anchorDate: next });
+  };
+  const settleRefFn = useRef(settle);
+  settleRefFn.current = settle;
+
+  /**
+   * `scrollend` fires the instant all motion — momentum and snap included — is
+   * done. A timeout can only guess at that, and on a trackpad flick momentum
+   * briefly pauses mid-gesture, so the guess fires early and re-parks a scroll
+   * that is still in flight. React 18 has no `onScrollEnd`, hence the native
+   * listener.
+   */
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || !HAS_SCROLLEND) return;
+    const onEnd = () => settleRefFn.current();
+    el.addEventListener('scrollend', onEnd);
+    return () => el.removeEventListener('scrollend', onEnd);
+  }, []);
+
+  function onScroll() {
+    if (HAS_SCROLLEND) return;
+    if (performance.now() < ignoreScrollUntil.current) return;
+    window.clearTimeout(settleRef.current);
+    settleRef.current = window.setTimeout(
+      () => settleRefFn.current(),
+      SETTLE_FALLBACK_MS,
+    );
+  }
 
   // Arrow keys page the window, but not while typing into the composer.
   useEffect(() => {
@@ -54,21 +193,54 @@ export function WeekView({ onOpenSettings }: Props) {
     } else {
       dispatch({
         type: 'item/add',
-        item: { type: composer.type, date: composer.date, done: false, ...value },
+        item: { date: composer.date, done: false, ...value },
       });
     }
     setComposer(null);
   }
 
+  function onDragStart(id: string) {
+    draggingRef.current = id;
+    setDraggingId(id);
+  }
+
+  function finishDrag() {
+    draggingRef.current = null;
+    setDraggingId(null);
+    // Dragging near an edge may have auto-scrolled the grid; catch up now.
+    settleRefFn.current();
+  }
+
+  /**
+   * Cleanup happens here, not only in `onDragEnd`. A successful drop moves the
+   * item to another cell, so React unmounts the original card — and the
+   * browser then fires `dragend` on that detached element, where it never
+   * reaches React. Relying on it left the moved card stuck in its faded
+   * "being dragged" state.
+   */
+  function onDropItem(id: string, date: string, type: ItemType) {
+    finishDrag();
+    const item = items.find((i) => i.id === id);
+    if (!item || (item.date === date && item.type === type)) return;
+    dispatch({ type: 'item/update', id, patch: { date, type } });
+  }
+
+  /** Still needed for drags that end without a drop — cancelled, or released off-grid. */
+  const onDragEnd = finishDrag;
+
   const cellProps = {
     subjects,
     composer,
+    draggingId,
     onOpenComposer: setComposer,
     onCloseComposer: () => setComposer(null),
     onSubmit: submitComposer,
     onToggle: (id: string) => dispatch({ type: 'item/toggle', id }),
     onDelete: (id: string) => dispatch({ type: 'item/delete', id }),
     onCreateSubject: createSubject,
+    onDragStart,
+    onDragEnd,
+    onDropItem,
   };
 
   const itemsFor = (date: string, type: 'assignment' | 'event') =>
@@ -76,142 +248,168 @@ export function WeekView({ onOpenSettings }: Props) {
       .filter((i) => i.date === date && i.type === type)
       .sort((a, b) => a.createdAt - b.createdAt);
 
+  const inWindow = (date: string) => window_.includes(date);
+  const dueCount = items.filter(
+    (i) => i.type === 'assignment' && !i.done && inWindow(i.date),
+  ).length;
+  const eventCount = items.filter((i) => i.type === 'event' && inWindow(i.date)).length;
+  const activeCount = recurring.filter((r) =>
+    window_.some((d) => isWithin(d, r.startDate, r.endDate)),
+  ).length;
+
+  const toggleBand = (key: BandKey) =>
+    setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const resizerFor = (index: number) => ({
+    index,
+    bandWeights: settings.bandWeights,
+    onBands: (weights: [number, number, number]) =>
+      dispatch({ type: 'settings/bandWeights', weights }),
+    onReset: () =>
+      dispatch({
+        type: 'settings/bandWeights',
+        weights: [...DEFAULT_BAND_WEIGHTS] as [number, number, number],
+      }),
+  });
+
+  /** A collapsed band keeps its stored weight but takes no space. */
+  const bandStyle = (index: number, key: BandKey) =>
+    collapsed[key] ? undefined : { flex: `${settings.bandWeights[index]} 1 0` };
+
+  /**
+   * True for columns sitting in the right-hand third of the visible window,
+   * where a left-anchored popover would run off screen. Indices are into the
+   * buffered track, so the visible window starts at BUFFER.
+   */
+  function flipsComposer(trackIndex: number) {
+    const visible = trackIndex - BUFFER;
+    return visible >= settings.daysVisible - 3 && visible < settings.daysVisible;
+  }
+
+  function isWeekend(date: string) {
+    const day = dayName(date);
+    return day === 'Saturday' || day === 'Sunday';
+  }
+
   return (
     <div
       className="planner"
-      style={{ '--days': settings.daysVisible } as CSSProperties}
+      style={
+        {
+          '--days': settings.daysVisible,
+          '--total-days': totalDays,
+          '--track-w': `${(totalDays / settings.daysVisible) * 100}%`,
+        } as CSSProperties
+      }
     >
-      <header className="titlebar">
-        <h1 className="titlebar__title">
-          {monthLong(settings.anchorDate)}
-          <span className="titlebar__year">{year(settings.anchorDate)}</span>
-        </h1>
-        <div className="titlebar__nav">
-          <button
-            type="button"
-            className="nav-btn nav-btn--prev"
-            aria-label="Previous day"
-            onClick={() => dispatch({ type: 'settings/shift', direction: -1 })}
-          >
-            <img src={navPrev} alt="" />
-          </button>
-          <button
-            type="button"
-            className="nav-btn nav-btn--today"
-            aria-label="Jump to today"
-            title="Today"
-            onClick={() => dispatch({ type: 'settings/today' })}
-          />
-          <button
-            type="button"
-            className="nav-btn nav-btn--next"
-            aria-label="Next day"
-            onClick={() => dispatch({ type: 'settings/shift', direction: 1 })}
-          >
-            <img src={navPrev} alt="" />
-          </button>
-        </div>
-      </header>
-
-      <div className="dayhead">
-        <div className="dayhead__corner" />
-        {window_.map((date) => (
-          <div
-            key={date}
-            className={
-              date === today ? 'dayhead__day dayhead__day--today' : 'dayhead__day'
-            }
-          >
-            <span>{dayName(date)}</span>
-            <span className="dayhead__date">{dayOfMonth(date)}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="band band--assignments" style={{ flex: `${settings.bandWeights[0]} 1 0` }}>
-        <div className="rail">
-          <span className="rail__label">Assignments</span>
-          <BandResizer
-            index={0}
-            bandWeights={settings.bandWeights}
-            onBands={(weights) => dispatch({ type: 'settings/bandWeights', weights })}
-            onReset={() =>
-              dispatch({
-                type: 'settings/bandWeights',
-                weights: [...DEFAULT_BAND_WEIGHTS] as [number, number, number],
-              })
-            }
-          />
-        </div>
-        {window_.map((date) => (
-          <DayCell
-            key={date}
-            date={date}
-            type="assignment"
-            items={itemsFor(date, 'assignment')}
-            {...cellProps}
-          />
-        ))}
-      </div>
-
-      <div className="band band--events" style={{ flex: `${settings.bandWeights[1]} 1 0` }}>
-        <div className="rail">
-          <span className="rail__label">Events</span>
-          <BandResizer
-            index={1}
-            bandWeights={settings.bandWeights}
-            onBands={(weights) => dispatch({ type: 'settings/bandWeights', weights })}
-            onReset={() =>
-              dispatch({
-                type: 'settings/bandWeights',
-                weights: [...DEFAULT_BAND_WEIGHTS] as [number, number, number],
-              })
-            }
-          />
-        </div>
-        {window_.map((date) => (
-          <DayCell
-            key={date}
-            date={date}
-            type="event"
-            items={itemsFor(date, 'event')}
-            {...cellProps}
-          />
-        ))}
-      </div>
-
-      <div className="band band--recurring" style={{ flex: `${settings.bandWeights[2]} 1 0` }}>
-        <div className="rail">
-          <span className="rail__label">Recurring</span>
-        </div>
-        <RecurringBand
-          anchorDate={settings.anchorDate}
-          days={settings.daysVisible}
-          recurring={recurring}
-          subjects={subjects}
-          onCreate={(item) => dispatch({ type: 'recurring/add', item })}
-          onUpdate={(id, patch) => dispatch({ type: 'recurring/update', id, patch })}
-          onDelete={(id) => dispatch({ type: 'recurring/delete', id })}
-          onToggle={(id) => dispatch({ type: 'recurring/toggle', id })}
-          onCreateSubject={createSubject}
-        />
-      </div>
-
-
-      <ScratchpadFooter
-        todos={todos}
-        onAddTodo={(text) => dispatch({ type: 'todo/add', text })}
-        onToggleTodo={(id) => dispatch({ type: 'todo/toggle', id })}
-        onDeleteTodo={(id) => dispatch({ type: 'todo/delete', id })}
-        onOpenList={() => dispatch({ type: 'settings/view', view: 'list' })}
-        onOpenSettings={onOpenSettings}
-        onQuickAdd={() =>
+      <AppHeader
+        window={window_}
+        onNewItem={() =>
           setComposer({
             date: window_.includes(today) ? today : window_[0],
             type: 'assignment',
             itemId: null,
           })
         }
+      />
+
+      <div className="dayscroll" ref={scrollerRef} onScroll={onScroll}>
+      <div className="dayhead">
+        {trackWindow.map((date) => {
+          const classes = ['dayhead__day'];
+          if (isWeekend(date)) classes.push('dayhead__day--weekend');
+          if (date === today) classes.push('dayhead__day--today');
+          return (
+            <button
+              key={date}
+              type="button"
+              className={classes.join(' ')}
+              title={`Open ${dayName(date)}`}
+              onClick={() => onOpenDay(date)}
+            >
+              <span className="dayhead__name">
+                {settings.daysVisible > 7 ? dayName(date).slice(0, 3) : dayName(date)}
+              </span>
+              <span className="dayhead__date">{dayOfMonth(date)}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <BandHeader
+        label="Assignments"
+        count={`${dueCount} due`}
+        collapsed={collapsed.assignments}
+        onToggleCollapsed={() => toggleBand('assignments')}
+      />
+      {!collapsed.assignments && (
+        <div className="band band--assignments" style={bandStyle(0, 'assignments')}>
+          {trackWindow.map((date, i) => (
+            <DayCell
+              key={date}
+              date={date}
+              type="assignment"
+              tinted={isWeekend(date) || date === today}
+              flipComposer={flipsComposer(i)}
+              items={itemsFor(date, 'assignment')}
+              {...cellProps}
+            />
+          ))}
+        </div>
+      )}
+
+      <BandHeader
+        label="Events"
+        count={`${eventCount} this week`}
+        collapsed={collapsed.events}
+        onToggleCollapsed={() => toggleBand('events')}
+        resizer={resizerFor(0)}
+      />
+      {!collapsed.events && (
+        <div className="band band--events" style={bandStyle(1, 'events')}>
+          {trackWindow.map((date, i) => (
+            <DayCell
+              key={date}
+              date={date}
+              type="event"
+              tinted={isWeekend(date) || date === today}
+              flipComposer={flipsComposer(i)}
+              items={itemsFor(date, 'event')}
+              {...cellProps}
+            />
+          ))}
+        </div>
+      )}
+
+      <BandHeader
+        label="Recurring"
+        count={`${activeCount} active`}
+        collapsed={collapsed.recurring}
+        onToggleCollapsed={() => toggleBand('recurring')}
+        resizer={resizerFor(1)}
+      />
+      {!collapsed.recurring && (
+        <div className="band band--recurring" style={bandStyle(2, 'recurring')}>
+          <RecurringBand
+            anchorDate={trackStart}
+            days={totalDays}
+            recurring={recurring}
+            subjects={subjects}
+            onCreate={(item) => dispatch({ type: 'recurring/add', item })}
+            onUpdate={(id, patch) => dispatch({ type: 'recurring/update', id, patch })}
+            onDelete={(id) => dispatch({ type: 'recurring/delete', id })}
+            onToggleDay={(id, date) => dispatch({ type: 'recurring/toggleDay', id, date })}
+            onCreateSubject={createSubject}
+          />
+        </div>
+      )}
+      </div>
+
+      <TodoStrip
+        todos={todos}
+        onAddTodo={(text) => dispatch({ type: 'todo/add', text })}
+        onToggleTodo={(id) => dispatch({ type: 'todo/toggle', id })}
+        onDeleteTodo={(id) => dispatch({ type: 'todo/delete', id })}
       />
     </div>
   );

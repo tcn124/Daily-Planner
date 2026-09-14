@@ -1,31 +1,51 @@
 import { useState } from 'react';
 import { usePlanner } from '../store/plannerStore';
 import { DEFAULT_HUE } from '../store/defaults';
-import { subjectLabel } from '../lib/color';
-import { HuePicker } from './HuePicker';
+import { subjectAccent } from '../lib/color';
+import { SwatchPicker } from './SwatchPicker';
+import { ConfirmDialog } from './ConfirmDialog';
 import { clearState, exportState, importState } from '../store/persistence';
-import { confirmAction } from '../lib/dialogs';
-import type { DaysVisible } from '../types';
+import { DaysStepper } from './DaysStepper';
 
 interface Props {
   onClose: () => void;
 }
 
-const DAY_OPTIONS: DaysVisible[] = [3, 5, 7];
+interface Pending {
+  message: string;
+  confirmLabel: string;
+  danger: boolean;
+  resolve: (ok: boolean) => void;
+}
 
 export function SettingsPanel({ onClose }: Props) {
   const { state, dispatch } = usePlanner();
   const [editingColor, setEditingColor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<Pending | null>(null);
+
+  /** Promise-shaped so the call sites read like the old `confirmAction`. */
+  function confirm(
+    message: string,
+    { confirmLabel = 'Confirm', danger = false } = {},
+  ): Promise<boolean> {
+    return new Promise((resolve) =>
+      setPending({ message, confirmLabel, danger, resolve }),
+    );
+  }
+
+  const countFor = (id: string) =>
+    state.items.filter((i) => i.subjectId === id).length +
+    state.recurring.filter((r) => r.subjectId === id).length;
 
   async function deleteSubject(id: string, name: string) {
-    const used =
-      state.items.filter((i) => i.subjectId === id).length +
-      state.recurring.filter((r) => r.subjectId === id).length;
+    const used = countFor(id);
     const message = used
       ? `Delete "${name}"? ${used} item${used === 1 ? '' : 's'} will keep their text but lose the subject.`
       : `Delete "${name}"?`;
-    if (await confirmAction(message)) dispatch({ type: 'subject/delete', id });
+    if (await confirm(message, { confirmLabel: 'Delete', danger: true })) {
+      dispatch({ type: 'subject/delete', id });
+    }
   }
 
   async function onImport() {
@@ -33,7 +53,12 @@ export function SettingsPanel({ onClose }: Props) {
     try {
       const next = await importState();
       if (!next) return; // cancelled
-      if (await confirmAction('Replace all current planner data with this backup?')) {
+      if (
+        await confirm('Replace all current planner data with this backup?', {
+          confirmLabel: 'Replace',
+          danger: true,
+        })
+      ) {
         dispatch({ type: 'state/replace', state: next });
       }
     } catch (err) {
@@ -47,41 +72,40 @@ export function SettingsPanel({ onClose }: Props) {
       <aside
         className="panel"
         role="dialog"
-        aria-label="Planner settings"
+        aria-label="Edit planner"
         onKeyDown={(e) => {
           if (e.key === 'Escape') onClose();
         }}
       >
         <div className="panel__head">
-          <h2 className="panel__title">Edit</h2>
+          <h2 className="panel__title">Edit planner</h2>
           <button
             type="button"
-            className="panel__close"
-            aria-label="Close settings"
+            className="kill panel__close"
+            aria-label="Close"
             onClick={onClose}
-          >
-            <span className="kill" aria-hidden="true" />
-          </button>
+          />
         </div>
 
         <section className="panel__section">
-          <h3>Subjects</h3>
+          <span className="eyebrow">Subjects</span>
           {state.subjects.map((s) => (
             <div key={s.id}>
-              <div className="subject-row">
-                <button
-                  type="button"
-                  className="subject-row__color"
-                  style={{ background: subjectLabel(s.hue) }}
-                  aria-label={`Change color for ${s.name}`}
-                  onClick={() =>
-                    setEditingColor(editingColor === s.id ? null : s.id)
-                  }
+              <div
+                className="subject-row"
+                data-open={editingColor === s.id}
+                onClick={() => setEditingColor(editingColor === s.id ? null : s.id)}
+              >
+                <span
+                  className="subject-row__dot"
+                  style={{ background: subjectAccent(s.hue) }}
+                  aria-hidden="true"
                 />
                 <input
-                  className="field subject-row__name"
+                  className="subject-row__name"
                   value={s.name}
                   aria-label={`Name for ${s.name}`}
+                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) =>
                     dispatch({
                       type: 'subject/update',
@@ -90,106 +114,108 @@ export function SettingsPanel({ onClose }: Props) {
                     })
                   }
                 />
+                <span className="count">{countFor(s.id)} items</span>
                 <button
                   type="button"
-                  className="subject-row__del"
+                  className="kill subject-row__del"
                   aria-label={`Delete ${s.name}`}
-                  onClick={() => void deleteSubject(s.id, s.name)}
-                >
-                  <span className="kill" aria-hidden="true" />
-                </button>
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void deleteSubject(s.id, s.name);
+                  }}
+                />
               </div>
 
               {editingColor === s.id && (
-                <div className="panel__swatches">
-                  <HuePicker
-                    hue={s.hue}
-                    onChange={(hue) =>
-                      dispatch({
-                        type: 'subject/update',
-                        id: s.id,
-                        patch: { hue },
-                      })
-                    }
-                  />
-                </div>
+                <SwatchPicker
+                  hue={s.hue}
+                  onChange={(hue) =>
+                    dispatch({ type: 'subject/update', id: s.id, patch: { hue } })
+                  }
+                />
               )}
             </div>
           ))}
 
-          <div className="panel__buttons">
-            <button
-              type="button"
-              className="btn"
-              onClick={() =>
-                dispatch({
-                  type: 'subject/add',
-                  name: 'New subject',
-                  // Spread new subjects around the wheel so they stay distinct.
-                  hue: (DEFAULT_HUE + state.subjects.length * 47) % 360,
-                })
-              }
-            >
-              + Add subject
-            </button>
-          </div>
+          <button
+            type="button"
+            className="panel__add"
+            onClick={() =>
+              dispatch({
+                type: 'subject/add',
+                name: 'New subject',
+                // Spread new subjects around the wheel so they stay distinct.
+                hue: (DEFAULT_HUE + state.subjects.length * 47) % 360,
+              })
+            }
+          >
+            <span className="panel__add-plus">+</span>Add subject
+          </button>
         </section>
 
         <section className="panel__section">
-          <h3>Days shown</h3>
-          <div className="segmented">
-            {DAY_OPTIONS.map((d) => (
-              <button
-                key={d}
-                type="button"
-                data-active={state.settings.daysVisible === d}
-                onClick={() => dispatch({ type: 'settings/days', days: d })}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
+          <span className="eyebrow">Days shown</span>
+          <DaysStepper
+            value={state.settings.daysVisible}
+            onChange={(days) => dispatch({ type: 'settings/days', days })}
+          />
           <p className="panel__note">
-            How many days the grid shows at once. The header arrows always move
-            one day at a time.
+            Anywhere from 1 to 14. The header arrows still move one day at a time.
           </p>
         </section>
 
         <section className="panel__section">
-          <h3>Data</h3>
+          <span className="eyebrow">Data</span>
           <div className="panel__buttons">
-            <button type="button" className="btn" onClick={() => void exportState(state)}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void exportState(state)}
+            >
               Export JSON
             </button>
             <button type="button" className="btn" onClick={() => void onImport()}>
               Import JSON
             </button>
-            <button
-              type="button"
-              className="btn panel__danger"
-              onClick={() => {
-                void (async () => {
-                  if (
-                    await confirmAction(
-                      'Erase all planner data? This cannot be undone.',
-                    )
-                  ) {
-                    clearState();
-                    dispatch({ type: 'state/reset' });
-                  }
-                })();
-              }}
-            >
-              Reset all data
-            </button>
           </div>
-          {error && <p className="panel__note">{error}</p>}
+          <button
+            type="button"
+            className="btn btn--danger panel__reset"
+            onClick={() => {
+              void (async () => {
+                if (
+                  await confirm('Erase all planner data? This cannot be undone.', {
+                    confirmLabel: 'Erase everything',
+                    danger: true,
+                  })
+                ) {
+                  clearState();
+                  dispatch({ type: 'state/reset' });
+                }
+              })();
+            }}
+          >
+            Reset all data
+          </button>
+          {error && <p className="panel__note panel__note--error">{error}</p>}
           <p className="panel__note">
-            Your planner saves automatically as you work. Export a backup before
-            switching machines — it is the only copy that leaves this Mac.
+            Saves automatically. Export before switching machines — it&apos;s the only
+            copy that leaves this Mac.
           </p>
         </section>
       </aside>
+
+      {pending && (
+        <ConfirmDialog
+          message={pending.message}
+          confirmLabel={pending.confirmLabel}
+          danger={pending.danger}
+          onResolve={(ok) => {
+            pending.resolve(ok);
+            setPending(null);
+          }}
+        />
+      )}
     </>
   );
 }

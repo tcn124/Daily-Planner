@@ -20,11 +20,21 @@ interface Drag {
 }
 
 /**
- * The grab strip for one band divider. It lives inside the rail rather than in
- * a floating overlay: an overlay would need `pointer-events: none` with the
- * strips re-enabling themselves, and that override does not hit-test reliably
- * in the WebView the desktop build uses.
+ * The grab strip for one band divider. It sits on the top edge of a band's
+ * section header, so the two bands it divides are the header's immediate
+ * siblings: the band above is the previous element, the band below the next.
+ * Either can be absent when that band is collapsed, in which case there is
+ * nothing to resize.
  */
+function bandsAround(el: HTMLElement | null): [Element, Element] | null {
+  const head = el?.closest('.bandhead');
+  const above = head?.previousElementSibling;
+  const below = head?.nextElementSibling;
+  if (!above?.classList.contains('band') || !below?.classList.contains('band')) {
+    return null;
+  }
+  return [above, below];
+}
 export function BandResizer({ index, bandWeights, onBands, onReset }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -65,15 +75,15 @@ export function BandResizer({ index, bandWeights, onBands, onReset }: Props) {
       className="band-resizer"
       title="Drag to resize · double-click to reset"
       onMouseDown={(e) => {
-        const band = ref.current?.closest('.band');
-        const next = band?.nextElementSibling;
-        if (!band || !next) return;
+        const pair = bandsAround(ref.current);
+        if (!pair) return;
+        const [above, below] = pair;
         e.preventDefault();
         setDrag({
           startY: e.clientY,
           trackPx:
-            band.getBoundingClientRect().height +
-            next.getBoundingClientRect().height,
+            above.getBoundingClientRect().height +
+            below.getBoundingClientRect().height,
           before: bandWeights[index],
           after: bandWeights[index + 1],
         });

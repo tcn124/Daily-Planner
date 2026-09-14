@@ -1,19 +1,19 @@
 /*
  * Vendored from Google Fonts (Latin subset) so the desktop app renders with no
- * network access. Inter ships as a single variable font covering every weight.
+ * network access. Both ship as variable fonts covering the weights we use.
  */
 @font-face {
-  font-family: 'Inter';
+  font-family: 'DM Sans';
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 300 700;
   font-display: swap;
-  src: url('./inter.woff2') format('woff2');
+  src: url('./dm-sans.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Lato';
+  font-family: 'Source Serif 4';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 600;
   font-display: swap;
-  src: url('./lato-400.woff2') format('woff2');
+  src: url('./source-serif-4.woff2') format('woff2');
 }

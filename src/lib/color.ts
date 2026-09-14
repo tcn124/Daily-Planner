@@ -1,37 +1,52 @@
 /**
  * Subjects are stored as a single hue (0–359). Every colour the UI needs is
- * derived from it, matching the three-tone card treatment in the Figma design:
- * a pale fill, a saturated label, and a faint description tone.
+ * derived from it at a fixed perceptual lightness and chroma, matching the
+ * subject chips in the design canvas (see `design/`).
  *
- * Reference values from the design — Math #b5bdff / #3749e7 / #6d7ae8 and
- * Biology #b5ffbf / #23ba50 / #71e682 — sit almost exactly on these curves.
+ * Derivation happens in OKLCH rather than HSL: across the four seeded subjects
+ * the design's measured HSL saturations swing from 32 (History's green) to 78
+ * (Journalism's orange), while in OKLCH the same swatches sit at near-constant
+ * lightness and chroma. One OKLCH formula reproduces all of them; no single
+ * HSL formula can.
  *
  * A `null` hue means "no colour" and uses the neutral greys the design gives
- * the Meeting card.
+ * the Meeting subject.
  */
 
-const NEUTRAL_FILL = '#ededed';
-const NEUTRAL_LABEL = '#8c8c8c';
-const NEUTRAL_DESC = '#cbcbcb';
+import { hslHueToOkHue, oklchToHex } from './oklch';
 
-/** Card / bar background. */
-export function subjectFill(hue: number | null): string {
-  return hue === null ? NEUTRAL_FILL : `hsl(${hue} 100% 85%)`;
+const NEUTRAL_CHIP_BG = '#eeeeeb';
+const NEUTRAL_CHIP_INK = '#6a6862';
+const NEUTRAL_ACCENT = '#9b9a94';
+const NEUTRAL_TINT = '#f7f7f5';
+
+/*
+ * L and C below are fitted against the design's four seeded subjects, chosen to
+ * minimise the worst-case error rather than the average. The design's own
+ * swatches are hand-picked and not internally consistent — their chip-ink
+ * chroma alone ranges 0.077–0.124 — so no single constant reproduces all four
+ * exactly. Minimax keeps every subject equally close instead of nailing two and
+ * visibly missing the others.
+ */
+
+/** Subject chip background — on cards, list rows, and the composer. */
+export function subjectChipBg(hue: number | null): string {
+  return hue === null ? NEUTRAL_CHIP_BG : oklchToHex(0.946, 0.021, hslHueToOkHue(hue));
 }
 
-/** Subject name, the 3px marker bar, and dropdown swatches. */
-export function subjectLabel(hue: number | null): string {
-  return hue === null ? NEUTRAL_LABEL : `hsl(${hue} 72% 45%)`;
+/** Subject chip text, sitting on `subjectChipBg`. */
+export function subjectChipInk(hue: number | null): string {
+  return hue === null ? NEUTRAL_CHIP_INK : oklchToHex(0.412, 0.089, hslHueToOkHue(hue));
 }
 
-/** Description line — deliberately low contrast against the fill. */
-export function subjectDesc(hue: number | null): string {
-  return hue === null ? NEUTRAL_DESC : `hsl(${hue} 68% 66%)`;
+/** Sidebar dot, recurring bar's left border, swatch buttons. */
+export function subjectAccent(hue: number | null): string {
+  return hue === null ? NEUTRAL_ACCENT : oklchToHex(0.612, 0.123, hslHueToOkHue(hue));
 }
 
 /** Faint tint used behind larger surfaces such as the list-view row hover. */
 export function subjectTint(hue: number | null): string {
-  return hue === null ? '#f5f5f5' : `hsl(${hue} 100% 95%)`;
+  return hue === null ? NEUTRAL_TINT : oklchToHex(0.97, 0.012, hslHueToOkHue(hue));
 }
 
 /**

@@ -1,0 +1,584 @@
+/* App shell: the sidebar, and the header above the week grid. */
+
+.app {
+  display: flex;
+  height: 100%;
+  min-width: 900px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.planner {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------ overlay title bar */
+
+/*
+ * On the desktop the title bar is transparent and title-less, with the
+ * traffic lights floating over the top-left of our content. Each column
+ * pads its top by the bar's height so nothing sits under them, and an
+ * invisible strip across that band lets the window be dragged and zoomed
+ * the way the bar used to.
+ */
+html[data-titlebar='overlay'] {
+  --titlebar-inset: 28px;
+}
+
+.titlebar-drag {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-inset);
+  z-index: 100;
+}
+
+.sidebar,
+.planner,
+.list,
+.daypage {
+  padding-top: var(--titlebar-inset);
+}
+
+/* ----------------------------------------------------------- sidebar */
+
+.sidebar {
+  flex: none;
+  width: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-sunken);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar--collapsed {
+  width: var(--rail-w);
+  align-items: center;
+  gap: 6px;
+  padding: calc(var(--titlebar-inset) + 14px) 0 14px;
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px 12px 10px;
+}
+
+.sidebar__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.sidebar__name {
+  font-size: var(--fs-13);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__sub {
+  font-size: var(--fs-11);
+  color: var(--ink-45);
+}
+
+.sidebar__toggle {
+  margin-left: auto;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+  color: var(--ink-40);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.sidebar__toggle:hover {
+  background: var(--surface-active);
+  color: var(--ink);
+}
+
+.sidebar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 14px 8px 6px;
+}
+
+.sidebar__group--nav {
+  padding: 6px 8px;
+}
+
+.sidebar__group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 4px;
+}
+
+.sidebar__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: var(--radius-row);
+  font-size: var(--fs-13);
+  color: var(--ink-82);
+  text-align: left;
+  width: 100%;
+  min-width: 0;
+}
+
+.sidebar__row:hover {
+  background: var(--surface-hover);
+}
+
+.sidebar__row--nav {
+  font-size: var(--fs-13-5);
+  color: var(--ink-70);
+}
+
+.sidebar__row--nav[data-active='true'] {
+  background: var(--surface-active);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.sidebar__row--subject {
+  gap: 9px;
+}
+
+.sidebar__row--muted {
+  color: var(--ink-45);
+}
+
+.sidebar__row-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar__icon--text {
+  width: 14px;
+  text-align: center;
+  font-size: var(--fs-12);
+}
+
+/* The "+" in "New subject" lines up with the subject dots above it. */
+.sidebar__plus {
+  flex: none;
+  width: 7px;
+  text-align: center;
+}
+
+.sidebar__badge {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--missed-badge-bg);
+  color: var(--missed-badge-ink);
+  font-size: var(--fs-10-5);
+  font-weight: 600;
+}
+
+/* Missed items stack a title over a "<subject> · N days late" caption. */
+.sidebar__missed {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 8px;
+  border-radius: var(--radius-row);
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar__missed:hover {
+  background: var(--surface-hover);
+}
+
+.sidebar__missed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sidebar__missed-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--missed-dot);
+}
+
+/* The title is the "take me there" control; the checkbox and ✕ sit after it. */
+.sidebar__missed-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-13);
+  color: var(--ink-82);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__missed-title:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--ink-30);
+}
+
+.sidebar__missed-kill {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.sidebar__missed:hover .sidebar__missed-kill,
+.sidebar__missed-kill:focus-visible {
+  opacity: 1;
+}
+
+.sidebar__missed-meta {
+  padding-left: 15px;
+  font-size: var(--fs-11);
+  color: var(--ink-45);
+}
+
+.sidebar__link {
+  padding: 5px 8px;
+  border-radius: var(--radius-row);
+  font-size: var(--fs-12);
+  color: var(--ink-45);
+  text-align: left;
+  width: 100%;
+}
+
+.sidebar__link:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+
+.sidebar__footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.sidebar__footer .sidebar__row {
+  color: var(--ink-60);
+}
+
+/* ------------------------------------------------- sidebar, collapsed */
+
+.sidebar__rail-btn {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+  color: var(--ink-45);
+  font-size: var(--fs-12);
+}
+
+.sidebar__rail-btn:hover {
+  background: var(--surface-hover);
+}
+
+.sidebar__rail-btn[data-active='true'] {
+  background: var(--surface-active);
+  color: var(--ink);
+}
+
+.sidebar__rail-btn--expand {
+  color: var(--ink-60);
+  font-size: 14px;
+}
+
+.sidebar__avatar {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 4px 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  background: var(--accent-solid);
+  color: var(--on-accent);
+  font-size: var(--fs-11);
+  font-weight: 600;
+}
+
+.sidebar__rule {
+  flex: none;
+  width: 22px;
+  height: 1px;
+  margin: 6px 0;
+  background: rgba(55, 53, 47, 0.1);
+}
+
+.sidebar__rail-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.sidebar__rail-dots .dot {
+  width: 9px;
+  height: 9px;
+}
+
+.sidebar__rail-spacer {
+  margin-top: auto;
+}
+
+/* ------------------------------------------------------------ header */
+
+.appbar {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px var(--header-pad-x) 14px;
+}
+
+.appbar__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.appbar__eyebrow {
+  font-size: var(--fs-11-5);
+  font-weight: 500;
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--ink-45);
+  white-space: nowrap;
+}
+
+.appbar__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  letter-spacing: var(--track-title);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.appbar__year {
+  color: var(--ink-40);
+  margin-left: 0.25em;
+}
+
+.appbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+/* Prev / Today / Next share one outlined group with hairline dividers. */
+.navgroup {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.navgroup__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 27px;
+  color: var(--ink-60);
+}
+
+.navgroup__arrow:hover,
+.navgroup__today:hover {
+  background: var(--surface-hover);
+}
+
+.navgroup__arrow--next svg {
+  transform: scaleX(-1);
+}
+
+.navgroup__today {
+  padding: 5px 12px;
+  font-size: var(--fs-12-5);
+  font-weight: 500;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+
+/* Days-shown stepper: shares the nav group's outlined look. */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.stepper__btn {
+  width: 28px;
+  height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-14);
+  color: var(--ink-60);
+}
+
+.stepper__btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+
+.stepper__btn:disabled {
+  color: var(--ink-30);
+  cursor: default;
+}
+
+.stepper__value {
+  padding: 0 10px;
+  min-width: 64px;
+  text-align: center;
+  font-size: var(--fs-12-5);
+  font-weight: 500;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  line-height: 27px;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------- to-do strip */
+
+.todo {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--todo-h);
+  padding: 0 var(--header-pad-x);
+  border-top: 1px solid var(--line);
+  background: var(--surface-alt);
+}
+
+.todo__label {
+  flex: none;
+  font-size: var(--fs-11-5);
+  font-weight: 600;
+  letter-spacing: var(--track-section);
+  text-transform: uppercase;
+  color: var(--ink-45);
+}
+
+.todo__list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.todo__list::-webkit-scrollbar {
+  display: none;
+}
+
+.todo-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 4px 9px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-12);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.todo-chip:hover {
+  border-color: var(--ink-35);
+}
+
+.todo-chip[data-done='true'] {
+  background: #f4f4f2;
+  border-color: rgba(55, 53, 47, 0.08);
+  color: var(--ink-40);
+  text-decoration: line-through;
+}
+
+.todo-chip__kill {
+  width: 12px;
+  height: 12px;
+}
+
+.todo__add {
+  flex: none;
+  padding: 4px 9px;
+  border: 1px dashed rgba(55, 53, 47, 0.16);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-12);
+  color: var(--ink-35);
+  white-space: nowrap;
+}
+
+.todo__add:hover {
+  color: var(--ink-70);
+  border-color: var(--ink-35);
+}
+
+.todo__input {
+  flex: none;
+  width: 240px;
+  padding: 4px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: var(--fs-12);
+}
+
+.todo__input:focus {
+  outline: none;
+  border-color: var(--ink-45);
+}

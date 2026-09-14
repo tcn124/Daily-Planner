@@ -1,6 +1,7 @@
 export type ItemType = 'assignment' | 'event';
 export type ViewMode = 'grid' | 'list';
-export type DaysVisible = 3 | 5 | 7;
+/** How many day columns the week view shows. Any whole number from 1 to 14. */
+export type DaysVisible = number;
 
 export interface Subject {
   id: string;
@@ -30,7 +31,12 @@ export interface RecurringItem {
   startDate: string;
   /** 'YYYY-MM-DD', inclusive */
   endDate: string;
-  done: boolean;
+  /**
+   * The days within the span that have been checked off, as 'YYYY-MM-DD'.
+   * Each day is completed on its own; the whole item counts as done only when
+   * every day in the span is here.
+   */
+  doneDates: string[];
 }
 
 export interface TodoItem {
@@ -57,5 +63,10 @@ export interface PlannerState {
   items: Item[];
   recurring: RecurringItem[];
   todos: TodoItem[];
+  /**
+   * Free-text note per day, keyed by 'YYYY-MM-DD'. Days without a note are
+   * simply absent rather than stored empty.
+   */
+  notes: Record<string, string>;
   settings: Settings;
 }

@@ -100,6 +100,39 @@ export function isWithin(iso: string, start: string, end: string): boolean {
   return iso >= start && iso <= end;
 }
 
+/**
+ * "Aug 24 – 30", or "Aug 30 – Sep 5" when the window straddles two months.
+ * Unpadded with an en dash, matching the header and list-view headings.
+ */
+export function formatSpan(window: string[]): string {
+  if (window.length === 0) return '';
+  const first = window[0];
+  const last = window[window.length - 1];
+  const end =
+    monthShort(first) === monthShort(last)
+      ? dayOfMonth(last)
+      : `${monthShort(last)} ${dayOfMonth(last)}`;
+  return `${monthShort(first)} ${dayOfMonth(first)} – ${end}`;
+}
+
+/**
+ * ISO-8601 week number. Weeks start Monday and week 1 is the one containing
+ * the first Thursday of the year.
+ */
+export function isoWeek(iso: string): number {
+  const date = parseISO(iso);
+  // Shift to the Thursday of this week, then count weeks from Jan 1.
+  const thursday = new Date(date);
+  thursday.setDate(date.getDate() - ((date.getDay() + 6) % 7) + 3);
+  const firstThursday = new Date(thursday.getFullYear(), 0, 4, 12);
+  firstThursday.setDate(
+    firstThursday.getDate() - ((firstThursday.getDay() + 6) % 7) + 3,
+  );
+  return (
+    1 + Math.round((thursday.getTime() - firstThursday.getTime()) / (7 * 86_400_000))
+  );
+}
+
 const MONTHS_LONG = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',

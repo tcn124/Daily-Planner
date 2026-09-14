@@ -6,23 +6,14 @@ interface Props {
   onAddTodo: (text: string) => void;
   onToggleTodo: (id: string) => void;
   onDeleteTodo: (id: string) => void;
-  onOpenList: () => void;
-  onOpenSettings: () => void;
-  onQuickAdd: () => void;
-  /** "list" on the grid, "weekly" on the list view. */
-  listLabel?: string;
 }
 
-export function ScratchpadFooter({
-  todos,
-  onAddTodo,
-  onToggleTodo,
-  onDeleteTodo,
-  onOpenList,
-  onOpenSettings,
-  onQuickAdd,
-  listLabel = 'list',
-}: Props) {
+/**
+ * The strip along the bottom of the week and list views. View switching and
+ * settings used to live here too; they moved to the sidebar and header, so this
+ * is now only the to-do list.
+ */
+export function TodoStrip({ todos, onAddTodo, onToggleTodo, onDeleteTodo }: Props) {
   const [adding, setAdding] = useState(false);
   const [text, setText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,14 +29,14 @@ export function ScratchpadFooter({
   }
 
   return (
-    <div className="footer">
-      <span className="footer__label">To-Do:</span>
+    <div className="todo">
+      <span className="todo__label">To-do</span>
 
-      <div className="scratch">
+      <div className="todo__list">
         {todos.map((todo) => (
           <span
             key={todo.id}
-            className="chip"
+            className="todo-chip"
             data-done={todo.done}
             role="button"
             tabIndex={0}
@@ -60,7 +51,7 @@ export function ScratchpadFooter({
             {todo.text}
             <button
               type="button"
-              className="kill"
+              className="kill todo-chip__kill"
               aria-label={`Delete ${todo.text}`}
               onClick={(e) => {
                 e.stopPropagation();
@@ -73,7 +64,7 @@ export function ScratchpadFooter({
         {adding ? (
           <input
             ref={inputRef}
-            className="field scratch__input"
+            className="todo__input"
             placeholder="Add a note, then press Enter"
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -94,25 +85,10 @@ export function ScratchpadFooter({
             }}
           />
         ) : (
-          <button
-            type="button"
-            className="scratch__add"
-            aria-label="Add to-do"
-            onClick={() => setAdding(true)}
-          />
+          <button type="button" className="todo__add" onClick={() => setAdding(true)}>
+            + Add note
+          </button>
         )}
-      </div>
-
-      <div className="footer__actions">
-        <button type="button" onClick={onOpenList}>
-          {listLabel}
-        </button>
-        <button type="button" onClick={onOpenSettings}>
-          edit
-        </button>
-        <button type="button" onClick={onQuickAdd}>
-          add
-        </button>
       </div>
     </div>
   );

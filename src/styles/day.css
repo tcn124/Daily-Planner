@@ -1,0 +1,245 @@
+/* Day detail page — reached by clicking a day header in the week grid. */
+
+.daypage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.daypage__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-12);
+  color: var(--ink-45);
+}
+
+.daypage__crumb:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.daypage__crumb-current {
+  color: var(--ink);
+}
+
+.daypage__bar-nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-45);
+}
+
+.daypage__bar-nav button:hover {
+  color: var(--ink);
+}
+
+.daypage__next svg {
+  transform: scaleX(-1);
+}
+
+.daypage__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px 56px 32px;
+  max-width: 760px;
+  width: 100%;
+}
+
+.daypage__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.daypage__eyebrow {
+  font-size: var(--fs-11-5);
+  font-weight: 500;
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.daypage__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-day-title);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+}
+
+.daypage__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.daypage__meta-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  font-size: var(--fs-13);
+}
+
+/* Several recurring spans share one "Recurring" key rather than repeating it. */
+.daypage__meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.daypage__meta-key {
+  color: var(--ink-45);
+}
+
+.daypage__meta-soft {
+  color: var(--ink-70);
+}
+
+.daypage__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.daypage__rule {
+  height: 1px;
+  background: var(--line);
+}
+
+.daypage__items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.daypage__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 0;
+  min-width: 0;
+}
+
+.daypage__item .checkbox {
+  width: 15px;
+  height: 15px;
+}
+
+.daypage__item--done {
+  opacity: 0.5;
+}
+
+.daypage__item--done .daypage__item-text {
+  text-decoration: line-through;
+}
+
+.daypage__item-text {
+  font-size: var(--fs-14);
+  text-align: left;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daypage__item-text:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--ink-30);
+}
+
+.daypage__item-time {
+  flex: none;
+  font-size: var(--fs-11-5);
+  color: var(--ink-40);
+}
+
+.daypage__item-chip {
+  margin-left: auto;
+}
+
+/* Delete stays hidden until hover — the design gives rows no delete control. */
+.daypage__item-kill {
+  flex: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.daypage__item:hover .daypage__item-kill,
+.daypage__item-kill:focus-visible {
+  opacity: 1;
+}
+
+.daypage__add {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  font-size: var(--fs-13-5);
+  color: var(--ink-30);
+  text-align: left;
+}
+
+.daypage__add:hover {
+  color: var(--ink-60);
+}
+
+.daypage__add-plus {
+  width: 15px;
+  text-align: center;
+}
+
+.daypage__notes {
+  margin-top: auto;
+  display: block;
+  padding-top: 12px;
+}
+
+.daypage__notes-field {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  padding: 12px 14px;
+  background: var(--surface-sunken);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: var(--fs-12-5);
+  color: var(--ink-70);
+  line-height: 1.5;
+}
+
+.daypage__notes-field::placeholder {
+  color: var(--ink-35);
+}
+
+.daypage__notes-field:focus {
+  outline: none;
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

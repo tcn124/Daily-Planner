@@ -1,0 +1,581 @@
+/* The week grid: day header, band section headers, and the band grids. */
+
+/*
+ * Sideways day scrolling.
+ *
+ * The day header and all three bands live in this one scroller so they move
+ * together — syncing four separate scrollers would drift. Each is `--track-w`
+ * wide (the visible window plus a buffer either side), and the snap points on
+ * the day-header columns make the gesture come to rest on a whole day.
+ * WeekView re-bases the anchor once the scroll settles and re-parks us here.
+ */
+.dayscroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  /* Don't let a horizontal flick trigger the browser's back gesture. */
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.dayscroll::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * `--days` is set inline from settings.daysVisible and `--total-days` adds the
+ * buffer. The design draws seven columns, but the grid is N-wide so the 3/5/7
+ * setting keeps working.
+ */
+.dayhead {
+  flex: none;
+  width: var(--track-w);
+  display: grid;
+  grid-template-columns: repeat(var(--total-days), minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-alt);
+}
+
+.dayhead__day {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 11px 12px;
+  border-right: 1px solid var(--line-soft);
+  min-width: 0;
+  /* The snap targets: one per day, so a scroll always rests on a day boundary. */
+  scroll-snap-align: start;
+  /*
+   * A flick stops at the very next day instead of letting momentum sail past
+   * several. Dragging still moves continuously; only inertial travel is capped.
+   * Without this a quick swipe lands somewhere hard to predict.
+   */
+  scroll-snap-stop: always;
+}
+
+.dayhead__day:last-child {
+  border-right: none;
+}
+
+.dayhead__name {
+  font-size: var(--fs-14-5);
+  font-weight: 600;
+  color: var(--ink-82);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dayhead__date {
+  flex: none;
+  font-size: var(--fs-12);
+  font-weight: 500;
+  color: var(--ink-45);
+}
+
+.dayhead__day--weekend .dayhead__name {
+  color: var(--ink-60);
+}
+
+.dayhead__day--weekend .dayhead__date {
+  color: var(--ink-35);
+}
+
+.dayhead__day--today {
+  background: var(--surface-today);
+}
+
+.dayhead__day--today .dayhead__name {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.dayhead__day--today .dayhead__date {
+  font-weight: 600;
+  color: var(--on-accent);
+  background: var(--accent-solid);
+  border-radius: var(--radius-chip);
+  padding: 1px 6px;
+}
+
+/* ------------------------------------------------------- band headers */
+
+/*
+ * Pinned to the left of the scroller: the label and count are chrome, so they
+ * stay put while the days slide underneath. One viewport wide, not one track
+ * wide, which is what lets `left: 0` hold it in place.
+ */
+.bandhead {
+  position: sticky;
+  left: 0;
+  width: 100%;
+  /* Above both neighbouring bands so the resize strip straddling the boundary
+     stays hit-testable — the band below comes later in the DOM and would
+     otherwise paint over its lower half. */
+  z-index: 4;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--band-head-h);
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface);
+}
+
+/* The whole header is the collapse target, so it spans the strip. */
+.bandhead__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  flex: 1;
+  min-width: 0;
+}
+
+.bandhead__label {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  letter-spacing: var(--track-section);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.bandhead__count {
+  font-size: var(--fs-11);
+  color: var(--ink-30);
+}
+
+.bandhead__caret {
+  margin-left: 4px;
+  font-size: var(--fs-11);
+  color: var(--ink-30);
+  line-height: 1;
+  transition: transform 120ms ease;
+}
+
+.bandhead__caret[data-collapsed='true'] {
+  transform: rotate(-90deg);
+}
+
+.bandhead:hover .bandhead__caret {
+  color: var(--ink-60);
+}
+
+/* ------------------------------------------------------------- bands */
+
+/* Width is the cross-axis here; `flex` still carries the band's height. */
+.band {
+  width: var(--track-w);
+  display: grid;
+  grid-template-columns: repeat(var(--total-days), minmax(0, 1fr));
+  min-height: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.band--collapsed {
+  display: none;
+}
+
+/*
+ * The recurring band is one continuous track rather than day columns — bars
+ * are absolutely positioned across it — so it opts out of the grid.
+ */
+.band--recurring {
+  display: block;
+  position: relative;
+}
+
+.band--recurring .rec-track {
+  height: 100%;
+}
+
+/* --------------------------------------------------------- day cells */
+
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 7px;
+  border-right: 1px solid var(--line-soft);
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* Let the composer popover overhang the column it belongs to. */
+.cell:has(.composer) {
+  overflow: visible;
+  z-index: 10;
+}
+
+.cell:last-child {
+  border-right: none;
+}
+
+.cell--tinted {
+  background: var(--surface-alt);
+}
+
+/* A card is being dragged over this cell. Inset ring so layout does not shift. */
+.cell--drop {
+  background: var(--surface-hover);
+  box-shadow: inset 0 0 0 1.5px var(--ink-30);
+}
+
+/* The card being dragged stays in place, faded, until it lands. */
+.card--dragging {
+  opacity: 0.35;
+}
+
+/* "+ Add" stays invisible until the column is hovered, as in the design. */
+.cell__add {
+  flex: none;
+  padding: 6px 9px;
+  border-radius: var(--radius-card);
+  font-size: var(--fs-12);
+  text-align: left;
+  color: var(--ink-30);
+  background: transparent;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.cell:hover .cell__add,
+.cell__add:focus-visible {
+  opacity: 1;
+}
+
+.cell__add:hover {
+  color: var(--ink-60);
+  background: var(--surface-hover);
+}
+
+/* -------------------------------------------------------------- card */
+
+.card {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 9px;
+  background: var(--surface);
+  border: 1px solid rgba(55, 53, 47, 0.11);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  /* Backstop: nothing escapes the rounded frame, whatever the column width. */
+  overflow: hidden;
+}
+
+.card:hover {
+  border-color: rgba(55, 53, 47, 0.2);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/*
+ * The chip is `flex: none` as a primitive so it keeps its size in the composer
+ * and on the day page. In a card it must give way instead — otherwise a long
+ * subject name holds its full width and pushes the checkbox outside the frame
+ * at narrow window sizes. `min-width: 0` is what actually lets it ellipsise.
+ */
+.card__head .chip {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.card__desc {
+  font-size: var(--fs-12-5);
+  line-height: 1.35;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.card__time {
+  font-size: var(--fs-11);
+  color: var(--ink-45);
+}
+
+.card__kill {
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.card:hover .card__kill,
+.card__kill:focus-visible {
+  opacity: 1;
+}
+
+.card--done {
+  background: #fbfbfa;
+  border-color: rgba(55, 53, 47, 0.1);
+  box-shadow: none;
+}
+
+.card--done .card__desc {
+  color: var(--ink-40);
+  text-decoration: line-through;
+}
+
+.card--done .card__time {
+  color: var(--ink-35);
+}
+
+/* --------------------------------------------------------- recurring */
+
+.rec-track {
+  position: relative;
+  overflow-y: auto;
+  cursor: crosshair;
+}
+
+.rec-track__grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--total-days), 1fr);
+  pointer-events: none;
+}
+
+.rec-track__grid > span {
+  border-right: 1px solid var(--line-soft);
+}
+
+.rec-track__grid > span:last-child {
+  border-right: none;
+}
+
+/* Bars span days, so they are absolutely positioned rather than in a column. */
+.rec-bar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  background: var(--surface);
+  border: 1px solid rgba(55, 53, 47, 0.11);
+  border-left: var(--card-bar-w) solid var(--ink-30);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+}
+
+.rec-bar:hover {
+  border-color: rgba(55, 53, 47, 0.2);
+}
+
+/*
+ * The label row. It lets pointer events pass through to the day segments
+ * beneath it, so hovering over the title still lights up the day under the
+ * cursor. Its own controls opt back in.
+ */
+.rec-bar__main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+.rec-bar__main > button {
+  pointer-events: auto;
+}
+
+/* Same reasoning as `.card__head .chip` — shrink before the controls do. */
+.rec-bar .chip {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.rec-bar__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: var(--fs-12-5);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* On a short bar the day range is the first thing worth dropping. */
+.rec-bar__range {
+  margin-left: auto;
+  flex: none;
+  font-size: var(--fs-11);
+  color: var(--ink-40);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-bar__kill {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.rec-bar:hover .rec-bar__kill,
+.rec-bar__kill:focus-visible {
+  opacity: 1;
+}
+
+/* ---- per-day segments, laid over the whole bar */
+
+/*
+ * Stretched past the bar's own edges so that its columns line up with the
+ * day columns of the track, not with the bar's inner width. The bar sits 4px
+ * in from each column edge and carries a 3px left border, so without this the
+ * first day's shade ran a few pixels past its column line. The overhang is
+ * clipped by the bar's overflow.
+ */
+.rec-bar__segs {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-4px - var(--card-bar-w));
+  right: -5px;
+  display: grid;
+  /* column count is set inline to match the days the bar spans */
+}
+
+.rec-bar__seg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* A ticked day is shaded, so progress reads at a glance without any controls. */
+.rec-bar__seg--done {
+  background: rgba(55, 53, 47, 0.08);
+}
+
+/* The checkbox is hidden until its own day is hovered. A white halo keeps it
+   legible when it lands on top of the title text. */
+.rec-bar__day {
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--surface);
+  transition: opacity 100ms ease;
+}
+
+.rec-bar__seg:hover .rec-bar__day,
+.rec-bar__day:focus-visible {
+  opacity: 1;
+}
+
+.rec-bar--done {
+  background: #fbfbfa;
+  border-color: rgba(55, 53, 47, 0.1);
+  box-shadow: none;
+}
+
+.rec-bar--done .rec-bar__title {
+  color: var(--ink-40);
+  text-decoration: line-through;
+}
+
+/* Drag targets for changing a bar's start/end day. */
+.rec-bar__handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  z-index: 3;
+  cursor: ew-resize;
+}
+
+.rec-bar__handle--start {
+  left: 0;
+}
+
+.rec-bar__handle--end {
+  right: 0;
+}
+
+.rec-preview {
+  position: absolute;
+  height: 32px;
+  border: 1px dashed var(--ink-35);
+  border-radius: var(--radius-card);
+  background: var(--surface-hover);
+  pointer-events: none;
+}
+
+.rec-editor {
+  position: absolute;
+  z-index: 10;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid rgba(55, 53, 47, 0.1);
+  border-radius: var(--radius-shell);
+  box-shadow: var(--shadow-pop);
+  cursor: default;
+}
+
+.rec-editor__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ------------------------------------------------------- band resize */
+
+/*
+ * The design gives band headers no drag affordance, so the resizer is an
+ * invisible strip on the header's top edge — it only shows a cursor.
+ * Drag redistributes weight with the band above; double-click resets all three.
+ */
+.band-resizer {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  z-index: 3;
+  cursor: ns-resize;
+}
+
+.band-resizer::after {
+  content: '';
+  position: absolute;
+  inset: 2px 0;
+  background: var(--ink-30);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.band-resizer:hover::after,
+.band-resizer:active::after {
+  opacity: 0.35;
+}
+
+/* Keep the cursor steady and stop text selection mid-drag. */
+body.is-band-resizing * {
+  cursor: ns-resize !important;
+  user-select: none;
+}
