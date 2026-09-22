@@ -59,7 +59,8 @@ move it to another Mac.
 | Action | How |
 | --- | --- |
 | Move the window one day | `‹` / `›` in the header, or the ← / → arrow keys |
-| Jump to today | **Today** in the header, or **Today** in the sidebar |
+| Jump to today | **Today** in the header re-anchors the current view on today, without changing the day count |
+| Focus on today alone | **Today** in the sidebar is a tab: it drops the week to a single column on today. Picking **Week** or **List** again puts the day count back where it was, and so does setting a count by hand. The borrowed count is remembered across a restart |
 | Add an assignment or event | Hover a day cell and click **+ Add**, or **New item** in the header |
 | Edit an item | Click the card body |
 | Move an item between bands | Open it and change **Band** in the composer |

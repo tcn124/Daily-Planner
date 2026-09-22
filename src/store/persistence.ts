@@ -83,6 +83,11 @@ export function loadState(): PlannerState {
         anchorDate: merged.anchorDate,
         view: merged.view,
         bandWeights: merged.bandWeights,
+        // Saves written before the Today tab existed simply aren't in it.
+        daysBeforeToday:
+          typeof merged.daysBeforeToday === 'number'
+            ? clampDays(merged.daysBeforeToday)
+            : null,
       },
     };
   } catch {

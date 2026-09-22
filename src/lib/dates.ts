@@ -108,6 +108,7 @@ export function formatSpan(window: string[]): string {
   if (window.length === 0) return '';
   const first = window[0];
   const last = window[window.length - 1];
+  if (first === last) return `${monthShort(first)} ${dayOfMonth(first)}`;
   const end =
     monthShort(first) === monthShort(last)
       ? dayOfMonth(last)

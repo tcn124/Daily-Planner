@@ -17,6 +17,13 @@ tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 
+# Already pulled in by tauri's macOS backend; declared here so the window-drag
+# command can call AppKit directly. Versions pinned to what the lockfile holds.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", features = ["NSEvent", "NSWindow", "NSResponder", "NSGraphicsContext"] }
+objc2-foundation = { version = "0.3", features = ["NSGeometry"] }
+
 [profile.release]
 codegen-units = 1
 lto = true

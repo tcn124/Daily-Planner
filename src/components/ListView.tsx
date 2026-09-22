@@ -251,10 +251,10 @@ export function ListView({ slot }: Props) {
     <div className="list">
       {slot && createPortal(
       <div className="viewbar">
-        <div className="viewbar__lead" data-tauri-drag-region />
-        <div className="viewbar__center" data-tauri-drag-region>
-          <h1 className="viewbar__title" data-tauri-drag-region>List</h1>
-          <span className="viewbar__eyebrow" data-tauri-drag-region>
+        <div className="viewbar__lead" />
+        <div className="viewbar__center">
+          <h1 className="viewbar__title">List</h1>
+          <span className="viewbar__eyebrow">
             {dates.length
               ? `${formatSpan([dates[0], dates[dates.length - 1]])} · `
               : ''}

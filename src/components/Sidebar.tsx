@@ -45,6 +45,9 @@ export function Sidebar({ collapsed, onOpenSettings }: Props) {
   const { state, dispatch } = usePlanner();
   const { subjects, items, recurring, settings } = state;
   const today = todayISO();
+  // The Today tab borrows the day count while it is selected; that borrowed
+  // value is also what marks it active.
+  const inToday = settings.daysBeforeToday !== null;
 
   const countFor = (id: string) =>
     items.filter((i) => i.subjectId === id).length +
@@ -65,8 +68,7 @@ export function Sidebar({ collapsed, onOpenSettings }: Props) {
   }
 
   function goToToday() {
-    dispatch({ type: 'settings/today' });
-    setView('grid');
+    dispatch({ type: 'settings/todayFocus' });
   }
 
   /** Jump the visible window to the week containing a missed item. */
@@ -99,15 +101,16 @@ export function Sidebar({ collapsed, onOpenSettings }: Props) {
     return (
       <aside className="sidebar sidebar--collapsed">
         <button type="button" className="sidebar__rail-btn" aria-label="Week view"
-          title="Week" data-active={settings.view === 'grid'} onClick={() => setView('grid')}>
+          title="Week" data-active={settings.view === 'grid' && !inToday}
+          onClick={() => setView('grid')}>
           <IconWeek />
         </button>
         <button type="button" className="sidebar__rail-btn" aria-label="List view"
           title="List" data-active={settings.view === 'list'} onClick={() => setView('list')}>
           <IconList />
         </button>
-        <button type="button" className="sidebar__rail-btn" aria-label="Jump to today"
-          title="Today" onClick={goToToday}>
+        <button type="button" className="sidebar__rail-btn" aria-label="Today"
+          title="Today" data-active={inToday} onClick={goToToday}>
           <IconToday />
         </button>
 
@@ -132,7 +135,8 @@ export function Sidebar({ collapsed, onOpenSettings }: Props) {
     <aside className="sidebar">
       <nav className="sidebar__group sidebar__group--nav">
         <button type="button" className="sidebar__row sidebar__row--nav"
-          data-active={settings.view === 'grid'} onClick={() => setView('grid')}>
+          data-active={settings.view === 'grid' && !inToday}
+          onClick={() => setView('grid')}>
           <span className="sidebar__icon"><IconWeek /></span>
           <span className="sidebar__row-label">Week</span>
         </button>
@@ -141,7 +145,8 @@ export function Sidebar({ collapsed, onOpenSettings }: Props) {
           <span className="sidebar__icon"><IconList /></span>
           <span className="sidebar__row-label">List</span>
         </button>
-        <button type="button" className="sidebar__row sidebar__row--nav" onClick={goToToday}>
+        <button type="button" className="sidebar__row sidebar__row--nav"
+          data-active={inToday} onClick={goToToday}>
           <span className="sidebar__icon"><IconToday /></span>
           <span className="sidebar__row-label">Today</span>
           {todayCount > 0 && <span className="count">{todayCount}</span>}

@@ -45,6 +45,7 @@ export function createInitialState(): PlannerState {
       anchorDate: startOfWeek(todayISO()),
       view: 'grid',
       bandWeights: [...DEFAULT_BAND_WEIGHTS] as [number, number, number],
+      daysBeforeToday: null,
     },
   };
 }

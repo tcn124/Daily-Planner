@@ -39,6 +39,7 @@ export type Action =
   | { type: 'settings/anchor'; anchorDate: string }
   | { type: 'settings/shift'; direction: -1 | 1 }
   | { type: 'settings/today' }
+  | { type: 'settings/todayFocus' }
   | { type: 'settings/bandWeights'; weights: [number, number, number] }
   | { type: 'settings/view'; view: ViewMode }
   | { type: 'note/set'; date: string; text: string }
@@ -175,7 +176,13 @@ function reducer(state: PlannerState, action: Action): PlannerState {
     case 'settings/days':
       return {
         ...state,
-        settings: { ...state.settings, daysVisible: clampDays(action.days) },
+        settings: {
+          ...state.settings,
+          daysVisible: clampDays(action.days),
+          // Picking a count by hand takes over from the Today tab, which
+          // deselects it and drops the count it was holding.
+          daysBeforeToday: null,
+        },
       };
 
     case 'settings/anchor':
@@ -207,8 +214,32 @@ function reducer(state: PlannerState, action: Action): PlannerState {
         settings: { ...state.settings, bandWeights: action.weights },
       };
 
+    case 'settings/todayFocus':
+      // The Today tab is a single day, on today, over whatever the week view
+      // was showing. `daysBeforeToday` both marks the tab selected and holds
+      // the count to give back, so pressing Today twice must not overwrite it.
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          view: 'grid',
+          anchorDate: todayISO(),
+          daysVisible: 1,
+          daysBeforeToday: state.settings.daysBeforeToday ?? state.settings.daysVisible,
+        },
+      };
+
     case 'settings/view':
-      return { ...state, settings: { ...state.settings, view: action.view } };
+      // Choosing any other tab deselects Today and restores its day count.
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          view: action.view,
+          daysVisible: state.settings.daysBeforeToday ?? state.settings.daysVisible,
+          daysBeforeToday: null,
+        },
+      };
 
     case 'state/replace':
       return action.state;

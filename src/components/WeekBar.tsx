@@ -26,13 +26,13 @@ export function WeekBar({ window: window_, onNewItem }: Props) {
 
   return (
     <div className="viewbar">
-      <div className="viewbar__lead" data-tauri-drag-region />
-      <div className="viewbar__center" data-tauri-drag-region>
-        <h1 className="viewbar__title" data-tauri-drag-region>
+      <div className="viewbar__lead" />
+      <div className="viewbar__center">
+        <h1 className="viewbar__title">
           {monthLong(anchorDate)}
           <span className="viewbar__year">{year(anchorDate)}</span>
         </h1>
-        <span className="viewbar__eyebrow" data-tauri-drag-region>
+        <span className="viewbar__eyebrow">
           Week {isoWeek(anchorDate)} · {formatSpan(window_)}
         </span>
       </div>

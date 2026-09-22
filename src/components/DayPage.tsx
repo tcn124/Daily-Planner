@@ -78,8 +78,8 @@ export function DayPage({ date, slot, onClose, onNavigate }: Props) {
     <div className="daypage">
       {slot && createPortal(
       <div className="viewbar viewbar--crumb">
-        <div className="viewbar__lead" data-tauri-drag-region />
-        <div className="viewbar__center" data-tauri-drag-region>
+        <div className="viewbar__lead" />
+        <div className="viewbar__center">
           <button type="button" className="daypage__crumb" onClick={onClose}>
             Week
           </button>

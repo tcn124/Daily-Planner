@@ -55,6 +55,12 @@ export interface Settings {
    * rather than pixels, so the grid still stretches to fill any window size.
    */
   bandWeights: [number, number, number];
+  /**
+   * Set only while the Today tab is selected: the day count to put back when it
+   * is deselected. Its presence is what marks that tab active, so both the mode
+   * and the count it borrowed survive a restart.
+   */
+  daysBeforeToday: DaysVisible | null;
 }
 
 export interface PlannerState {
