@@ -173,6 +173,8 @@ html[data-titlebar='overlay'] {
   border-right: 1px solid var(--line);
   overflow-y: auto;
   overflow-x: hidden;
+  /* Reaching the end of the list must not hand the scroll to the page. */
+  overscroll-behavior: contain;
 }
 
 .sidebar--collapsed {

@@ -107,6 +107,7 @@ export function DayCell({
               ? {
                   subjectId: editing.subjectId,
                   description: editing.description,
+                  details: editing.details,
                   time: editing.time,
                   type: editing.type,
                 }

@@ -61,8 +61,8 @@ move it to another Mac.
 | Move the window one day | `‹` / `›` in the header, or the ← / → arrow keys |
 | Jump to today | **Today** in the header re-anchors the current view on today, without changing the day count |
 | Focus on today alone | **Today** in the sidebar is a tab: it drops the week to a single column on today. Picking **Week** or **List** again puts the day count back where it was, and so does setting a count by hand. The borrowed count is remembered across a restart |
-| Add an assignment or event | Hover a day cell and click **+ Add**, or **New item** in the header |
-| Edit an item | Click the card body |
+| Add an assignment or event | Hover a day cell and click **+ Add**, or **New item** in the header. A **Title** is what the card shows; **Details** (pages, prompt, where to submit) sit under it in small type, clamped to two lines |
+| Edit an item | Click the card body. Clicking anywhere outside the editor (or pressing Escape) cancels it |
 | Move an item between bands | Open it and change **Band** in the composer |
 | Complete an item | Click the checkbox — the card dims and strikes through |
 | Delete an item | Hover it and click the ✕ beside the checkbox |
@@ -80,6 +80,7 @@ move it to another Mac.
 | Group or sort the list | **Group** / **Sort** in the list header |
 | Reschedule everything overdue | **Reschedule all →** under Missed in the sidebar |
 | Days shown in the week | The **− / +** stepper in the header (or in Edit planner), anywhere from 1 to 14 |
+| Import assignments from screenshots or PDFs | Paste (⌘V), drop the files on the window, or **Import screenshot** in the sidebar — several at once is fine — then check the rows and press **Import**. See [Screenshot import](#screenshot-import) |
 | Subjects, day count, backups | **Edit planner** at the foot of the sidebar |
 
 The sidebar lists each subject with a live item count, and collects anything
@@ -102,6 +103,42 @@ real backup, and **Import JSON** to restore it or move to another machine. Both
 open native macOS save/open panels in the desktop app, and fall back to browser
 downloads when running `npm run dev`.
 
+### Screenshot import
+
+A screenshot of a Canvas calendar or assignment list, or a syllabus PDF, can be
+turned into planner items. Paste with ⌘V (⌘⇧⌃4 captures straight to the
+clipboard), drop the files on the window, or pick them with **Import
+screenshot** — any mix of images and PDFs, as many as you like. The text is
+read on this Mac with Apple's Vision framework (PDF pages are rasterised first,
+so a scanned syllabus works as well as a typed one) — nothing is uploaded — and
+every row lands in a review table first, labelled with the file and page it
+came from, where the date, time, subject, and band can be corrected and
+unwanted rows unticked. The same assignment read from two overlapping
+screenshots appears once. Nothing is saved until **Import** is pressed.
+
+Two layouts are recognised, page by page: a **month grid** (day numbers mark
+the cells, the heading gives the month) and a **list** (each row has a date,
+or sits under a date heading; a time on its own line attaches to the row
+above). Subjects are guessed from the text — a course code like `ECON 201`
+maps to Economics, and a course named at the top of a document's first page
+covers every row in it that names none — and the words *lecture*, *class*,
+*meeting* and the like put a row in Events.
+
+Assignments are also given a short, uniform title by kind, with the original
+line kept as the details: "Read Smith, Wealth of Nations pp. 1-20" becomes
+**Reading - Smith, Wealth of Nations 1–20**, "ECON 201 Problem Set 3" becomes
+**Problem Set 3**, "Essay on Hamlet" becomes **Essay - Hamlet**. Kinds
+recognised: Exam, Quiz, Presentation, Project, Problem Set, Homework, Lab,
+Essay, Response, Reading. Lines that fit none are left as they are, and both
+the title and details are editable in the review table before import. Dates
+without a year resolve to the nearest one, so a January due date read in
+September lands next year. For the best read, crop tightly to the calendar or
+list and keep the month heading in view. If no dates are found at all, the raw
+text is shown so it is clear what was read.
+
+Desktop only — the browser build has no native side, so its entry points are
+hidden.
+
 Destructive actions — deleting a subject, replacing everything on import, and
 **Reset all data** — ask for confirmation in an in-app dialog. `window.confirm`
 is deliberately not used: embedded webviews suppress it (it returns false
@@ -119,6 +156,9 @@ src/
     persistence.ts      localStorage, export, import
     defaults.ts         seed subjects and swatches
   lib/oklch.ts          OKLab/OKLCH ↔ sRGB, with a gamut clamp
+  lib/ocr.ts            on-device text recognition (invoke), image intake helpers
+  lib/ocrParse.ts       turns OCR lines into candidate items: layout, dates, subjects
+  lib/categorize.ts     splits an imported assignment into a kind-based title and details
   styles/
     tokens.css          colors, type scale, and geometry from the design canvas
     global.css          import hub — the files below, in cascade order
@@ -128,12 +168,14 @@ src/
     list.css            list view
     day.css             day page
     overlays.css        composer, edit-planner panel, confirm dialog
-  components/           one file per piece of UI
+  components/           one file per piece of UI (ScreenshotImport.tsx is the review table)
+tools/ocr/parse-check.ts  sanity checks for the OCR parser: npx tsx tools/ocr/parse-check.ts
+tools/ocr/fixtures/       real Vision output the checks replay
   assets/fonts/         DM Sans + Source Serif 4, vendored so the app works offline
 src-tauri/
   tauri.conf.json       window size, bundle identifier, CSP
   capabilities/         which native APIs the frontend may call
-  src/lib.rs            registers the dialog and fs plugins
+  src/lib.rs            registers the dialog and fs plugins; drag_window, ocr_image, ocr_pdf commands
   icons/                generated by `tauri icon`
 ```
 

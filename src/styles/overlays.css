@@ -102,6 +102,13 @@
   line-height: 1.4;
 }
 
+.composer__details {
+  min-height: 40px;
+  resize: vertical;
+  line-height: 1.4;
+  font-size: var(--fs-12-5);
+}
+
 .composer__band {
   appearance: none;
   cursor: pointer;
@@ -189,6 +196,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface);
   border: 1px solid rgba(55, 53, 47, 0.1);
   border-radius: var(--radius-shell);
@@ -424,4 +432,126 @@
 .confirm__actions {
   display: flex;
   gap: 8px;
+}
+
+/* ------------------------------------------------- screenshot import */
+
+/* The review table needs room for five columns, so it takes most of the window. */
+.panel--wide {
+  outline: none;
+  left: 16px;
+  width: auto;
+  max-width: 880px;
+  margin-left: auto;
+}
+
+.ocr__toolbar {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.ocr__tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.ocr__tools .btn {
+  padding: 5px 11px;
+  font-size: var(--fs-12-5);
+  font-weight: 400;
+}
+
+.ocr__rows {
+  flex: 1;
+  gap: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ocr__row {
+  display: grid;
+  grid-template-columns: var(--checkbox-size) minmax(0, 1fr) 138px 84px 132px 112px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
+  border-radius: var(--radius-card);
+}
+
+.ocr__row:hover {
+  background: #fafaf9;
+}
+
+.ocr__row[data-selected='false'] .ocr__main,
+.ocr__row[data-selected='false'] .field {
+  opacity: 0.5;
+}
+
+/* A row whose date could not be read is flagged until one is typed. */
+.ocr__row[data-undated='true'] .ocr__date {
+  border-color: var(--danger-line);
+}
+
+.ocr__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ocr__row .field {
+  padding: 5px 8px;
+  font-size: var(--fs-12-5);
+}
+
+.ocr__row .ocr__details {
+  font-size: var(--fs-11-5);
+  color: var(--ink-70);
+}
+
+.ocr__source {
+  padding: 0 8px;
+  font-size: var(--fs-11);
+  color: var(--ink-35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ocr__select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.ocr__raw {
+  max-height: 320px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-card);
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--ink-70);
+  white-space: pre-wrap;
+}
+
+.ocr__footer {
+  flex: none;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.ocr__footer .btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ocr__hint {
+  margin-left: auto;
+  text-align: right;
 }

@@ -16,6 +16,8 @@ npm run tauri:build  # → src-tauri/target/release/bundle/macos/Weekly Planner.
 ```
 
 There are no tests and no linter. `npm run build` is the type-check.
+`npx tsx tools/ocr/parse-check.ts` runs the OCR parser's sanity checks — run it
+after touching `src/lib/ocrParse.ts`.
 `.claude/launch.json` defines a `planner` preview config (port 5173).
 
 Browser and desktop are **separate storage origins** — data added in one does
@@ -30,11 +32,13 @@ not appear in the other.
 - **Persistence** (`src/store/persistence.ts`): `localStorage` key `planner.v1`,
   debounced 200ms with a synchronous flush on `pagehide`/`visibilitychange`.
   `loadState` shape-checks and runs migrations in place (`color`→`hue`,
-  `done`→`doneDates`, optional `notes`, optional `daysBeforeToday`). When you
+  `done`→`doneDates`, optional `notes`, optional `daysBeforeToday`, missing
+  item `details`→`''`). A new `Item` field needs a `migrateItems` default. When you
   add a settings field, add it to `createInitialState` in `defaults.ts` **and**
   to the field-by-field rebuild in `loadState` — settings are rebuilt
   explicitly, not spread, so dropped fields don't linger.
 - **Types** (`src/types.ts`): `Subject {hue|null}`, `Item {assignment|event,
+  description (the title), details (specifics, clamped to 2 lines on cards),
   date, time (free text), done}`, `RecurringItem {startDate, endDate,
   doneDates[]}` (done per day; fully done only when every day is ticked),
   `TodoItem`, `notes: Record<ISO, string>` (sparse — blanks are deleted),
@@ -58,7 +62,19 @@ not appear in the other.
   restore the count.
 - **Drag and drop** (`src/lib/dnd.ts`): HTML5 DnD with a custom MIME type
   and an enter/leave depth counter. Recurring bars use pointer events instead
-  (`RecurringBand.tsx`).
+  (`RecurringBand.tsx`). File drops (screenshot import) are told apart by the
+  `Files` type in `useImageIntake` (`App.tsx`) and never reach those targets.
+- **Screenshot / PDF import**: `ImportSource[]` (images and PDFs, several at
+  once) → `ocr_image` / `ocr_pdf` (Rust, Vision; PDFs rasterised via PDFKit,
+  one `OcrLine[]` per page) → `src/lib/ocrParse.ts` per page (pure: grid/list
+  layout detection, date/time/subject guessing, `headerSubject` fallback for
+  one-course documents; assignments then go through `src/lib/categorize.ts`,
+  which makes a kind-based title — "Reading - Smith 1–20" — and keeps the
+  line as details) → `ScreenshotImport.tsx` review table (dedupes by
+  date+title) → `item/add` per ticked row. The parser is heuristic by design;
+  keep it pure and covered by `tools/ocr/parse-check.ts`, which also replays
+  real Vision output from `tools/ocr/fixtures/`. Desktop only — entry points
+  are behind `isTauri()`.
 
 ## Styling
 
@@ -82,8 +98,14 @@ not appear in the other.
   on trackpad pressure events. The frontend calls it from a native `mousedown`
   listener in `useWindowDrag` (`App.tsx`) — not `data-tauri-drag-region`,
   which has been removed.
+- `ocr_image` / `ocr_pdf` take the file as a **raw IPC body**
+  (`tauri::ipc::Request`, `InvokeBody::Raw`) and return lines with boxes
+  already flipped to a top-left origin. Raw bodies only work over the fetch-based IPC, which is why
+  the CSP has `connect-src 'self' ipc: http://ipc.localhost` — without it every
+  invoke silently falls back to JSON `postMessage`.
 - Window is frameless: `titleBarStyle: Overlay`, `hiddenTitle: true`,
-  `dragDropEnabled: false`. `--brand-inset` leaves room for the traffic lights.
+  `dragDropEnabled: false` (which is also what lets HTML5 file drops reach the
+  page). `--brand-inset` leaves room for the traffic lights.
 - Any new native API the frontend calls must be added to
   `capabilities/default.json`.
 - macOS-only deps (`objc2-app-kit` etc.) are behind `cfg(target_os = "macos")`.

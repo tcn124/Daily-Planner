@@ -16,13 +16,18 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
 
 # Already pulled in by tauri's macOS backend; declared here so the window-drag
 # command can call AppKit directly. Versions pinned to what the lockfile holds.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
-objc2-app-kit = { version = "0.3", features = ["NSEvent", "NSWindow", "NSResponder", "NSGraphicsContext"] }
-objc2-foundation = { version = "0.3", features = ["NSGeometry"] }
+objc2-app-kit = { version = "0.3", features = ["NSEvent", "NSWindow", "NSResponder", "NSGraphicsContext", "NSImage"] }
+objc2-foundation = { version = "0.3", features = ["NSGeometry", "NSData", "NSArray", "NSDictionary", "NSString", "NSError"] }
+# Apple's Vision framework, for on-device text recognition in screenshot
+# import, and PDFKit to rasterise PDF pages so they can go through the same path.
+objc2-vision = "0.3"
+objc2-pdf-kit = "0.3"
 
 [profile.release]
 codegen-units = 1

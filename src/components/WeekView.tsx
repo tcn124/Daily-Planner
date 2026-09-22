@@ -160,6 +160,35 @@ export function WeekView({ slot, onOpenDay }: Props) {
     return () => el.removeEventListener('scrollend', onEnd);
   }, []);
 
+  /**
+   * A trackpad gesture latches to whatever it first tries to scroll, for as
+   * long as the fingers are down. Every cell is a vertical scroller, so a
+   * swipe that starts even slightly downward latches to the cell (or, if it
+   * can't scroll, the page), and the sideways motion that follows goes
+   * nowhere — the week feels stuck until the gesture is restarted.
+   *
+   * So vertical wheel motion is cancelled before WebKit sees it, unless the
+   * cursor is over a cell whose contents really do overflow. A cancelled event
+   * never latches, and the gesture is free to become a sideways one. Native
+   * scrolling and the snap points stay in charge of everything horizontal.
+   * Passive must be false or `preventDefault` is ignored.
+   */
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    function onWheel(e: WheelEvent) {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const target = e.target as HTMLElement | null;
+      // The composer's fields have their own scrolling; leave them alone.
+      if (target?.closest('.composer, textarea, select')) return;
+      const column = target?.closest<HTMLElement>('.cell, .rec-track');
+      if (column && column.scrollHeight > column.clientHeight + 1) return;
+      e.preventDefault();
+    }
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
   function onScroll() {
     if (HAS_SCROLLEND) return;
     if (performance.now() < ignoreScrollUntil.current) return;

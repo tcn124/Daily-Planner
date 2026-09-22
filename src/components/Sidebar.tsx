@@ -3,11 +3,14 @@ import { subjectAccent } from '../lib/color';
 import { daysBetween, startOfWeek, todayISO } from '../lib/dates';
 import { DEFAULT_HUE } from '../store/defaults';
 import { exportState } from '../store/persistence';
+import { isTauri } from '../lib/platform';
 import type { ViewMode } from '../types';
 
 interface Props {
   collapsed: boolean;
   onOpenSettings: () => void;
+  /** Opens the native picker for a screenshot to import. Desktop only. */
+  onImportScreenshot: () => void;
 }
 
 const MISSED_SHOWN = 3;
@@ -41,7 +44,7 @@ function IconToday() {
   );
 }
 
-export function Sidebar({ collapsed, onOpenSettings }: Props) {
+export function Sidebar({ collapsed, onOpenSettings, onImportScreenshot }: Props) {
   const { state, dispatch } = usePlanner();
   const { subjects, items, recurring, settings } = state;
   const today = todayISO();
@@ -216,6 +219,12 @@ export function Sidebar({ collapsed, onOpenSettings }: Props) {
           <span className="sidebar__icon sidebar__icon--text">↧</span>
           <span className="sidebar__row-label">Export backup</span>
         </button>
+        {isTauri() && (
+          <button type="button" className="sidebar__row" onClick={onImportScreenshot}>
+            <span className="sidebar__icon sidebar__icon--text">⌗</span>
+            <span className="sidebar__row-label">Import screenshot</span>
+          </button>
+        )}
       </div>
     </aside>
   );

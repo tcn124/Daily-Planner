@@ -12,6 +12,18 @@ body,
   height: 100%;
 }
 
+/*
+ * The page never scrolls — the shell fills the window and each pane scrolls
+ * itself — but WebKit still rubber-bands the whole document on a two-finger
+ * drag over anything that can't scroll, sliding the UI and showing the white
+ * body behind it. Pin the document so the shell stays put, like a native app.
+ */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   font-family: var(--font-ui);

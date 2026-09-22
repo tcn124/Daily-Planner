@@ -175,10 +175,17 @@ export function DayPage({ date, slot, onClose, onNavigate }: Props) {
                 <button type="button" className="checkbox" data-checked={item.done}
                   aria-label={item.done ? 'Mark as not done' : 'Mark as done'}
                   onClick={() => dispatch({ type: 'item/toggle', id: item.id })} />
-                <button type="button" className="daypage__item-text"
-                  onClick={() => { setComposing(false); setEditing(item); }}>
-                  {item.description || 'Untitled'}
-                </button>
+                <span className="daypage__item-body">
+                  <button type="button" className="daypage__item-text"
+                    onClick={() => { setComposing(false); setEditing(item); }}>
+                    {item.description || 'Untitled'}
+                  </button>
+                  {item.details && (
+                    <span className="daypage__item-details" title={item.details}>
+                      {item.details}
+                    </span>
+                  )}
+                </span>
                 {item.time && <span className="daypage__item-time">{item.time}</span>}
                 {s && (
                   <span className="chip daypage__item-chip"

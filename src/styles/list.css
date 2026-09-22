@@ -13,6 +13,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Group heading ---------------------------------------------------------- */
@@ -112,6 +113,15 @@
   font-size: var(--fs-11-5);
 }
 
+.list__details {
+  display: block;
+  font-size: var(--fs-11-5);
+  color: var(--ink-45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .list__row-actions {
   justify-self: end;
   display: flex;
@@ -152,6 +162,10 @@
 
 .list__row--done .list__desc {
   text-decoration: line-through;
+}
+
+.list__row--done .list__details {
+  text-decoration: none;
 }
 
 .list__new {

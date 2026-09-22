@@ -21,6 +21,8 @@ interface Row {
   subject: string;
   subjectId: string | null;
   desc: string;
+  /** Items only; recurring bars have no details line. */
+  details: string;
   time: string;
   done: boolean;
   createdAt: number;
@@ -119,6 +121,7 @@ export function ListView({ slot }: Props) {
           subject: s?.name ?? 'No subject',
           subjectId: i.subjectId,
           desc: i.description || 'Untitled',
+          details: i.details,
           time: i.time,
           done: i.done,
           createdAt: i.createdAt,
@@ -137,6 +140,7 @@ export function ListView({ slot }: Props) {
           subject: s?.name ?? 'No subject',
           subjectId: r.subjectId,
           desc: r.title || 'Untitled',
+          details: '',
           time: '',
           done: r.doneDates.includes(date),
           createdAt: 0,
@@ -317,6 +321,7 @@ export function ListView({ slot }: Props) {
                     initial={{
                       subjectId: row.subjectId,
                       description: row.desc,
+                      details: row.details,
                       time: row.time,
                       type: row.kind === 'event' ? 'event' : 'assignment',
                     }}
@@ -368,6 +373,9 @@ export function ListView({ slot }: Props) {
                   <span className="list__desc">
                     {row.desc}
                     {row.time && <span className="list__time"> · {row.time}</span>}
+                    {row.details && (
+                      <span className="list__details" title={row.details}>{row.details}</span>
+                    )}
                   </span>
                   <span className="list__row-actions">
                     <button

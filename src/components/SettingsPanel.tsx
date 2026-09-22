@@ -6,9 +6,12 @@ import { SwatchPicker } from './SwatchPicker';
 import { ConfirmDialog } from './ConfirmDialog';
 import { clearState, exportState, importState } from '../store/persistence';
 import { DaysStepper } from './DaysStepper';
+import { isTauri } from '../lib/platform';
 
 interface Props {
   onClose: () => void;
+  /** Opens the native picker for a screenshot to import. Desktop only. */
+  onImportScreenshot: () => void;
 }
 
 interface Pending {
@@ -18,7 +21,7 @@ interface Pending {
   resolve: (ok: boolean) => void;
 }
 
-export function SettingsPanel({ onClose }: Props) {
+export function SettingsPanel({ onClose, onImportScreenshot }: Props) {
   const { state, dispatch } = usePlanner();
   const [editingColor, setEditingColor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -177,6 +180,11 @@ export function SettingsPanel({ onClose }: Props) {
             <button type="button" className="btn" onClick={() => void onImport()}>
               Import JSON
             </button>
+            {isTauri() && (
+              <button type="button" className="btn" onClick={onImportScreenshot}>
+                Import from screenshot or PDF…
+              </button>
+            )}
           </div>
           <button
             type="button"
@@ -201,6 +209,11 @@ export function SettingsPanel({ onClose }: Props) {
           <p className="panel__note">
             Saves automatically. Export before switching machines — it&apos;s the only
             copy that leaves this Mac.
+          </p>
+          <p className="panel__note">
+            {isTauri()
+              ? 'Screenshots or PDFs of a Canvas calendar, assignment list, or syllabus can be pasted (⌘V) or dropped on the window too — several at once if you like. Text is read on this Mac.'
+              : 'Importing from a screenshot or PDF needs the desktop app.'}
           </p>
         </section>
       </aside>

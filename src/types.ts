@@ -14,7 +14,13 @@ export interface Item {
   id: string;
   type: ItemType;
   subjectId: string | null;
+  /** The title — what the card shows in full. */
   description: string;
+  /**
+   * The specifics under the title: page ranges, the prompt, where to submit.
+   * Shown small and clamped on the card. Empty string when unset.
+   */
+  details: string;
   /** Free text as typed, e.g. "1:15pm". Empty string when unset. */
   time: string;
   /** 'YYYY-MM-DD' */

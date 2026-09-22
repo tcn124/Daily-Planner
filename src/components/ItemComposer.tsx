@@ -6,7 +6,10 @@ import { SubjectChips } from './SubjectChips';
 
 export interface ComposerValue {
   subjectId: string | null;
+  /** The title. */
   description: string;
+  /** The specifics under it — pages, prompt, where to submit. */
+  details: string;
   time: string;
   /** Which band the item belongs to — editable, so items can move between them. */
   type: ItemType;
@@ -42,19 +45,39 @@ export function ItemComposer({
 }: Props) {
   const [subjectId, setSubjectId] = useState<string | null>(initial?.subjectId ?? null);
   const [description, setDescription] = useState(initial?.description ?? '');
+  const [details, setDetails] = useState(initial?.details ?? '');
   const [time, setTime] = useState(initial?.time ?? '');
   const [type, setType] = useState<ItemType>(initial?.type ?? 'assignment');
   const descRef = useRef<HTMLTextAreaElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     descRef.current?.focus();
   }, []);
+
+  /**
+   * A press anywhere outside the composer cancels it, so leaving an item is
+   * a click away rather than a hunt for the Cancel button. It watches
+   * mousedown, not click, so the press that opens another card or "+ Add"
+   * closes this one first, and so a text selection that starts inside and is
+   * released outside still counts as inside. The listener is added after
+   * mount, so the press that opened the composer never reaches it.
+   */
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      const root = rootRef.current;
+      if (root && e.target instanceof Node && !root.contains(e.target)) onCancel();
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [onCancel]);
 
   function submit() {
     // Also formats here so ⌘↵ straight from the time field is not skipped.
     onSubmit({
       subjectId,
       description: description.trim(),
+      details: details.trim(),
       time: formatTimeInput(time).trim(),
       type,
     });
@@ -62,6 +85,7 @@ export function ItemComposer({
 
   return (
     <div
+      ref={rootRef}
       className="composer"
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => {
@@ -101,12 +125,22 @@ export function ItemComposer({
       </div>
 
       <div className="composer__field">
-        <span className="composer__label">Description</span>
+        <span className="composer__label">Title</span>
         <textarea
           ref={descRef}
           className="field composer__desc"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+
+      <div className="composer__field">
+        <span className="composer__label">Details</span>
+        <textarea
+          className="field composer__details"
+          placeholder="Pages, prompt, where to submit…"
+          value={details}
+          onChange={(e) => setDetails(e.target.value)}
         />
       </div>
 

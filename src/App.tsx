@@ -5,7 +5,9 @@ import { ListView } from './components/ListView';
 import { DayPage } from './components/DayPage';
 import { Sidebar } from './components/Sidebar';
 import { SettingsPanel } from './components/SettingsPanel';
+import { ScreenshotImport } from './components/ScreenshotImport';
 import { isTauri } from './lib/platform';
+import { pickSources, sourcesFromFiles, type ImportSource } from './lib/ocr';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
@@ -42,10 +44,73 @@ function useWindowDrag() {
   return ref;
 }
 
+/**
+ * Lets screenshots and PDFs arrive by ⌘V or by dropping files on the window.
+ * Several at once are fine. Desktop only — the OCR behind it is native.
+ *
+ * Paste is ignored while a text field has focus so it keeps meaning "paste
+ * text here". File drops are told apart from the app's own card drags by the
+ * `Files` type; those carry `ITEM_DRAG_TYPE` instead and are left to their
+ * own drop targets.
+ */
+function useImageIntake(onSources: (sources: ImportSource[]) => void) {
+  useEffect(() => {
+    if (!isTauri()) return;
+
+    function inTextField() {
+      const el = document.activeElement as HTMLElement | null;
+      return !!el && (el.matches('input, textarea, select') || el.isContentEditable);
+    }
+    function take(files: FileList | null | undefined) {
+      void sourcesFromFiles(files).then((sources) => {
+        if (sources.length) onSources(sources);
+      });
+    }
+
+    function onPaste(e: ClipboardEvent) {
+      if (inTextField()) return;
+      const files = e.clipboardData?.files;
+      if (!files?.length) return;
+      e.preventDefault();
+      take(files);
+    }
+    function onDragOver(e: DragEvent) {
+      if (!e.dataTransfer?.types.includes('Files')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    }
+    function onDrop(e: DragEvent) {
+      if (!e.dataTransfer?.types.includes('Files')) return;
+      e.preventDefault();
+      take(e.dataTransfer.files);
+    }
+
+    window.addEventListener('paste', onPaste);
+    window.addEventListener('dragover', onDragOver);
+    window.addEventListener('drop', onDrop);
+    return () => {
+      window.removeEventListener('paste', onPaste);
+      window.removeEventListener('dragover', onDragOver);
+      window.removeEventListener('drop', onDrop);
+    };
+  }, [onSources]);
+}
+
 export function App() {
   const { state } = usePlanner();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  // Files waiting to be read; the review panel is open while this is set.
+  const [pendingImport, setPendingImport] = useState<ImportSource[] | null>(null);
+  useImageIntake(setPendingImport);
+  function importScreenshot() {
+    void pickSources().then((sources) => {
+      if (sources.length) {
+        setSettingsOpen(false);
+        setPendingImport(sources);
+      }
+    });
+  }
   // Day detail and sidebar collapse are view state, not saved preferences, so
   // they live here rather than in `settings` — no schema change, no migration.
   const [focusedDate, setFocusedDate] = useState<string | null>(null);
@@ -90,11 +155,23 @@ export function App() {
       </header>
 
       <div className="app__body">
-        <Sidebar collapsed={collapsed} onOpenSettings={() => setSettingsOpen(true)} />
+        <Sidebar
+          collapsed={collapsed}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onImportScreenshot={importScreenshot}
+        />
         {view}
       </div>
 
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && (
+        <SettingsPanel
+          onClose={() => setSettingsOpen(false)}
+          onImportScreenshot={importScreenshot}
+        />
+      )}
+      {pendingImport && (
+        <ScreenshotImport sources={pendingImport} onClose={() => setPendingImport(null)} />
+      )}
     </div>
   );
 }

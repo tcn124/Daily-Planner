@@ -86,6 +86,11 @@ export function ItemCard({
       </div>
 
       {item.description && <div className="card__desc">{item.description}</div>}
+      {item.details && (
+        <div className="card__details" title={item.details}>
+          {item.details}
+        </div>
+      )}
       {item.time && <div className="card__time">{item.time}</div>}
     </div>
   );

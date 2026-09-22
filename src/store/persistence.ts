@@ -1,4 +1,4 @@
-import type { PlannerState, RecurringItem, Subject } from '../types';
+import type { Item, PlannerState, RecurringItem, Subject } from '../types';
 import { clampDays, createInitialState } from './defaults';
 import { spanDates } from '../lib/recurring';
 import { hexToHue } from '../lib/color';
@@ -52,6 +52,11 @@ function migrateRecurring(recurring: RecurringItem[]): RecurringItem[] {
   });
 }
 
+/** Items gained a `details` line after v1 shipped; older saves have only the title. */
+function migrateItems(items: Item[]): Item[] {
+  return items.map((i) => (typeof i.details === 'string' ? i : { ...i, details: '' }));
+}
+
 /** Day notes arrived after v1 shipped, so older saves simply have none. */
 function migrateNotes(notes: unknown): Record<string, string> {
   if (typeof notes !== 'object' || notes === null) return {};
@@ -76,6 +81,7 @@ export function loadState(): PlannerState {
     return {
       ...parsed,
       subjects: migrateSubjects(parsed.subjects),
+      items: migrateItems(parsed.items),
       recurring: migrateRecurring(parsed.recurring),
       notes: migrateNotes(parsed.notes),
       settings: {
@@ -124,6 +130,7 @@ function parseBackup(text: string): PlannerState {
   return {
     ...parsed,
     subjects: migrateSubjects(parsed.subjects),
+    items: migrateItems(parsed.items),
     recurring: migrateRecurring(parsed.recurring),
     notes: migrateNotes(parsed.notes),
     settings: {

@@ -17,8 +17,9 @@
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  /* Don't let a horizontal flick trigger the browser's back gesture. */
-  overscroll-behavior-x: contain;
+  /* Don't let a horizontal flick trigger the browser's back gesture, and
+     don't hand any leftover motion to the page. */
+  overscroll-behavior: contain;
   scrollbar-width: none;
 }
 
@@ -205,6 +206,7 @@
   border-right: 1px solid var(--line-soft);
   min-width: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Let the composer popover overhang the column it belongs to. */
@@ -304,6 +306,21 @@
   overflow-wrap: anywhere;
 }
 
+/*
+ * The specifics under the title, held to two lines so a long prompt can't
+ * turn a card into a column. The full text is in the tooltip and the composer.
+ */
+.card__details {
+  font-size: var(--fs-11);
+  line-height: 1.35;
+  color: var(--ink-45);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+
 .card__time {
   font-size: var(--fs-11);
   color: var(--ink-45);
@@ -331,7 +348,8 @@
   text-decoration: line-through;
 }
 
-.card--done .card__time {
+.card--done .card__time,
+.card--done .card__details {
   color: var(--ink-35);
 }
 
@@ -340,6 +358,7 @@
 .rec-track {
   position: relative;
   overflow-y: auto;
+  overscroll-behavior: contain;
   cursor: crosshair;
 }
 

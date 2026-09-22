@@ -35,6 +35,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -131,6 +132,20 @@
 
 .daypage__item--done .daypage__item-text {
   text-decoration: line-through;
+}
+
+.daypage__item-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.daypage__item-details {
+  font-size: var(--fs-11-5);
+  color: var(--ink-45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .daypage__item-text {
