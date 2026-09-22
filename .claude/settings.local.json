@@ -9,7 +9,9 @@
       "Bash(cargo info *)",
       "Bash(git add *)",
       "Bash(git commit -q -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(xcrun simctl *)",
+      "Bash(xcode-select -p)"
     ]
   }
 }
