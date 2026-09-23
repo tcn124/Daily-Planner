@@ -12,38 +12,53 @@ is the working map for editing the code.
 npm run dev          # browser at http://localhost:5173 (has devtools; quickest for UI work)
 npm run tauri:dev    # native window with hot reload
 npm run build        # tsc -b && vite build — run this to type-check; there is no separate lint/test
+npm run build:pwa    # the phone build → dist-pwa/ (base '/', service worker, manifest)
 npm run tauri:build  # → src-tauri/target/release/bundle/macos/Weekly Planner.app + .dmg
 ```
 
 There are no tests and no linter. `npm run build` is the type-check.
 `npx tsx tools/ocr/parse-check.ts` runs the OCR parser's sanity checks — run it
 after touching `src/lib/ocrParse.ts`.
-`.claude/launch.json` defines a `planner` preview config (port 5173).
+`.claude/launch.json` defines a `planner` preview config (port 5173) and a
+`planner-pwa` one (port 4173) that serves the built PWA — a service worker needs
+a real build, so the phone build cannot be checked from the dev server.
+`tools/icons/make-pwa-icons.sh` regenerates `public/icons` from the app mark.
 
-Browser and desktop are **separate storage origins** — data added in one does
-not appear in the other.
+Browser, desktop and the installed phone app are **separate storage origins** —
+data added in one does not appear in the others.
 
 ## Architecture
 
 - **State**: one `useReducer` + context in `src/store/plannerStore.tsx`. Every
   mutation is an `Action` variant (`item/*`, `recurring/*`, `todo/*`,
-  `subject/*`, `settings/*`, `note/set`, `state/replace`, `state/reset`). Add
-  new behaviour as a reducer case, not as component-local mutation.
+  `subject/*`, `note/set`, `state/replace`, `state/reset`). Add new behaviour as
+  a reducer case, not as component-local mutation. `item/add` and
+  `recurring/add` accept an optional `id` (and `createdAt`) so an undone delete
+  restores the record rather than a copy of it.
+- **Device preferences** (`src/store/devicePrefs.ts`): everything about *where
+  this device is looking* — `anchorDate`, `view`, `daysVisible`, `bandWeights`,
+  `daysBeforeToday`, and the phone's `mobileDays`, `detailsVisible`, `tab`.
+  Stored separately under `planner.device.v1`, read with `useDevicePrefs()`, and
+  changed through named functions (`setAnchor`, `shiftAnchor`, `goToToday`,
+  `setDays`, `setView`, `setBandWeights`, `focusToday`) rather than actions.
+  `PlannerState` is content only, because it is the blob that will sync: a phone
+  scrolled to Friday must not scroll the Mac to Friday. A new view field goes
+  here and into `coerce`; a new *content* field goes in the planner.
 - **Persistence** (`src/store/persistence.ts`): `localStorage` key `planner.v1`,
   debounced 200ms with a synchronous flush on `pagehide`/`visibilitychange`.
   `loadState` shape-checks and runs migrations in place (`color`→`hue`,
-  `done`→`doneDates`, optional `notes`, optional `daysBeforeToday`, missing
-  item `details`→`''`). A new `Item` field needs a `migrateItems` default. When you
-  add a settings field, add it to `createInitialState` in `defaults.ts` **and**
-  to the field-by-field rebuild in `loadState` — settings are rebuilt
-  explicitly, not spread, so dropped fields don't linger.
+  `done`→`doneDates`, optional `notes`, missing item `details`→`''`). A new
+  `Item` field needs a `migrateItems` default. A planner saved before the view
+  state was split out still carries a `settings` object; `stripSettings` hands
+  it to `adoptLegacySettings` and drops the field, so such a device reopens
+  where it was left. A backup's view settings are ignored on import on purpose —
+  importing someone's planner should not move your screen to their day.
 - **Types** (`src/types.ts`): `Subject {hue|null}`, `Item {assignment|event,
   description (the title), details (specifics, clamped to 2 lines on cards),
   date, time (free text), done}`, `RecurringItem {startDate, endDate,
   doneDates[]}` (done per day; fully done only when every day is ticked),
-  `TodoItem`, `notes: Record<ISO, string>` (sparse — blanks are deleted),
-  `Settings {daysVisible 1–14, anchorDate, view 'grid'|'list', bandWeights,
-  daysBeforeToday}`.
+  `TodoItem`, `notes: Record<ISO, string>` (sparse — blanks are deleted). There
+  is no `Settings` in here; see **Device preferences**.
 - **Dates** (`src/lib/dates.ts`): everything is a `'YYYY-MM-DD'` string.
   `parseISO` yields a local-noon `Date` to avoid DST rollovers. Weeks start
   Monday. Never construct `Date` objects for calendar math outside this file.
@@ -56,10 +71,11 @@ not appear in the other.
   re-parks `scrollLeft` so the re-base is invisible. Scroll events within
   `ignoreScrollUntil` are ones we caused — mind this when touching anchor or
   day-count logic.
-- **Today tab**: `settings/todayFocus` drops the week to 1 column on today and
-  stashes the previous count in `daysBeforeToday`; its non-null presence is
-  what marks the tab active. `settings/view` and `settings/days` clear it and
-  restore the count.
+- **Today tab**: `focusToday()` drops the week to 1 column on today and stashes
+  the previous count in `daysBeforeToday`; its non-null presence is what marks
+  the tab active, so pressing Today twice must not overwrite it. `setView` and
+  `setDays` clear it — the first restoring the count, the second taking over
+  from it.
 - **Drag and drop** (`src/lib/dnd.ts`): HTML5 DnD with a custom MIME type
   and an enter/leave depth counter. Recurring bars use pointer events instead
   (`RecurringBand.tsx`). File drops (screenshot import) are told apart by the
@@ -76,6 +92,73 @@ not appear in the other.
   real Vision output from `tools/ocr/fixtures/`. Desktop only — entry points
   are behind `isTauri()`.
 
+## Mobile (`src/components/mobile/`, `src/styles/mobile.css`)
+
+Below `@media (max-width: 899px)` — the desktop's own minimum width — `App.tsx`
+renders `<MobileShell>` instead of the sidebar and views. It is a different
+shell, not a responsive one: different navigation, different components, no
+window chrome. Desktop components are untouched by it.
+
+- **Three tabs, no nested navigation**: Week · List · Planner, held in
+  `devicePrefs.tab`. Everything else is a sheet over them. There is no Today
+  tab — Week opens on today at one day.
+- **Two row shapes on purpose**: flat rows at one day, the desktop card at two
+  and three. At three days a column is ~120pt, close enough to the desktop's
+  that its card is the right component.
+- **Pinned header** (`useStickyHead`): the Week's masthead, strip, day row and
+  column heads, and the List's masthead and controls, are each wrapped in one
+  `.m-stickyhead` and pinned to the top of the pane. One wrapper, not one sticky
+  element per piece — several would all stop at `top: 0` and pile up. Its
+  measured height is published as `--m-sticky-h` on the pane; the List's day
+  headers stick to that rather than to 0, and the open-on-today scroll uses it
+  as `scroll-margin-top`. Anything added to a shelf changes its height, which is
+  why the height is measured and not written down.
+- **Sheets** (`Sheet.tsx`): one bottom-sheet primitive — scrim, drag to dismiss,
+  focus trap, body-scroll lock — with `ItemSheet`, `ComposerSheet` and
+  `PlannerSheet` inside it. Which one is open, and the undo toast, live in
+  `SheetHost` (`sheets.tsx`); reach them with `useSheets()`. The affirmative
+  action goes in the sheet *header*: the keyboard covers the bottom third.
+- **Gestures**: `useSwipeX` flings a region horizontally (bands change the day,
+  the strip changes the week); `SwipeRow` gives a one-day row its actions —
+  right for done, left for Move and Delete. They are told apart by where the
+  press lands: a `pointerdown` inside `[data-swipe-row]` belongs to the row.
+  Both lock the axis on the first movement and never revisit it, and both
+  swallow the click the browser synthesises when a drag ends — without that,
+  every swipe is followed by a tap on whatever it swiped.
+- **Undo, not confirmation**: `useRowActions` is the one place Done and Delete
+  happen, so a swipe and the sheet behave identically. Only the genuinely
+  unrecoverable things (deleting a subject, resetting) use `ConfirmDialog`.
+- **44pt minimum.** Where a control is drawn smaller — chips, swatches,
+  checkboxes — an absolutely positioned `::after` carries the target. Check the
+  gap before widening one: overlapping targets mean the wrong one gets the tap.
+- **16px minimum on every input**, or iOS zooms the page on focus and leaves the
+  sheet half off screen. `--m-fs-input` exists to make that hard to forget.
+- Two features exist only here: **Hide done**, and filtering the List by
+  subject from the Planner tab.
+
+## PWA (`vite.config.ts`, `src/lib/pwa.ts`, `public/`)
+
+One source, two builds. `vite build` is the desktop one: `base: './'`, so Tauri
+loads assets off disk and `dist/index.html` opens from Finder. `vite build
+--mode pwa` is the phone one: `base: '/'`, because a service worker's scope and
+a manifest's `start_url` are absolute, which gives up that property — hence a
+separate `dist-pwa/` rather than overwriting the committed `dist/`.
+
+- **The service worker must never register inside Tauri**, or the desktop app
+  starts serving itself stale assets with no address bar to get past it.
+  `registerServiceWorker` checks `import.meta.env.MODE` first, which is a
+  build-time constant, so the whole body is dropped from the desktop bundle;
+  the `isTauri()` check behind it is there for when that stops being true.
+- `index.html` is shared by both builds. Everything in it resolves in each,
+  because `public/` is copied into both — keep it that way rather than adding
+  absolute paths that would 404 in the desktop app.
+- **The launch screen is `#boot` in `index.html`**, not
+  `apple-touch-startup-image`: Apple's wants an exact-size PNG per device and
+  orientation and is unreliable on recent iOS. `App.tsx` removes it from an
+  effect, which is the first point React guarantees the real UI is committed.
+- A new asset that must work offline goes in `public/` and needs its extension
+  in the workbox `globPatterns`.
+
 ## Styling
 
 - Tokens live in `src/styles/tokens.css`, measured from the design canvas in
@@ -88,7 +171,9 @@ not appear in the other.
   `src/lib/color.ts`) and emitted as hex from JS — do not hand-write subject
   colours or use CSS `oklch()`.
 - CSS files are imported in cascade order via `global.css`: base → shell →
-  week → list → day → overlays.
+  week → list → day → overlays → **mobile**. `mobile.css` is last so the phone
+  layer wins without editing a desktop rule; its sizes come from the `--m-*`
+  block in `tokens.css`.
 
 ## Native shell (`src-tauri/`)
 

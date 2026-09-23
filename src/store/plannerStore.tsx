@@ -8,40 +8,35 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react';
-import type {
-  DaysVisible,
-  Item,
-  PlannerState,
-  RecurringItem,
-  Subject,
-  ViewMode,
-} from '../types';
-import { addDays, todayISO } from '../lib/dates';
-import { clampDays, createInitialState, uid } from './defaults';
+import type { Item, PlannerState, RecurringItem, Subject } from '../types';
+import { createInitialState, uid } from './defaults';
 import { loadState, saveState } from './persistence';
 
 export type Action =
-  | { type: 'item/add'; item: Omit<Item, 'id' | 'createdAt'> }
+  /**
+   * `id` and `createdAt` are generated here as a rule. They are accepted so an
+   * undone delete can put an item back as it was rather than as a copy that
+   * sorts to the end of its band — the same door `subject/add` already leaves
+   * open for the screenshot importer.
+   */
+  | {
+      type: 'item/add';
+      item: Omit<Item, 'id' | 'createdAt'> & Partial<Pick<Item, 'id' | 'createdAt'>>;
+    }
   | { type: 'item/update'; id: string; patch: Partial<Item> }
   | { type: 'item/delete'; id: string }
   | { type: 'item/toggle'; id: string }
-  | { type: 'recurring/add'; item: Omit<RecurringItem, 'id'> }
+  | { type: 'recurring/add'; item: Omit<RecurringItem, 'id'> & { id?: string } }
   | { type: 'recurring/update'; id: string; patch: Partial<RecurringItem> }
   | { type: 'recurring/delete'; id: string }
   | { type: 'recurring/toggleDay'; id: string; date: string }
   | { type: 'todo/add'; text: string }
   | { type: 'todo/toggle'; id: string }
   | { type: 'todo/delete'; id: string }
+  | { type: 'todo/clearDone' }
   | { type: 'subject/add'; name: string; hue: number | null; id?: string }
   | { type: 'subject/update'; id: string; patch: Partial<Subject> }
   | { type: 'subject/delete'; id: string }
-  | { type: 'settings/days'; days: DaysVisible }
-  | { type: 'settings/anchor'; anchorDate: string }
-  | { type: 'settings/shift'; direction: -1 | 1 }
-  | { type: 'settings/today' }
-  | { type: 'settings/todayFocus' }
-  | { type: 'settings/bandWeights'; weights: [number, number, number] }
-  | { type: 'settings/view'; view: ViewMode }
   | { type: 'note/set'; date: string; text: string }
   | { type: 'state/replace'; state: PlannerState }
   | { type: 'state/reset' };
@@ -53,7 +48,11 @@ function reducer(state: PlannerState, action: Action): PlannerState {
         ...state,
         items: [
           ...state.items,
-          { ...action.item, id: uid(), createdAt: Date.now() },
+          {
+            ...action.item,
+            id: action.item.id ?? uid(),
+            createdAt: action.item.createdAt ?? Date.now(),
+          },
         ],
       };
 
@@ -87,7 +86,10 @@ function reducer(state: PlannerState, action: Action): PlannerState {
     case 'recurring/add':
       return {
         ...state,
-        recurring: [...state.recurring, { ...action.item, id: uid() }],
+        recurring: [
+          ...state.recurring,
+          { ...action.item, id: action.item.id ?? uid() },
+        ],
       };
 
     case 'recurring/update':
@@ -139,6 +141,11 @@ function reducer(state: PlannerState, action: Action): PlannerState {
     case 'todo/delete':
       return { ...state, todos: state.todos.filter((t) => t.id !== action.id) };
 
+    case 'todo/clearDone':
+      // The phone's to-do band has no × on a pill, so this is how finished
+      // notes leave the list.
+      return { ...state, todos: state.todos.filter((t) => !t.done) };
+
     case 'subject/add': {
       const name = action.name.trim();
       if (!name) return state;
@@ -171,74 +178,6 @@ function reducer(state: PlannerState, action: Action): PlannerState {
         recurring: state.recurring.map((r) =>
           r.subjectId === action.id ? { ...r, subjectId: null } : r,
         ),
-      };
-
-    case 'settings/days':
-      return {
-        ...state,
-        settings: {
-          ...state.settings,
-          daysVisible: clampDays(action.days),
-          // Picking a count by hand takes over from the Today tab, which
-          // deselects it and drops the count it was holding.
-          daysBeforeToday: null,
-        },
-      };
-
-    case 'settings/anchor':
-      return {
-        ...state,
-        settings: { ...state.settings, anchorDate: action.anchorDate },
-      };
-
-    case 'settings/shift':
-      // One day per press, regardless of how many days are on screen.
-      return {
-        ...state,
-        settings: {
-          ...state.settings,
-          anchorDate: addDays(state.settings.anchorDate, action.direction),
-        },
-      };
-
-    case 'settings/today':
-      // Today is always the leftmost column, whatever the window size.
-      return {
-        ...state,
-        settings: { ...state.settings, anchorDate: todayISO() },
-      };
-
-    case 'settings/bandWeights':
-      return {
-        ...state,
-        settings: { ...state.settings, bandWeights: action.weights },
-      };
-
-    case 'settings/todayFocus':
-      // The Today tab is a single day, on today, over whatever the week view
-      // was showing. `daysBeforeToday` both marks the tab selected and holds
-      // the count to give back, so pressing Today twice must not overwrite it.
-      return {
-        ...state,
-        settings: {
-          ...state.settings,
-          view: 'grid',
-          anchorDate: todayISO(),
-          daysVisible: 1,
-          daysBeforeToday: state.settings.daysBeforeToday ?? state.settings.daysVisible,
-        },
-      };
-
-    case 'settings/view':
-      // Choosing any other tab deselects Today and restores its day count.
-      return {
-        ...state,
-        settings: {
-          ...state.settings,
-          view: action.view,
-          daysVisible: state.settings.daysBeforeToday ?? state.settings.daysVisible,
-          daysBeforeToday: null,
-        },
       };
 
     case 'state/replace':

@@ -4,6 +4,9 @@ A weekly student planner. Assignments, events, and multi-day recurring bars
 across a scrolling day window, plus a sidebar, a list view, a day page, and a
 to-do strip.
 
+It runs two ways from one codebase: a native macOS app, and an installable web
+app for the phone — see [On your phone](#on-your-phone).
+
 The interface follows the design canvas in `design/` — see [Design](#design).
 
 ## Requirements
@@ -54,6 +57,72 @@ The app is unsigned, which is fine here — locally built apps carry no quaranti
 attribute, so macOS opens them without complaint. Signing only matters if you
 move it to another Mac.
 
+## On your phone
+
+The phone version is the same app, installed to the home screen from Safari
+rather than from a `.dmg`. It is a **PWA**: a web page with a manifest and a
+service worker, which together let iOS give it an icon, run it without browser
+chrome, and open it with no network at all.
+
+It is not a shrunk-down desktop. Below 900px the app renders a different shell
+entirely — three tabs (Week · List · Planner), bottom sheets instead of
+popovers, swipe actions on rows, and no window chrome. The desktop components
+are untouched by it.
+
+```bash
+npm run build:pwa
+```
+
+Writes `dist-pwa/`. That is a **second build mode**, not a replacement: the
+default `npm run build` still writes `dist/` with a relative base, which is what
+Tauri loads off disk. A service worker's scope and a manifest's `start_url` are
+absolute by nature, so the PWA build sets `base: '/'` — and therefore
+`dist-pwa/index.html` will *not* open straight from Finder the way `dist/` does.
+That is the trade, and it is why the two have separate output directories.
+
+To check it locally before deploying:
+
+```bash
+npm run preview -- --mode pwa --port 4173
+```
+
+### Putting it online
+
+Any static host works; it is a folder of files. Cloudflare Pages is free and
+does not need a build step, since `dist-pwa/` is already built:
+
+```bash
+npx wrangler pages deploy dist-pwa --project-name weekly-planner
+```
+
+The first run opens a browser to log in to Cloudflare and offers to create the
+project. After that it prints a `*.pages.dev` URL.
+
+**It has to be HTTPS.** Service workers are refused on plain HTTP from anywhere
+except `localhost`, and without one there is no offline and no install prompt.
+Any of the usual hosts give you HTTPS for free.
+
+### Installing it
+
+On the iPhone, open the URL in **Safari** — not Chrome, which cannot install web
+apps on iOS — then **Share → Add to Home Screen**. It gets the app icon, opens
+full-screen with no address bar, and works in airplane mode.
+
+Reinstalling is how it updates if the service worker ever gets stuck; normally a
+new deploy is picked up on the next launch.
+
+### What is missing on the phone
+
+- **Screenshot and PDF import.** The text recognition is Apple's Vision
+  framework, called from the Rust side. There is no equivalent in a web page, so
+  the entry points stay behind `isTauri()`.
+- **Syncing with the Mac.** Not yet built. The phone and the desktop are separate
+  stores, as the desktop and the browser already are — use **Export backup** to
+  move data between them for now. The groundwork is done: `PlannerState` holds
+  only content, and everything about *where a device is looking* lives apart
+  from it in `planner.device.v1`, so syncing the planner will not drag one
+  screen's scroll position onto another.
+
 ## Using it
 
 | Action | How |
@@ -95,8 +164,14 @@ managed in the Edit planner panel. Each subject is defined by a single hue — s
 
 Everything saves automatically as you work, under the key `planner.v1`. The
 desktop app keeps its store in `~/Library/WebKit/com.carternishi.weeklyplanner`;
-the browser version keeps a separate one in the browser profile. The two do not
-share data.
+the browser version keeps a separate one in the browser profile, and the
+installed phone app a third. None of them share data yet — see
+[On your phone](#on-your-phone).
+
+A second key, `planner.device.v1`, holds what that device is *looking at* —
+which day, how many columns, which tab, how tall the bands are. It is
+deliberately kept out of `planner.v1`, because that is the half that will sync
+one day, and scrolling a phone to Friday must not scroll the Mac to Friday.
 
 Use **Export backup** in the sidebar (or **Edit planner → Export JSON**) for a
 real backup, and **Import JSON** to restore it or move to another machine. Both
@@ -159,6 +234,10 @@ src/
   lib/ocr.ts            on-device text recognition (invoke), image intake helpers
   lib/ocrParse.ts       turns OCR lines into candidate items: layout, dates, subjects
   lib/categorize.ts     splits an imported assignment into a kind-based title and details
+  lib/useIsMobile.ts    the 899px breakpoint, as a hook
+  lib/pwa.ts            registers the service worker — never inside the desktop shell
+  store/devicePrefs.ts  per-device view state, kept out of the synced planner
+  components/mobile/    the phone shell: three tabs, sheets, swipe rows, gestures
   styles/
     tokens.css          colors, type scale, and geometry from the design canvas
     global.css          import hub — the files below, in cascade order
@@ -168,10 +247,15 @@ src/
     list.css            list view
     day.css             day page
     overlays.css        composer, edit-planner panel, confirm dialog
+    mobile.css          the phone layer — imported last, so it wins without edits above
   components/           one file per piece of UI (ScreenshotImport.tsx is the review table)
 tools/ocr/parse-check.ts  sanity checks for the OCR parser: npx tsx tools/ocr/parse-check.ts
 tools/ocr/fixtures/       real Vision output the checks replay
   assets/fonts/         DM Sans + Source Serif 4, vendored so the app works offline
+public/                 copied verbatim into both builds
+  manifest.webmanifest  name, icons, colours — what makes it installable
+  icons/                home-screen icons, from tools/icons/make-pwa-icons.sh
+  launch-mark.svg       the launch screen, shown until React's first render
 src-tauri/
   tauri.conf.json       window size, bundle identifier, CSP
   capabilities/         which native APIs the frontend may call

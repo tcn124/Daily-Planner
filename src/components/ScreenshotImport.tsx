@@ -3,6 +3,7 @@ import { usePlanner } from '../store/plannerStore';
 import { recognize, type ImportSource, type OcrLine } from '../lib/ocr';
 import { headerSubject, parseOcr, type Candidate } from '../lib/ocrParse';
 import { startOfWeek, todayISO } from '../lib/dates';
+import { setAnchor, useDevicePrefs } from '../store/devicePrefs';
 import { formatTimeInput } from '../lib/time';
 import { subjectChipBg, subjectChipInk } from '../lib/color';
 import type { ItemType } from '../types';
@@ -37,7 +38,8 @@ const BAND_LABEL: Record<ItemType, string> = {
  */
 export function ScreenshotImport({ sources, onClose }: Props) {
   const { state, dispatch } = usePlanner();
-  const { subjects, settings } = state;
+  const { subjects } = state;
+  const { anchorDate, view } = useDevicePrefs();
   const [phase, setPhase] = useState<Phase>({ kind: 'reading', done: 0, total: sources.length });
 
   // Opened by a paste or a drop, nothing inside the panel has focus, so
@@ -51,7 +53,7 @@ export function ScreenshotImport({ sources, onClose }: Props) {
     let cancelled = false;
     (async () => {
       try {
-        const ctx = { today: todayISO(), anchorMonth: settings.anchorDate.slice(0, 7), subjects };
+        const ctx = { today: todayISO(), anchorMonth: anchorDate.slice(0, 7), subjects };
         const rows: Row[] = [];
         const lines: OcrLine[] = [];
         // Overlapping screenshots read the same assignment twice; keep the first.
@@ -123,8 +125,8 @@ export function ScreenshotImport({ sources, onClose }: Props) {
     }
     // Land the week on the first imported item so the result is visible.
     const earliest = chosen.map((r) => r.date as string).sort()[0];
-    if (earliest && settings.view === 'grid') {
-      dispatch({ type: 'settings/anchor', anchorDate: startOfWeek(earliest) });
+    if (earliest && view === 'grid') {
+      setAnchor(startOfWeek(earliest));
     }
     onClose();
   }

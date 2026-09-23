@@ -2,12 +2,61 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      `viewport-fit=cover` is what makes `env(safe-area-inset-*)` return
+      anything: without it the phone layout stops short of the notch and the
+      home indicator instead of sitting under them. Zoom is deliberately left
+      alone — every input is already 16px, so iOS has no reason to zoom, and
+      disabling it would only take the choice away from someone who needs it.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#fcfcfb" />
+    <meta name="color-scheme" content="light" />
     <title>Weekly Planner</title>
-    <script type="module" crossorigin src="./assets/index-C0sJ9pLo.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Cgh6ZUhu.css">
+
+    <!--
+      Installed to the home screen. The first two say "run without browser
+      chrome" (Apple's spelling is the older one, and is still the one iOS
+      reads); the title is what appears under the icon, where "Weekly Planner"
+      would be truncated. These are inert in the desktop shell, and the paths
+      below resolve in both builds because `public/` is copied into each.
+    -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Planner" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+
+    <style>
+      /*
+       * The launch screen, held until React's first render takes it away.
+       *
+       * iOS's own `apple-touch-startup-image` wants an exact-size PNG for every
+       * device and orientation, and is unreliable on recent versions. This
+       * covers the same gap on every platform, is cached by the service worker
+       * before it is ever needed, and is the design's own launch mark rather
+       * than an approximation of it.
+       */
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: #ffffff;
+      }
+      #boot img {
+        width: 100%;
+        height: 100%;
+        /* Matches the mark's own `preserveAspectRatio="xMidYMid slice"`. */
+        object-fit: cover;
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-DziJQ0Wi.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BXWzdiJi.css">
   </head>
   <body>
     <div id="root"></div>
+    <div id="boot" aria-hidden="true"><img src="./launch-mark.svg" alt="" /></div>
   </body>
 </html>

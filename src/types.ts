@@ -1,4 +1,8 @@
 export type ItemType = 'assignment' | 'event';
+/**
+ * Which desktop view is showing, and how many day columns it has. Both live
+ * in `devicePrefs`, not here: they describe a screen, not a planner.
+ */
 export type ViewMode = 'grid' | 'list';
 /** How many day columns the week view shows. Any whole number from 1 to 14. */
 export type DaysVisible = number;
@@ -51,24 +55,6 @@ export interface TodoItem {
   done: boolean;
 }
 
-export interface Settings {
-  daysVisible: DaysVisible;
-  /** 'YYYY-MM-DD' — leftmost day of the visible window */
-  anchorDate: string;
-  view: ViewMode;
-  /**
-   * Relative heights of the Assignments / Events / Recurring bands. Weights
-   * rather than pixels, so the grid still stretches to fill any window size.
-   */
-  bandWeights: [number, number, number];
-  /**
-   * Set only while the Today tab is selected: the day count to put back when it
-   * is deselected. Its presence is what marks that tab active, so both the mode
-   * and the count it borrowed survive a restart.
-   */
-  daysBeforeToday: DaysVisible | null;
-}
-
 export interface PlannerState {
   version: 1;
   subjects: Subject[];
@@ -80,5 +66,4 @@ export interface PlannerState {
    * simply absent rather than stored empty.
    */
   notes: Record<string, string>;
-  settings: Settings;
 }

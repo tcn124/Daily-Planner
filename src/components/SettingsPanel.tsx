@@ -7,6 +7,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { clearState, exportState, importState } from '../store/persistence';
 import { DaysStepper } from './DaysStepper';
 import { isTauri } from '../lib/platform';
+import { setDays, useDevicePrefs } from '../store/devicePrefs';
 
 interface Props {
   onClose: () => void;
@@ -23,6 +24,7 @@ interface Pending {
 
 export function SettingsPanel({ onClose, onImportScreenshot }: Props) {
   const { state, dispatch } = usePlanner();
+  const { daysVisible } = useDevicePrefs();
   const [editingColor, setEditingColor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -159,8 +161,8 @@ export function SettingsPanel({ onClose, onImportScreenshot }: Props) {
         <section className="panel__section">
           <span className="eyebrow">Days shown</span>
           <DaysStepper
-            value={state.settings.daysVisible}
-            onChange={(days) => dispatch({ type: 'settings/days', days })}
+            value={daysVisible}
+            onChange={setDays}
           />
           <p className="panel__note">
             Anywhere from 1 to 14. The header arrows still move one day at a time.

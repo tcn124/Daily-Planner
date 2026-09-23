@@ -11,3 +11,6 @@
 @import './day.css';
 @import './list.css';
 @import './overlays.css';
+
+/* Last: the phone layer overrides the desktop rules above it. */
+@import './mobile.css';

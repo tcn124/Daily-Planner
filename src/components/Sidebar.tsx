@@ -1,10 +1,11 @@
 import { usePlanner } from '../store/plannerStore';
 import { subjectAccent } from '../lib/color';
 import { daysBetween, startOfWeek, todayISO } from '../lib/dates';
+import { missedItems } from '../lib/missed';
+import { focusToday, setAnchor, setView, useDevicePrefs } from '../store/devicePrefs';
 import { DEFAULT_HUE } from '../store/defaults';
 import { exportState } from '../store/persistence';
 import { isTauri } from '../lib/platform';
-import type { ViewMode } from '../types';
 
 interface Props {
   collapsed: boolean;
@@ -46,11 +47,12 @@ function IconToday() {
 
 export function Sidebar({ collapsed, onOpenSettings, onImportScreenshot }: Props) {
   const { state, dispatch } = usePlanner();
-  const { subjects, items, recurring, settings } = state;
+  const { subjects, items, recurring } = state;
+  const { view, daysVisible, daysBeforeToday } = useDevicePrefs();
   const today = todayISO();
   // The Today tab borrows the day count while it is selected; that borrowed
   // value is also what marks it active.
-  const inToday = settings.daysBeforeToday !== null;
+  const inToday = daysBeforeToday !== null;
 
   const countFor = (id: string) =>
     items.filter((i) => i.subjectId === id).length +
@@ -58,28 +60,16 @@ export function Sidebar({ collapsed, onOpenSettings, onImportScreenshot }: Props
 
   const todayCount = items.filter((i) => i.date === today).length;
 
-  // "Missed" is derived, not stored: anything still open whose day has passed.
-  const missed = items
-    .filter((i) => !i.done && i.date < today)
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const missed = missedItems(items, today);
 
   const subjectName = (id: string | null) =>
     subjects.find((s) => s.id === id)?.name ?? 'No subject';
 
-  function setView(view: ViewMode) {
-    dispatch({ type: 'settings/view', view });
-  }
-
-  function goToToday() {
-    dispatch({ type: 'settings/todayFocus' });
-  }
-
   /** Jump the visible window to the week containing a missed item. */
   function revealMissed(date: string) {
-    dispatch({
-      type: 'settings/anchor',
-      anchorDate: settings.daysVisible % 7 === 0 ? startOfWeek(date) : date,
-    });
+    // A whole-week window lands on the Monday; any other count lands on the
+    // day itself, so the item is the leftmost column rather than off-screen.
+    setAnchor(daysVisible % 7 === 0 ? startOfWeek(date) : date);
     setView('grid');
   }
 
@@ -87,7 +77,7 @@ export function Sidebar({ collapsed, onOpenSettings, onImportScreenshot }: Props
     for (const item of missed) {
       dispatch({ type: 'item/update', id: item.id, patch: { date: today } });
     }
-    goToToday();
+    focusToday();
   }
 
   function addSubject() {
@@ -104,16 +94,16 @@ export function Sidebar({ collapsed, onOpenSettings, onImportScreenshot }: Props
     return (
       <aside className="sidebar sidebar--collapsed">
         <button type="button" className="sidebar__rail-btn" aria-label="Week view"
-          title="Week" data-active={settings.view === 'grid' && !inToday}
+          title="Week" data-active={view === 'grid' && !inToday}
           onClick={() => setView('grid')}>
           <IconWeek />
         </button>
         <button type="button" className="sidebar__rail-btn" aria-label="List view"
-          title="List" data-active={settings.view === 'list'} onClick={() => setView('list')}>
+          title="List" data-active={view === 'list'} onClick={() => setView('list')}>
           <IconList />
         </button>
         <button type="button" className="sidebar__rail-btn" aria-label="Today"
-          title="Today" data-active={inToday} onClick={goToToday}>
+          title="Today" data-active={inToday} onClick={focusToday}>
           <IconToday />
         </button>
 
@@ -138,18 +128,18 @@ export function Sidebar({ collapsed, onOpenSettings, onImportScreenshot }: Props
     <aside className="sidebar">
       <nav className="sidebar__group sidebar__group--nav">
         <button type="button" className="sidebar__row sidebar__row--nav"
-          data-active={settings.view === 'grid' && !inToday}
+          data-active={view === 'grid' && !inToday}
           onClick={() => setView('grid')}>
           <span className="sidebar__icon"><IconWeek /></span>
           <span className="sidebar__row-label">Week</span>
         </button>
         <button type="button" className="sidebar__row sidebar__row--nav"
-          data-active={settings.view === 'list'} onClick={() => setView('list')}>
+          data-active={view === 'list'} onClick={() => setView('list')}>
           <span className="sidebar__icon"><IconList /></span>
           <span className="sidebar__row-label">List</span>
         </button>
         <button type="button" className="sidebar__row sidebar__row--nav"
-          data-active={inToday} onClick={goToToday}>
+          data-active={inToday} onClick={focusToday}>
           <span className="sidebar__icon"><IconToday /></span>
           <span className="sidebar__row-label">Today</span>
           {todayCount > 0 && <span className="count">{todayCount}</span>}

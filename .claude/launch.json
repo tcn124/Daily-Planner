@@ -4,8 +4,25 @@
     {
       "name": "planner",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "planner-pwa",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "preview",
+        "--",
+        "--mode",
+        "pwa",
+        "--port",
+        "4173"
+      ],
+      "port": 4173
     }
   ]
 }

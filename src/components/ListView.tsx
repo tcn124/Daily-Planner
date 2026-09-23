@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { usePlanner } from '../store/plannerStore';
-import { dayName, dayOfMonth, formatSpan, isWithin, monthShort, todayISO } from '../lib/dates';
-import { spanDates } from '../lib/recurring';
+import { dayName, dayOfMonth, formatSpan, monthShort, todayISO } from '../lib/dates';
+import { activeDates, rowsForDate, type ListRow } from '../lib/listRows';
 import { subjectAccent, subjectChipInk } from '../lib/color';
 import { uid } from '../store/defaults';
 import { startItemDrag, useDropTarget } from '../lib/dnd';
@@ -13,20 +13,7 @@ type Kind = 'assignment' | 'event' | 'recurring';
 type GroupBy = 'day' | 'subject';
 type SortBy = 'default' | 'time' | 'subject';
 
-interface Row {
-  kind: Kind;
-  id: string;
-  date: string;
-  hue: number | null;
-  subject: string;
-  subjectId: string | null;
-  desc: string;
-  /** Items only; recurring bars have no details line. */
-  details: string;
-  time: string;
-  done: boolean;
-  createdAt: number;
-}
+type Row = ListRow;
 
 const PILL_LABEL: Record<Kind, string> = {
   assignment: 'Assignment',
@@ -84,10 +71,7 @@ export function ListView({ slot }: Props) {
    * the earliest to the latest, so nothing is ever out of reach. Days with
    * nothing scheduled are simply absent rather than padded in.
    */
-  const dates = [
-    ...new Set([...items.map((i) => i.date), ...recurring.flatMap(spanDates)]),
-  ].sort();
-  const lookup = (id: string | null) => subjects.find((s) => s.id === id) ?? null;
+  const dates = activeDates(items, recurring);
 
   function sortRows(rows: Row[]): Row[] {
     return rows.slice().sort((a, b) => {
@@ -109,45 +93,7 @@ export function ListView({ slot }: Props) {
   }
 
   function rowsFor(date: string): Row[] {
-    const dayItems = items
-      .filter((i) => i.date === date)
-      .map<Row>((i) => {
-        const s = lookup(i.subjectId);
-        return {
-          kind: i.type,
-          id: i.id,
-          date,
-          hue: s?.hue ?? null,
-          subject: s?.name ?? 'No subject',
-          subjectId: i.subjectId,
-          desc: i.description || 'Untitled',
-          details: i.details,
-          time: i.time,
-          done: i.done,
-          createdAt: i.createdAt,
-        };
-      });
-
-    const dayRecurring = recurring
-      .filter((r) => isWithin(date, r.startDate, r.endDate))
-      .map<Row>((r) => {
-        const s = lookup(r.subjectId);
-        return {
-          kind: 'recurring',
-          id: r.id,
-          date,
-          hue: s?.hue ?? null,
-          subject: s?.name ?? 'No subject',
-          subjectId: r.subjectId,
-          desc: r.title || 'Untitled',
-          details: '',
-          time: '',
-          done: r.doneDates.includes(date),
-          createdAt: 0,
-        };
-      });
-
-    return sortRows([...dayItems, ...dayRecurring]);
+    return sortRows(rowsForDate(date, items, recurring, subjects));
   }
 
   const allRows = dates.flatMap(rowsFor);

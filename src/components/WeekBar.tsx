@@ -1,5 +1,10 @@
-import { usePlanner } from '../store/plannerStore';
 import { formatSpan, isoWeek, monthLong, year } from '../lib/dates';
+import {
+  goToToday,
+  setDays,
+  shiftAnchor,
+  useDevicePrefs,
+} from '../store/devicePrefs';
 import { DaysStepper } from './DaysStepper';
 
 interface Props {
@@ -21,8 +26,7 @@ function Chevron() {
 
 /** The week view's contribution to the top bar: month, range, nav, day count, new item. */
 export function WeekBar({ window: window_, onNewItem }: Props) {
-  const { state, dispatch } = usePlanner();
-  const { anchorDate, daysVisible } = state.settings;
+  const { anchorDate, daysVisible } = useDevicePrefs();
 
   return (
     <div className="viewbar">
@@ -43,14 +47,14 @@ export function WeekBar({ window: window_, onNewItem }: Props) {
             type="button"
             className="navgroup__arrow"
             aria-label="Previous day"
-            onClick={() => dispatch({ type: 'settings/shift', direction: -1 })}
+            onClick={() => shiftAnchor(-1)}
           >
             <Chevron />
           </button>
           <button
             type="button"
             className="navgroup__today"
-            onClick={() => dispatch({ type: 'settings/today' })}
+            onClick={goToToday}
           >
             Today
           </button>
@@ -58,7 +62,7 @@ export function WeekBar({ window: window_, onNewItem }: Props) {
             type="button"
             className="navgroup__arrow navgroup__arrow--next"
             aria-label="Next day"
-            onClick={() => dispatch({ type: 'settings/shift', direction: 1 })}
+            onClick={() => shiftAnchor(1)}
           >
             <Chevron />
           </button>
@@ -66,7 +70,7 @@ export function WeekBar({ window: window_, onNewItem }: Props) {
 
         <DaysStepper
           value={daysVisible}
-          onChange={(days) => dispatch({ type: 'settings/days', days })}
+          onChange={(days) => setDays(days)}
         />
 
         <button type="button" className="btn btn--primary" onClick={onNewItem}>

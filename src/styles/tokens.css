@@ -86,4 +86,36 @@
   --shadow-card-hover: 0 2px 6px rgba(15, 15, 15, 0.07);
   --shadow-panel: 0 12px 32px rgba(15, 15, 15, 0.08);
   --shadow-pop: 0 14px 34px rgba(15, 15, 15, 0.14);
+
+  /* ---- Phone ----------------------------------------------------------
+   * Measured from the mobile design canvas (`design/Mobile.dc.html`), which
+   * is the source of truth for the phone the way the other two canvases are
+   * for the desktop. Prefixed `--m-` so a mobile value can never be mistaken
+   * for the desktop one it overrides.
+   */
+  --m-hit: 44px;              /* HIG minimum tap target */
+  --m-tabbar-h: 49px;         /* plus the home-indicator inset below it */
+  --m-pad-x: 16px;            /* screen edge padding; the desktop header uses 26 */
+  --m-band-head-h: 36px;      /* desktop is 30; taller for the ▾ tap target */
+  --m-strip-cell-h: 64px;
+  --m-dayrow-h: 48px;
+
+  --m-checkbox: 18px;         /* 1-day row and 2-day card */
+  --m-checkbox-sm: 16px;      /* 3-day card */
+  --m-fs-title: 15px;         /* 1-day row */
+  --m-fs-title-card: 14px;    /* 2-day card */
+  --m-fs-title-card-sm: 13.5px; /* 3-day card */
+  --m-fs-details: 13px;
+  --m-fs-details-card: 12px;
+  --m-fs-input: 16px;         /* body inputs — under this, iOS zooms on focus */
+  --m-fs-input-title: 17px;
+  --m-col-pad-y: 6px;
+  --m-col-pad-x: 5px;
+  --m-bar-h: 34px;            /* 3-day recurring bar, 40pt row pitch */
+
+  --m-radius-sheet: 14px;
+  --m-scrim: rgba(15, 15, 15, 0.28);
+  --m-tabbar-bg: rgba(252, 252, 251, 0.94);
+  --m-swipe-action-w: 72px;
+  --m-move-bg: #ecebe8;       /* surface-sunken, one step darker */
 }

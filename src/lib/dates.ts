@@ -95,6 +95,14 @@ export function formatRange(window: string[]): string {
   return `${start} - ${end}`;
 }
 
+/**
+ * "Tue, Sep 23" — the one-line date the phone's sheets and toasts use, where
+ * there is room for the weekday but not the whole word.
+ */
+export function shortDate(iso: string): string {
+  return `${dayName(iso).slice(0, 3)}, ${monthShort(iso)} ${dayOfMonth(iso)}`;
+}
+
 /** Inclusive overlap test between a date and a [start, end] span. */
 export function isWithin(iso: string, start: string, end: string): boolean {
   return iso >= start && iso <= end;

@@ -16,6 +16,12 @@ import {
   todayISO,
 } from '../lib/dates';
 import { DEFAULT_BAND_WEIGHTS, uid } from '../store/defaults';
+import {
+  setAnchor,
+  setBandWeights,
+  shiftAnchor,
+  useDevicePrefs,
+} from '../store/devicePrefs';
 import { DayCell, type ComposerTarget } from './DayCell';
 import { RecurringBand } from './RecurringBand';
 import { TodoStrip } from './TodoStrip';
@@ -49,7 +55,8 @@ const HAS_SCROLLEND = typeof window !== 'undefined' && 'onscrollend' in window;
 
 export function WeekView({ slot, onOpenDay }: Props) {
   const { state, dispatch } = usePlanner();
-  const { subjects, items, recurring, todos, settings } = state;
+  const { subjects, items, recurring, todos } = state;
+  const settings = useDevicePrefs();
   const [composer, setComposer] = useState<ComposerTarget | null>(null);
   const [collapsed, setCollapsed] = useState<Record<BandKey, boolean>>({
     assignments: false,
@@ -140,7 +147,7 @@ export function WeekView({ slot, onOpenDay }: Props) {
     if (column === BUFFER) return;
     // Absolute, not relative: read the date actually sitting in that column.
     const next = trackRef.current[column];
-    if (next) dispatch({ type: 'settings/anchor', anchorDate: next });
+    if (next) setAnchor(next);
   };
   const settleRefFn = useRef(settle);
   settleRefFn.current = settle;
@@ -204,8 +211,8 @@ export function WeekView({ slot, onOpenDay }: Props) {
     function onKey(e: KeyboardEvent) {
       const el = e.target as HTMLElement | null;
       if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
-      if (e.key === 'ArrowLeft') dispatch({ type: 'settings/shift', direction: -1 });
-      if (e.key === 'ArrowRight') dispatch({ type: 'settings/shift', direction: 1 });
+      if (e.key === 'ArrowLeft') shiftAnchor(-1);
+      if (e.key === 'ArrowRight') shiftAnchor(1);
       if (e.key === 'Escape') setComposer(null);
     }
     document.addEventListener('keydown', onKey);
@@ -295,13 +302,8 @@ export function WeekView({ slot, onOpenDay }: Props) {
   const resizerFor = (index: number) => ({
     index,
     bandWeights: settings.bandWeights,
-    onBands: (weights: [number, number, number]) =>
-      dispatch({ type: 'settings/bandWeights', weights }),
-    onReset: () =>
-      dispatch({
-        type: 'settings/bandWeights',
-        weights: [...DEFAULT_BAND_WEIGHTS] as [number, number, number],
-      }),
+    onBands: setBandWeights,
+    onReset: () => setBandWeights([...DEFAULT_BAND_WEIGHTS] as [number, number, number]),
   });
 
   /** A collapsed band keeps its stored weight but takes no space. */

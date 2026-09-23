@@ -1,5 +1,6 @@
 import type { Item, PlannerState, RecurringItem, Subject } from '../types';
-import { clampDays, createInitialState } from './defaults';
+import { createInitialState } from './defaults';
+import { adoptLegacySettings } from './devicePrefs';
 import { spanDates } from '../lib/recurring';
 import { hexToHue } from '../lib/color';
 import { isTauri } from '../lib/platform';
@@ -31,12 +32,11 @@ function isPlannerState(value: unknown): value is PlannerState {
     Array.isArray(s.subjects) &&
     Array.isArray(s.items) &&
     Array.isArray(s.recurring) &&
-    Array.isArray(s.todos) &&
-    typeof s.settings === 'object' &&
-    s.settings !== null
+    Array.isArray(s.todos)
   );
   // `notes` is deliberately not required: states written before day notes
-  // existed are still valid and get an empty map on read.
+  // existed are still valid and get an empty map on read. Nor is `settings`,
+  // which older saves carry and newer ones do not — see `stripSettings`.
 }
 
 /**
@@ -67,35 +67,32 @@ function migrateNotes(notes: unknown): Record<string, string> {
   ) as Record<string, string>;
 }
 
+/**
+ * View settings used to live in here. They are device state, not planner
+ * state, so they now belong to `devicePrefs` — but a planner saved by an
+ * earlier build still carries them, and a backup file always will. Hand them
+ * over on the way past (only ever adopted on a device that has none of its
+ * own) and drop the field.
+ */
+function stripSettings(parsed: PlannerState): PlannerState {
+  const { settings, ...rest } = parsed as PlannerState & { settings?: unknown };
+  adoptLegacySettings(settings);
+  return rest;
+}
+
 export function loadState(): PlannerState {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return createInitialState();
     const parsed: unknown = JSON.parse(raw);
     if (!isPlannerState(parsed)) return createInitialState();
-    // Merge settings over defaults so a state written by an older build that
-    // lacks a newer setting still opens. Rebuilt field by field rather than
-    // spread, so settings dropped in later versions don't linger forever.
-    const base = createInitialState();
-    const merged = { ...base.settings, ...parsed.settings };
-    return {
+    return stripSettings({
       ...parsed,
       subjects: migrateSubjects(parsed.subjects),
       items: migrateItems(parsed.items),
       recurring: migrateRecurring(parsed.recurring),
       notes: migrateNotes(parsed.notes),
-      settings: {
-        daysVisible: clampDays(merged.daysVisible),
-        anchorDate: merged.anchorDate,
-        view: merged.view,
-        bandWeights: merged.bandWeights,
-        // Saves written before the Today tab existed simply aren't in it.
-        daysBeforeToday:
-          typeof merged.daysBeforeToday === 'number'
-            ? clampDays(merged.daysBeforeToday)
-            : null,
-      },
-    };
+    });
   } catch {
     return createInitialState();
   }
@@ -126,19 +123,15 @@ function parseBackup(text: string): PlannerState {
   if (!isPlannerState(parsed)) {
     throw new Error('That file is not a planner backup.');
   }
-  const base = createInitialState();
-  return {
+  // A backup's own view settings are ignored: importing someone's planner
+  // should not move this screen to the day they happened to be looking at.
+  return stripSettings({
     ...parsed,
     subjects: migrateSubjects(parsed.subjects),
     items: migrateItems(parsed.items),
     recurring: migrateRecurring(parsed.recurring),
     notes: migrateNotes(parsed.notes),
-    settings: {
-      ...base.settings,
-      ...parsed.settings,
-      daysVisible: clampDays(parsed.settings.daysVisible ?? base.settings.daysVisible),
-    },
-  };
+  });
 }
 
 export async function exportState(state: PlannerState): Promise<void> {

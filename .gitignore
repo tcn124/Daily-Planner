@@ -1,0 +1,14 @@
+node_modules/
+# The Tauri build's output is committed (see CLAUDE.md); the PWA build's is not
+# — it is a deploy artifact, rebuilt by `npm run build:pwa`.
+dist-pwa/
+# Made on demand for a drag-and-drop upload; never a source of truth.
+weekly-planner-pwa.zip
+src-tauri/target/
+.DS_Store
+
+# Supabase URL and anon key (see design/sync-plan.md). The anon key is safe
+# in a client with RLS on, but the file is per-machine — .env.example is the
+# one that is committed.
+.env
+.env.local

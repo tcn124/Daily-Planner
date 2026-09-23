@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { usePlanner } from './store/plannerStore';
 import { WeekView } from './components/WeekView';
 import { ListView } from './components/ListView';
 import { DayPage } from './components/DayPage';
 import { Sidebar } from './components/Sidebar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { ScreenshotImport } from './components/ScreenshotImport';
+import { MobileShell } from './components/mobile/MobileShell';
+import { useIsMobile } from './lib/useIsMobile';
+import { useDevicePrefs } from './store/devicePrefs';
 import { isTauri } from './lib/platform';
 import { pickSources, sourcesFromFiles, type ImportSource } from './lib/ocr';
 import { invoke } from '@tauri-apps/api/core';
@@ -97,7 +99,7 @@ function useImageIntake(onSources: (sources: ImportSource[]) => void) {
 }
 
 export function App() {
-  const { state } = usePlanner();
+  const { view: activeView } = useDevicePrefs();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   // Files waiting to be read; the review panel is open while this is set.
@@ -123,6 +125,25 @@ export function App() {
    */
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const barRef = useWindowDrag();
+  const isMobile = useIsMobile();
+
+  /*
+   * Take down the launch screen in index.html. It happens here rather than
+   * after `render()` in main.tsx because an effect is the only point React
+   * guarantees the real UI is already committed — pull it any earlier and an
+   * installed app flashes white between the mark and the week.
+   */
+  useEffect(() => {
+    document.getElementById('boot')?.remove();
+  }, []);
+
+  /*
+   * The phone gets its own shell rather than a responsive version of this one:
+   * it has different navigation, different components, and no window chrome.
+   * Every hook above still runs, so the order is stable across the swap — the
+   * desktop-only ones (window drag, image intake) no-op on their own.
+   */
+  if (isMobile) return <MobileShell />;
 
   const view = focusedDate ? (
     <DayPage
@@ -131,7 +152,7 @@ export function App() {
       onClose={() => setFocusedDate(null)}
       onNavigate={setFocusedDate}
     />
-  ) : state.settings.view === 'grid' ? (
+  ) : activeView === 'grid' ? (
     <WeekView slot={slot} onOpenDay={setFocusedDate} />
   ) : (
     <ListView slot={slot} />

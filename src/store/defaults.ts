@@ -1,5 +1,4 @@
 import type { PlannerState, Subject } from '../types';
-import { startOfWeek, todayISO } from '../lib/dates';
 
 /**
  * Hues drawn from SWATCH_HUES so a fresh planner's subjects land exactly on the
@@ -40,13 +39,6 @@ export function createInitialState(): PlannerState {
     recurring: [],
     todos: [],
     notes: {},
-    settings: {
-      daysVisible: 7,
-      anchorDate: startOfWeek(todayISO()),
-      view: 'grid',
-      bandWeights: [...DEFAULT_BAND_WEIGHTS] as [number, number, number],
-      daysBeforeToday: null,
-    },
   };
 }
 
