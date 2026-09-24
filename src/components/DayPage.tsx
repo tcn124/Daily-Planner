@@ -221,7 +221,7 @@ export function DayPage({ date, slot, onClose, onNavigate }: Props) {
           <textarea
             className="daypage__notes-field"
             placeholder="Notes — free text for the day."
-            value={notes[date] ?? ''}
+            value={notes[date]?.text ?? ''}
             onChange={(e) => dispatch({ type: 'note/set', date, text: e.target.value })}
           />
         </label>

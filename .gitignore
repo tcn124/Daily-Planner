@@ -12,3 +12,6 @@ src-tauri/target/
 # one that is committed.
 .env
 .env.local
+
+# wrangler's local dev/build cache for the heartbeat worker.
+cloudflare/heartbeat/.wrangler/

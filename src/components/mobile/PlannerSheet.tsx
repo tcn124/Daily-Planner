@@ -6,7 +6,9 @@ import { subjectAccent } from '../../lib/color';
 import { isTauri } from '../../lib/platform';
 import { SwatchPicker } from '../SwatchPicker';
 import { ConfirmDialog } from '../ConfirmDialog';
-import { Sheet } from './Sheet';
+import { formatRelativeTime } from '../../sync/status';
+import { useSyncAuth } from '../../sync/useSyncAuth';
+import { Sheet, SheetField } from './Sheet';
 
 interface Props {
   onClose: () => void;
@@ -30,6 +32,7 @@ interface Pending {
  */
 export function PlannerSheet({ onClose }: Props) {
   const { state, dispatch } = usePlanner();
+  const sync = useSyncAuth();
   const [open, setOpen] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -162,6 +165,65 @@ export function PlannerSheet({ onClose }: Props) {
             ? 'Saves automatically on this device.'
             : 'Saves automatically in this browser. Export before switching devices — until the two are syncing, it is the only copy.'}
         </p>
+
+        {sync.status.phase !== 'unconfigured' && (
+          <>
+            <span className="m-sheet__eyebrow">Sync</span>
+            {sync.status.phase === 'signed-out' ? (
+              <form
+                className="m-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  sync.signIn();
+                }}
+              >
+                <SheetField label="Email">
+                  <input
+                    className="m-input"
+                    type="email"
+                    autoComplete="email"
+                    value={sync.email}
+                    onChange={(e) => sync.setEmail(e.target.value)}
+                  />
+                </SheetField>
+                <SheetField label="Password">
+                  <input
+                    className="m-input"
+                    type="password"
+                    autoComplete="current-password"
+                    value={sync.password}
+                    onChange={(e) => sync.setPassword(e.target.value)}
+                  />
+                </SheetField>
+                <div className="m-sheet__group">
+                  <button type="submit" className="m-listrow m-listrow--action" disabled={sync.submitting}>
+                    {sync.submitting ? 'Signing in…' : 'Sign in'}
+                  </button>
+                </div>
+                {sync.error && <p className="m-sheet__note m-sheet__note--error">{sync.error}</p>}
+              </form>
+            ) : (
+              <div className="m-sheet__group">
+                <div className="m-listrow">
+                  <span className="m-listrow__body">
+                    <span className="m-listrow__title">{sync.status.email}</span>
+                    <span className="m-listrow__sub">
+                      {sync.status.phase === 'first-sync' && 'Doing the first sync…'}
+                      {sync.status.phase === 'offline' && 'Offline'}
+                      {sync.status.phase === 'synced' &&
+                        (sync.status.lastSyncedAt == null
+                          ? 'Synced'
+                          : `Synced · ${formatRelativeTime(sync.status.lastSyncedAt)}`)}
+                    </span>
+                  </span>
+                </div>
+                <button type="button" className="m-listrow m-listrow--danger" onClick={sync.signOut}>
+                  <span className="m-listrow__title">Sign out</span>
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </Sheet>
 
       {pending && (

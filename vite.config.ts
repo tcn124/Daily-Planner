@@ -35,6 +35,16 @@ export default defineConfig(({ mode }) => {
                 globPatterns: ['**/*.{js,css,html,woff2,svg,png,webmanifest}'],
                 navigateFallback: '/index.html',
                 cleanupOutdatedCaches: true,
+                // Precaching is for the app shell, never the data in it — a
+                // cached Supabase response would mean the phone quietly shows
+                // yesterday's planner instead of either the real answer or an
+                // honest network error.
+                runtimeCaching: [
+                  {
+                    urlPattern: ({ url }) => url.hostname.endsWith('.supabase.co'),
+                    handler: 'NetworkOnly',
+                  },
+                ],
               },
             }),
           ]

@@ -5,6 +5,7 @@ import { daysBetween, todayISO } from '../../lib/dates';
 import { activeDates, rowsForDate } from '../../lib/listRows';
 import { exportState } from '../../store/persistence';
 import { DEFAULT_HUE } from '../../store/defaults';
+import { formatRelativeTime, useSyncStatus } from '../../sync/status';
 import { useSheets } from './sheets';
 
 interface Props {
@@ -17,12 +18,14 @@ interface Props {
  * subjects, and the planner's own settings.
  *
  * The canvas shows a sync line under the masthead ("Synced with desktop · 2
- * min ago"). There is no sync layer yet, so it is left out rather than shown
- * saying something untrue; it arrives with the thing it describes.
+ * min ago"). It only renders once there is something true to say — not
+ * configured, or not signed in yet, and it stays off rather than showing a
+ * status that describes nothing.
  */
 export function MobilePlanner({ onOpenSubject }: Props) {
   const { state, dispatch } = usePlanner();
   const { openItem, openPlanner } = useSheets();
+  const syncStatus = useSyncStatus();
   const { subjects, items, recurring } = state;
 
   const today = todayISO();
@@ -61,6 +64,13 @@ export function MobilePlanner({ onOpenSubject }: Props) {
       <div className="m-head m-head--planner">
         <h1 className="m-head__title m-head__title--short">Planner</h1>
       </div>
+      {syncStatus.phase === 'synced' && (
+        <span className="m-planner__sync">
+          {syncStatus.lastSyncedAt == null
+            ? 'Synced with desktop'
+            : `Synced with desktop · ${formatRelativeTime(syncStatus.lastSyncedAt)}`}
+        </span>
+      )}
 
       {missed.length > 0 && (
         <>

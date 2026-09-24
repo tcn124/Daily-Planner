@@ -1,4 +1,4 @@
-import type { Item, PlannerState, RecurringItem, Subject } from '../types';
+import type { Item, PlannerState, RecurringItem, Subject, TodoItem } from '../types';
 import { createInitialState } from './defaults';
 import { adoptLegacySettings } from './devicePrefs';
 import { spanDates } from '../lib/recurring';
@@ -7,15 +7,30 @@ import { isTauri } from '../lib/platform';
 
 const KEY = 'planner.v1';
 
+/** A tombstone older than this can no longer matter to a device that syncs. */
+const TOMBSTONE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
 /**
  * Subjects used to store a hex `color`; they now store a `hue`. Convert on read
- * so a planner saved by an earlier build keeps its colours.
+ * so a planner saved by an earlier build keeps its colours. Every record type
+ * gained `updatedAt` at the same time sync was added; missing it means this
+ * record predates sync entirely, so `0` is correct — it must lose to whatever
+ * the server holds on first connect.
  */
 function migrateSubjects(subjects: Subject[]): Subject[] {
   return subjects.map((s) => {
-    if (typeof s.hue === 'number' || s.hue === null) return s;
-    const legacy = (s as Subject & { color?: string }).color;
-    return { id: s.id, name: s.name, hue: legacy ? hexToHue(legacy) : null };
+    const legacy = s as Subject & { color?: string; updatedAt?: number };
+    const hue = typeof s.hue === 'number' || s.hue === null
+      ? s.hue
+      : legacy.color
+        ? hexToHue(legacy.color)
+        : null;
+    return {
+      id: s.id,
+      name: s.name,
+      hue,
+      updatedAt: typeof legacy.updatedAt === 'number' ? legacy.updatedAt : 0,
+    };
   });
 }
 
@@ -36,7 +51,8 @@ function isPlannerState(value: unknown): value is PlannerState {
   );
   // `notes` is deliberately not required: states written before day notes
   // existed are still valid and get an empty map on read. Nor is `settings`,
-  // which older saves carry and newer ones do not — see `stripSettings`.
+  // which older saves carry and newer ones do not — see `stripSettings` — nor
+  // `sync`, which is handled the same way by `migrateSync`.
 }
 
 /**
@@ -46,25 +62,86 @@ function isPlannerState(value: unknown): value is PlannerState {
  */
 function migrateRecurring(recurring: RecurringItem[]): RecurringItem[] {
   return recurring.map((r) => {
-    if (Array.isArray(r.doneDates)) return r;
-    const { done, ...rest } = r as RecurringItem & { done?: boolean };
-    return { ...rest, doneDates: done ? spanDates(rest as RecurringItem) : [] };
+    const legacy = r as RecurringItem & { done?: boolean; updatedAt?: number };
+    const { done, updatedAt, ...rest } = legacy;
+    const doneDates = Array.isArray(rest.doneDates)
+      ? rest.doneDates
+      : done
+        ? spanDates(rest as RecurringItem)
+        : [];
+    return { ...rest, doneDates, updatedAt: typeof updatedAt === 'number' ? updatedAt : 0 };
   });
 }
 
 /** Items gained a `details` line after v1 shipped; older saves have only the title. */
 function migrateItems(items: Item[]): Item[] {
-  return items.map((i) => (typeof i.details === 'string' ? i : { ...i, details: '' }));
+  return items.map((i) => {
+    const legacy = i as Item & { updatedAt?: number };
+    return {
+      ...i,
+      details: typeof i.details === 'string' ? i.details : '',
+      updatedAt: typeof legacy.updatedAt === 'number' ? legacy.updatedAt : 0,
+    };
+  });
 }
 
-/** Day notes arrived after v1 shipped, so older saves simply have none. */
-function migrateNotes(notes: unknown): Record<string, string> {
+/** To-dos predate sync too; the same 0-means-never-synced rule applies. */
+function migrateTodos(todos: TodoItem[]): TodoItem[] {
+  return todos.map((t) => {
+    const legacy = t as TodoItem & { updatedAt?: number };
+    return { ...t, updatedAt: typeof legacy.updatedAt === 'number' ? legacy.updatedAt : 0 };
+  });
+}
+
+/**
+ * Day notes arrived after v1 shipped, so older saves simply have none. A note
+ * used to be a bare string; it now carries its own `updatedAt` the same way
+ * every other record does, once sync needs one to compare.
+ */
+function migrateNotes(notes: unknown): PlannerState['notes'] {
   if (typeof notes !== 'object' || notes === null) return {};
-  return Object.fromEntries(
-    Object.entries(notes as Record<string, unknown>).filter(
-      ([, v]) => typeof v === 'string',
+  const result: PlannerState['notes'] = {};
+  for (const [date, value] of Object.entries(notes as Record<string, unknown>)) {
+    if (typeof value === 'string') {
+      result[date] = { text: value, updatedAt: 0 };
+    } else if (typeof value === 'object' && value !== null && 'text' in value) {
+      const v = value as { text: unknown; updatedAt?: unknown };
+      if (typeof v.text === 'string') {
+        result[date] = { text: v.text, updatedAt: typeof v.updatedAt === 'number' ? v.updatedAt : 0 };
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * `sync` is device-local bookkeeping, never part of a backup — see
+ * `withoutSync`. On a normal load it's real state and must survive, just
+ * shape-checked the way everything else here is; a tombstone older than
+ * `TOMBSTONE_MAX_AGE_MS` can no longer matter to any device and is dropped so
+ * the map doesn't grow forever.
+ */
+function migrateSync(sync: unknown): PlannerState['sync'] {
+  const s = (typeof sync === 'object' && sync !== null ? sync : {}) as Partial<
+    PlannerState['sync']
+  >;
+  const deleted = typeof s.deleted === 'object' && s.deleted !== null ? s.deleted : {};
+  const ticks = typeof s.ticks === 'object' && s.ticks !== null ? s.ticks : {};
+  const cutoff = Date.now() - TOMBSTONE_MAX_AGE_MS;
+  return {
+    deleted: Object.fromEntries(
+      Object.entries(deleted).filter(([, t]) => typeof t === 'number' && t >= cutoff),
     ),
-  ) as Record<string, string>;
+    ticks: Object.fromEntries(
+      Object.entries(ticks).filter(([, t]) => typeof t === 'number'),
+    ),
+  };
+}
+
+/** Strips device-local sync bookkeeping before a state is written to a backup. */
+function withoutSync(state: PlannerState): Omit<PlannerState, 'sync'> {
+  const { sync: _sync, ...rest } = state;
+  return rest;
 }
 
 /**
@@ -91,7 +168,9 @@ export function loadState(): PlannerState {
       subjects: migrateSubjects(parsed.subjects),
       items: migrateItems(parsed.items),
       recurring: migrateRecurring(parsed.recurring),
+      todos: migrateTodos(parsed.todos),
       notes: migrateNotes(parsed.notes),
+      sync: migrateSync((parsed as PlannerState & { sync?: unknown }).sync),
     });
   } catch {
     return createInitialState();
@@ -125,19 +204,24 @@ function parseBackup(text: string): PlannerState {
   }
   // A backup's own view settings are ignored: importing someone's planner
   // should not move this screen to the day they happened to be looking at.
+  // Its sync bookkeeping is dropped the same way — a backup never has any,
+  // since `exportState` never writes it, but an older backup predating sync
+  // is handled identically by `migrateSync` defaulting to empty.
   return stripSettings({
     ...parsed,
     subjects: migrateSubjects(parsed.subjects),
     items: migrateItems(parsed.items),
     recurring: migrateRecurring(parsed.recurring),
+    todos: migrateTodos(parsed.todos),
     notes: migrateNotes(parsed.notes),
+    sync: migrateSync(undefined),
   });
 }
 
 export async function exportState(state: PlannerState): Promise<void> {
   const stamp = new Date().toISOString().slice(0, 10);
   const filename = `planner-backup-${stamp}.json`;
-  const json = JSON.stringify(state, null, 2);
+  const json = JSON.stringify(withoutSync(state), null, 2);
 
   if (isTauri()) {
     // WKWebView never fires `<a download>`, so go through a native save panel.

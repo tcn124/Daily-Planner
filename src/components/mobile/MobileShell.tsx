@@ -3,6 +3,7 @@ import { usePlanner } from '../../store/plannerStore';
 import { setDevicePrefs, useDevicePrefs, type MobileTab } from '../../store/devicePrefs';
 import { missedItems } from '../../lib/missed';
 import { todayISO } from '../../lib/dates';
+import { useSyncStatus } from '../../sync/status';
 import { MobileWeek } from './MobileWeek';
 import { MobileList } from './MobileList';
 import { MobilePlanner } from './MobilePlanner';
@@ -60,6 +61,7 @@ const TABS: { id: MobileTab; label: string; icon: () => JSX.Element }[] = [
 export function MobileShell() {
   const { state } = usePlanner();
   const { tab } = useDevicePrefs();
+  const syncStatus = useSyncStatus();
   // Set from the Planner tab and read by the List. Ephemeral on purpose: a
   // filter is where you are, not a preference worth remembering.
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
@@ -99,6 +101,12 @@ export function MobileShell() {
   return (
     <SheetHost>
       <div className="m-shell">
+        {syncStatus.phase === 'offline' && (
+          <div className="m-offlinebar" role="status">
+            Offline — changes will sync when you're back online.
+          </div>
+        )}
+
         {/* Keyed by tab so switching starts a pane at the top rather than
             inheriting the last one's scroll position. */}
         <div className="m-pane" key={tab}>
@@ -123,6 +131,12 @@ export function MobileShell() {
             </button>
           ))}
         </nav>
+
+        {syncStatus.phase === 'first-sync' && (
+          <div className="m-firstsync" role="status">
+            <p className="m-firstsync__text">Syncing your planner…</p>
+          </div>
+        )}
       </div>
     </SheetHost>
   );

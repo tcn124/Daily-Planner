@@ -8,6 +8,8 @@ import { clearState, exportState, importState } from '../store/persistence';
 import { DaysStepper } from './DaysStepper';
 import { isTauri } from '../lib/platform';
 import { setDays, useDevicePrefs } from '../store/devicePrefs';
+import { formatRelativeTime } from '../sync/status';
+import { useSyncAuth } from '../sync/useSyncAuth';
 
 interface Props {
   onClose: () => void;
@@ -25,6 +27,7 @@ interface Pending {
 export function SettingsPanel({ onClose, onImportScreenshot }: Props) {
   const { state, dispatch } = usePlanner();
   const { daysVisible } = useDevicePrefs();
+  const sync = useSyncAuth();
   const [editingColor, setEditingColor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -218,6 +221,57 @@ export function SettingsPanel({ onClose, onImportScreenshot }: Props) {
               : 'Importing from a screenshot or PDF needs the desktop app.'}
           </p>
         </section>
+
+        {sync.status.phase !== 'unconfigured' && (
+          <section className="panel__section">
+            <span className="eyebrow">Sync</span>
+            {sync.status.phase === 'signed-out' ? (
+              <form
+                className="panel__form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  sync.signIn();
+                }}
+              >
+                <input
+                  className="field"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Email"
+                  value={sync.email}
+                  onChange={(e) => sync.setEmail(e.target.value)}
+                />
+                <input
+                  className="field"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Password"
+                  value={sync.password}
+                  onChange={(e) => sync.setPassword(e.target.value)}
+                />
+                <button type="submit" className="btn btn--primary" disabled={sync.submitting}>
+                  {sync.submitting ? 'Signing in…' : 'Sign in'}
+                </button>
+                {sync.error && <p className="panel__note panel__note--error">{sync.error}</p>}
+              </form>
+            ) : (
+              <>
+                <p className="panel__note">{sync.status.email}</p>
+                <p className="panel__note">
+                  {sync.status.phase === 'first-sync' && 'Doing the first sync…'}
+                  {sync.status.phase === 'offline' && 'Offline — will sync when back online.'}
+                  {sync.status.phase === 'synced' &&
+                    (sync.status.lastSyncedAt == null
+                      ? 'Synced'
+                      : `Synced · ${formatRelativeTime(sync.status.lastSyncedAt)}`)}
+                </p>
+                <button type="button" className="btn" onClick={sync.signOut}>
+                  Sign out
+                </button>
+              </>
+            )}
+          </section>
+        )}
       </aside>
 
       {pending && (

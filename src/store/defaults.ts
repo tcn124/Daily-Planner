@@ -6,12 +6,12 @@ import type { PlannerState, Subject } from '../types';
  * hue bar on first edit. Meeting and Other stay neutral grey.
  */
 export const SEED_SUBJECTS: Subject[] = [
-  { id: 'economics', name: 'Economics', hue: 225 },
-  { id: 'political-science', name: 'Political Science', hue: 266 },
-  { id: 'journalism', name: 'Journalism', hue: 29 },
-  { id: 'history', name: 'History', hue: 139 },
-  { id: 'meeting', name: 'Meeting', hue: null },
-  { id: 'other', name: 'Other', hue: null },
+  { id: 'economics', name: 'Economics', hue: 225, updatedAt: 0 },
+  { id: 'political-science', name: 'Political Science', hue: 266, updatedAt: 0 },
+  { id: 'journalism', name: 'Journalism', hue: 29, updatedAt: 0 },
+  { id: 'history', name: 'History', hue: 139, updatedAt: 0 },
+  { id: 'meeting', name: 'Meeting', hue: null, updatedAt: 0 },
+  { id: 'other', name: 'Other', hue: null, updatedAt: 0 },
 ];
 
 /** Bounds on how many day columns the week view may show. */
@@ -39,6 +39,7 @@ export function createInitialState(): PlannerState {
     recurring: [],
     todos: [],
     notes: {},
+    sync: { deleted: {}, ticks: {} },
   };
 }
 

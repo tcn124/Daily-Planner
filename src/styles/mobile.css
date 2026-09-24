@@ -37,6 +37,40 @@
   padding-bottom: calc(var(--m-tabbar-h) + env(safe-area-inset-bottom) + 28px);
 }
 
+/* Sits above the pane, inside the shell's own safe-area padding, so it never
+   needs its own top-safe-area handling. */
+.m-offlinebar {
+  flex: none;
+  padding: 7px var(--m-pad-x);
+  font-size: var(--fs-11);
+  line-height: 1.4;
+  text-align: center;
+  color: var(--ink-70);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--line);
+}
+
+/* A blocking overlay for the one-time additive first sync — above the tab
+   bar (z-index 20) so nothing is tappable mid-merge. */
+.m-firstsync {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  background: var(--surface);
+}
+
+.m-firstsync__text {
+  margin: 0;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--ink-60);
+  text-align: center;
+}
+
 /* -------------------------------------------------------------- tab bar */
 
 .m-tabbar {
@@ -1082,6 +1116,15 @@
 
 .m-head--planner {
   padding-bottom: 10px;
+}
+
+/* Sits just under the masthead, pulled up into the head's own bottom padding
+   so it reads as a subtitle rather than a new section. */
+.m-planner__sync {
+  display: block;
+  margin: -6px var(--m-pad-x) 10px;
+  font-size: var(--fs-11);
+  color: var(--ink-45);
 }
 
 .m-section {

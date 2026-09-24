@@ -373,6 +373,18 @@
   gap: 6px;
 }
 
+/* The sync sign-in form: stacked fields rather than the wrapped button row
+   `.panel__buttons` is for. */
+.panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel__form .btn {
+  align-self: flex-start;
+}
+
 .panel__buttons .btn,
 .panel__reset {
   padding: 5px 11px;

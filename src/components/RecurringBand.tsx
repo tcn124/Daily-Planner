@@ -10,7 +10,7 @@ interface Props {
   days: number;
   recurring: RecurringItem[];
   subjects: Subject[];
-  onCreate: (item: Omit<RecurringItem, 'id'>) => void;
+  onCreate: (item: Omit<RecurringItem, 'id' | 'updatedAt'>) => void;
   onUpdate: (id: string, patch: Partial<RecurringItem>) => void;
   onDelete: (id: string) => void;
   onToggleDay: (id: string, date: string) => void;

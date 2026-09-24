@@ -425,7 +425,7 @@ export function MobileWeek({ onShowMissed }: Props) {
           <textarea
             className="m-notes__field"
             placeholder="Free text for the day."
-            value={notes[focus] ?? ''}
+            value={notes[focus]?.text ?? ''}
             onChange={(e) => dispatch({ type: 'note/set', date: focus, text: e.target.value })}
           />
         </div>
