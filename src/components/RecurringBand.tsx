@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RecurringItem, Subject } from '../types';
-import { addDays, daysBetween } from '../lib/dates';
+import { addDays, daysBetween, isWeekend } from '../lib/dates';
 import { ROW_H } from '../lib/recurring';
 import { RecurringBar } from './RecurringBar';
 import { SubjectChips } from './SubjectChips';
@@ -250,7 +250,12 @@ export function RecurringBand({
     >
       <div className="rec-track__grid" aria-hidden="true">
         {Array.from({ length: days }, (_, i) => (
-          <span key={i} />
+          <span
+            key={i}
+            /* Carries the same weekend tint down from the day cells above,
+               since this band has no per-day cells of its own to tint. */
+            className={isWeekend(addDays(anchorDate, i)) ? 'rec-track__day--weekend' : undefined}
+          />
         ))}
       </div>
 

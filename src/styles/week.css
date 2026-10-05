@@ -51,11 +51,15 @@
   /* The snap targets: one per day, so a scroll always rests on a day boundary. */
   scroll-snap-align: start;
   /*
-   * A flick stops at the very next day instead of letting momentum sail past
-   * several. Dragging still moves continuously; only inertial travel is capped.
-   * Without this a quick swipe lands somewhere hard to predict.
+   * Deliberately no `scroll-snap-stop: always` here. That forced a hard stop
+   * at every single day during a fast flick, turning one continuous gesture
+   * into a stutter of forced micro-stops — and the resulting burst of
+   * intermediate `scrollend` events was also racing WeekView's re-anchor
+   * guard window, occasionally re-basing onto the wrong resting day. Plain
+   * `mandatory` snap still always comes to rest on a day boundary; it just
+   * lets a strong flick's momentum carry across several days first, the way
+   * Apple Calendar's paging feels.
    */
-  scroll-snap-stop: always;
 }
 
 .dayhead__day:last-child {
@@ -86,10 +90,6 @@
   color: var(--ink-35);
 }
 
-.dayhead__day--today {
-  background: var(--surface-today);
-}
-
 .dayhead__day--today .dayhead__name {
   font-weight: 700;
   color: var(--ink);
@@ -98,7 +98,9 @@
 .dayhead__day--today .dayhead__date {
   font-weight: 600;
   color: var(--on-accent);
-  background: var(--accent-solid);
+  /* Lighter than --danger (used for destructive actions elsewhere) — reusing
+     the existing missed-item red rather than inventing a new shade. */
+  background: var(--missed-dot);
   border-radius: var(--radius-chip);
   padding: 1px 6px;
 }
@@ -274,6 +276,10 @@
   min-width: 0;
   /* Backstop: nothing escapes the rounded frame, whatever the column width. */
   overflow: hidden;
+  /* Cards carry a shadow and rounded corners, both costly to repaint; hinting
+     lets WKWebView keep them pre-composited through a fast horizontal scroll
+     instead of re-rasterising every card each frame. */
+  will-change: transform;
 }
 
 .card:hover {
@@ -376,6 +382,11 @@
 
 .rec-track__grid > span:last-child {
   border-right: none;
+}
+
+/* Same tint as the weekend day cells above, carried down through this band. */
+.rec-track__day--weekend {
+  background: var(--surface-alt);
 }
 
 /* Bars span days, so they are absolutely positioned rather than in a column. */

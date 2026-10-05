@@ -71,6 +71,11 @@ export function dayName(iso: string): string {
   return DAY_NAMES[parseISO(iso).getDay()];
 }
 
+export function isWeekend(iso: string): boolean {
+  const day = dayName(iso);
+  return day === 'Saturday' || day === 'Sunday';
+}
+
 /** Day of month, zero-padded — "08". */
 export function dayNumber(iso: string): string {
   return String(parseISO(iso).getDate()).padStart(2, '0');

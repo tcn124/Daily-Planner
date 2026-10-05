@@ -12,6 +12,7 @@ import {
   buildWindow,
   dayName,
   dayOfMonth,
+  isWeekend,
   isWithin,
   todayISO,
 } from '../lib/dates';
@@ -41,8 +42,15 @@ type BandKey = 'assignments' | 'events' | 'recurring';
 /**
  * Days rendered off-screen either side of the visible window, so sideways
  * scrolling has somewhere to go before the anchor is re-based.
+ *
+ * The re-base only runs once a scroll fully comes to rest (see `settle`
+ * below), so this has to cover the whole distance a single fast flick or an
+ * unbroken run of trackpad scrolling can travel before that happens — not
+ * just a comfortable margin at rest. Too small and a fast scroll outruns the
+ * rendered track, exposing blank space past the last real column. Day cells
+ * are cheap (mostly empty), so a generous buffer costs little.
  */
-const BUFFER = 7;
+const BUFFER = 30;
 
 /**
  * Fallback only, for engines without `scrollend`: how long the scroll must be
@@ -320,11 +328,6 @@ export function WeekView({ slot, onOpenDay }: Props) {
     return visible >= settings.daysVisible - 3 && visible < settings.daysVisible;
   }
 
-  function isWeekend(date: string) {
-    const day = dayName(date);
-    return day === 'Saturday' || day === 'Sunday';
-  }
-
   return (
     <div
       className="planner"
@@ -353,13 +356,24 @@ export function WeekView({ slot, onOpenDay }: Props) {
 
       <div className="dayscroll" ref={scrollerRef} onScroll={onScroll}>
       <div className="dayhead">
-        {trackWindow.map((date) => {
+        {trackWindow.map((date, i) => {
           const classes = ['dayhead__day'];
           if (isWeekend(date)) classes.push('dayhead__day--weekend');
           if (date === today) classes.push('dayhead__day--today');
           return (
             <button
-              key={date}
+              /*
+               * Keyed by position, not by date: on a big fast scroll the
+               * anchor can rebase by dozens of days at once, changing nearly
+               * every date in this window in one render. Keying by date made
+               * React tear down and recreate almost every column simultaneously
+               * (plus reorder whichever survived) right as `scrollLeft` snapped
+               * back — enough synchronous DOM work in one frame that WKWebView
+               * would drop the repaint and leave a stuck blank area. Keying by
+               * slot means a rebase just updates each column's content in
+               * place, however far the anchor moves.
+               */
+              key={i}
               type="button"
               className={classes.join(' ')}
               title={`Open ${dayName(date)}`}
@@ -384,10 +398,10 @@ export function WeekView({ slot, onOpenDay }: Props) {
         <div className="band band--assignments" style={bandStyle(0, 'assignments')}>
           {trackWindow.map((date, i) => (
             <DayCell
-              key={date}
+              key={i}
               date={date}
               type="assignment"
-              tinted={isWeekend(date) || date === today}
+              tinted={isWeekend(date)}
               flipComposer={flipsComposer(i)}
               items={itemsFor(date, 'assignment')}
               {...cellProps}
@@ -407,10 +421,10 @@ export function WeekView({ slot, onOpenDay }: Props) {
         <div className="band band--events" style={bandStyle(1, 'events')}>
           {trackWindow.map((date, i) => (
             <DayCell
-              key={date}
+              key={i}
               date={date}
               type="event"
-              tinted={isWeekend(date) || date === today}
+              tinted={isWeekend(date)}
               flipComposer={flipsComposer(i)}
               items={itemsFor(date, 'event')}
               {...cellProps}

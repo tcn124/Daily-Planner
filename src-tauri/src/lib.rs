@@ -199,10 +199,37 @@ fn ocr_pdf(request: tauri::ipc::Request<'_>) -> Result<Vec<Vec<OcrLine>>, String
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    use tauri::Manager;
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![drag_window, ocr_image, ocr_pdf])
-        .run(tauri::generate_context!())
-        .expect("error while running the Weekly Planner");
+        // ⌘W and the native close button both route through this same close
+        // request on macOS — there is no way to tell them apart, and no
+        // reason to: hiding either way keeps the process (and its state)
+        // warm, so the next launch is an instant re-show rather than a fresh
+        // cold start.
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                window.hide().ok();
+                api.prevent_close();
+            }
+        })
+        .build(tauri::generate_context!())
+        .expect("error while building the Weekly Planner")
+        .run(|app_handle, event| {
+            // Clicking the Dock icon (or reopening from Finder/Launchpad)
+            // while the window is hidden is what "launching it again" looks
+            // like now — bring it back. Unconditional on purpose: showing
+            // and focusing an already-visible window is a harmless no-op, and
+            // `has_visible_windows` is not reliably false just because the
+            // window was hidden via `hide()` rather than actually closed.
+            if let tauri::RunEvent::Reopen { .. } = event {
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+        });
 }
