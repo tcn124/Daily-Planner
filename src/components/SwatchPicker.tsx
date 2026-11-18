@@ -13,9 +13,10 @@ interface Props {
 export const SWATCH_HUES: (number | null)[] = [0, 29, 51, 139, 182, 225, 266, null];
 
 /**
- * The design offers a fixed row of swatches, but subjects store an arbitrary
- * hue (0–359). "Custom" reveals the full hue bar so no existing subject's
- * colour becomes unreachable.
+ * The design offers a fixed grid of eight rounded squares, but subjects store
+ * an arbitrary hue (0–359). "Custom" reveals the full hue bar so no existing
+ * subject's colour becomes unreachable. Shared by the desktop panel and the
+ * phone's Edit planner sheet.
  */
 export function SwatchPicker({ hue, onChange }: Props) {
   const isPreset = SWATCH_HUES.includes(hue);

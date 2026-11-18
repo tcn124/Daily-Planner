@@ -1,11 +1,17 @@
-/* Floating surfaces: the item composer popover, and the edit-planner panel. */
+/*
+ * Floating surfaces: the item composer popover, the edit-planner panel, the
+ * confirm dialog and the screenshot import review. The design draws these
+ * only for the phone (frames 5a, 5i, 5j); the desktop borrows the same
+ * language — serif titles, borderless grey fields, hairline rows, one black
+ * pill — at its own smaller type.
+ */
 
 /* ---------------------------------------------------------- composer */
 
 /*
- * The design draws the composer as a 320px popover, which is wider than a day
- * column. It escapes the cell by absolute-positioning; the cell drops its own
- * overflow clipping while open so the popover is not cut off.
+ * A popover wider than a day column. It escapes the cell by absolute-
+ * positioning; the cell drops its own overflow clipping while open so the
+ * popover is not cut off.
  */
 .composer {
   position: absolute;
@@ -16,9 +22,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
+  padding: 16px;
   background: var(--surface);
-  border: 1px solid rgba(55, 53, 47, 0.1);
   border-radius: var(--radius-shell);
   box-shadow: var(--shadow-pop);
   cursor: default;
@@ -37,269 +42,388 @@
 
 .composer__head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
 }
 
 .composer__title {
-  font-size: var(--fs-13);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .composer__date {
-  font-size: var(--fs-11-5);
-  color: var(--ink-40);
+  font-size: var(--fs-9-5);
+  color: var(--ink-2);
 }
 
 .composer__close {
   margin-left: auto;
+  align-self: center;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
+}
+
+.composer__close:hover {
+  color: var(--ink);
 }
 
 .composer__field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  min-width: 0;
-  flex: 1;
+  gap: 6px;
 }
 
 .composer__label {
-  font-size: var(--fs-11);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-45);
+  font-size: var(--fs-9-5);
+  font-weight: 600;
 }
 
-.composer__row {
-  display: flex;
-  gap: 8px;
-}
-
+/* One field style everywhere: borderless grey, ringed in ink when focused. */
 .field {
   width: 100%;
-  padding: 7px 10px;
-  background: var(--surface-sunken);
-  border: 1px solid rgba(55, 53, 47, 0.08);
-  border-radius: var(--radius-card);
-  font-size: var(--fs-13);
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: var(--surface-field);
+  font-size: var(--fs-10-5);
+  line-height: 1.4;
   color: var(--ink);
-}
-
-.field::placeholder {
-  color: var(--ink-40);
 }
 
 .field:focus {
   outline: none;
-  border-color: var(--line-strong);
-  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
 }
 
 .composer__desc {
   min-height: 52px;
   resize: vertical;
-  line-height: 1.4;
+  font-size: 11.5px;
+  font-weight: 500;
 }
 
 .composer__details {
-  min-height: 40px;
+  min-height: 52px;
   resize: vertical;
-  line-height: 1.4;
-  font-size: var(--fs-12-5);
-}
-
-.composer__band {
-  appearance: none;
-  cursor: pointer;
 }
 
 .composer__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
+  padding-top: 2px;
 }
 
 .composer__hint {
   margin-left: auto;
-  font-size: var(--fs-11);
-  color: var(--ink-35);
+  font-size: var(--fs-9);
+  color: var(--ink-2);
 }
 
-/* ------------------------------------------------------ subject chips */
+/* ---------------------------------------------------- subject picker */
 
+/* Grey pills carrying each subject's square; the chosen one is filled ink. */
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
 }
 
 .chips__option {
-  cursor: pointer;
-  font-size: var(--fs-11);
-  padding: 3px 8px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 12px;
+  background: var(--surface-chip);
+  font-size: var(--fs-9-5);
+  font-weight: 500;
+}
+
+.chips__option:hover {
+  background: var(--surface-bar);
+}
+
+.chips__option[data-selected='true'] {
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 .chips__option--none {
-  background: var(--surface-active);
-  color: var(--ink-60);
-}
-
-.chips__option--none[data-selected='true'] {
-  box-shadow: 0 0 0 1.5px var(--ink-45);
+  color: var(--ink-2);
 }
 
 .chips__new {
-  padding: 3px 8px;
-  font-size: var(--fs-11);
-  font-weight: 400;
-  color: var(--ink-40);
-  border: 1px dashed rgba(55, 53, 47, 0.18);
-  cursor: pointer;
-}
-
-.chips__new:hover {
-  color: var(--ink);
-  border-color: var(--ink-35);
+  height: 24px;
+  padding: 0 6px;
 }
 
 .chips__new-field {
-  width: 96px;
-  padding: 2px 7px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-chip);
-  background: var(--surface);
-  font-size: var(--fs-11);
+  height: 24px;
+  width: 120px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--surface-field);
+  font-size: var(--fs-9-5);
 }
 
 .chips__new-field:focus {
   outline: none;
-  border-color: var(--ink-45);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
 }
 
-/* ------------------------------------------------- edit planner panel */
+/* ---------------------------------------------------------- panels */
 
 .scrim {
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: rgba(15, 15, 15, 0.06);
+  background: rgba(17, 17, 17, 0.12);
 }
 
 .panel {
   position: fixed;
-  top: 16px;
-  right: 16px;
-  bottom: 16px;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
   z-index: 50;
-  width: 320px;
+  width: 360px;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   background: var(--surface);
-  border: 1px solid rgba(55, 53, 47, 0.1);
   border-radius: var(--radius-shell);
-  box-shadow: var(--shadow-pop);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
 }
 
 .panel__head {
   flex: none;
   display: flex;
   align-items: center;
-  padding: 14px 16px 10px;
+  gap: 10px;
+  padding: 18px 10px 12px 20px;
 }
 
 .panel__title {
+  flex: 1;
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--fs-18);
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .panel__close {
-  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
+}
+
+.panel__close:hover {
+  color: var(--ink);
+}
+
+.panel__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 20px;
 }
 
 .panel__section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--line);
+  gap: 10px;
+  padding: 0 20px 16px;
 }
 
-.panel__section:last-child {
-  padding-bottom: 16px;
+.panel__label {
+  display: block;
+  padding: 16px 20px 6px;
+  font-size: var(--fs-10-5);
+  font-weight: 600;
 }
 
-.subject-row {
+.panel__rows {
+  border-bottom: 1px solid var(--line-hair);
+}
+
+.panel__row {
+  width: 100%;
+  min-height: 40px;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 5px 7px;
-  border-radius: var(--radius-card);
-  cursor: pointer;
+  gap: 12px;
+  padding: 0 20px;
+  border-top: 1px solid var(--line-hair);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  text-underline-offset: 3px;
 }
 
-.subject-row:hover,
-.subject-row[data-open='true'] {
-  background: #fafaf9;
+button.panel__row:hover {
+  text-decoration: underline;
 }
 
-.subject-row__dot {
+.panel__row--muted {
+  color: var(--ink-2);
+}
+
+.panel__row--danger {
+  color: var(--danger);
+}
+
+.panel__row--danger .panel__glyph {
+  color: var(--danger);
+}
+
+.panel__glyph {
+  width: 16px;
   flex: none;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--ink-2);
 }
 
-/* Renaming happens in place; the field only looks like a field on focus. */
+.panel__row-main {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel__row-meta {
+  flex: none;
+  font-size: var(--fs-10-5);
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+.panel__note {
+  margin: 0;
+  padding: 8px 20px 0;
+  font-size: var(--fs-10-5);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.panel__section .panel__note {
+  padding: 0;
+}
+
+.panel__note--error {
+  color: var(--danger);
+}
+
+.panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 20px 0;
+}
+
+.panel__form .field {
+  height: 36px;
+}
+
+.panel__submit {
+  align-self: stretch;
+  min-height: 36px;
+}
+
+/* A subject: colour square, editable name, count, delete — then its swatches. */
+.subject-row {
+  border-top: 1px solid var(--line-hair);
+}
+
+.subject-row__line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 8px 0 18px;
+}
+
+.subject-row__swatch {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.subject-row__swatch span {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+}
+
+.subject-row[data-open='true'] .subject-row__swatch span {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--ink);
+}
+
 .subject-row__name {
   flex: 1;
   min-width: 0;
-  padding: 2px 4px;
-  border: 1px solid transparent;
-  border-radius: 4px;
+  padding: 4px 0;
+  border: none;
   background: transparent;
-  font-size: var(--fs-13);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .subject-row__name:focus {
   outline: none;
-  background: var(--surface);
-  border-color: var(--line-strong);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .subject-row__del {
-  opacity: 0;
-  transition: opacity 120ms ease;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
 }
 
-.subject-row:hover .subject-row__del,
-.subject-row__del:focus-visible {
-  opacity: 1;
+.subject-row__del:hover {
+  color: var(--danger);
 }
 
+/* Eight rounded squares, then "Custom" and its hue bar. */
 .swatches {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 2px 7px 6px;
+  gap: 10px;
+  padding: 2px 20px 14px 50px;
 }
 
 .swatches__row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) auto;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
+  gap: 8px;
 }
 
 .swatches__dot {
-  flex: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  aspect-ratio: 1;
+  border-radius: 6px;
 }
 
 .swatches__dot[data-selected='true'] {
@@ -307,143 +431,114 @@
 }
 
 .swatches__custom {
-  margin-left: 4px;
-  padding: 2px 8px;
-  border: 1px dashed rgba(55, 53, 47, 0.18);
-  border-radius: var(--radius-chip);
-  font-size: var(--fs-11);
-  color: var(--ink-45);
+  padding: 0 2px;
+  font-size: var(--fs-9-5);
+  font-weight: 500;
+  color: var(--ink-2);
+  text-underline-offset: 3px;
 }
 
+.swatches__custom:hover,
 .swatches__custom[data-selected='true'] {
-  border-style: solid;
-  border-color: var(--ink-35);
   color: var(--ink);
+  text-decoration: underline;
 }
 
 .swatches__bar {
   width: 100%;
-  height: 10px;
+  height: 12px;
   appearance: none;
-  border-radius: 5px;
+  border-radius: 6px;
   background: linear-gradient(
     to right,
-    hsl(0 70% 60%),
-    hsl(60 70% 60%),
-    hsl(120 70% 60%),
-    hsl(180 70% 60%),
-    hsl(240 70% 60%),
-    hsl(300 70% 60%),
-    hsl(360 70% 60%)
+    #e0656c, #d9893e, #b9a43a, #6bb35a, #3db39a, #3f97c8, #6d7fd8, #9b6fd0, #d064a6, #e0656c
   );
+  cursor: pointer;
 }
 
 .swatches__bar::-webkit-slider-thumb {
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--surface);
-  border: 1px solid var(--ink-45);
-  cursor: pointer;
+  box-shadow: 0 0 0 1.5px var(--ink);
 }
 
-.panel__add {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 5px 7px;
-  font-size: var(--fs-13);
-  color: var(--ink-40);
-  text-align: left;
-}
+/* ---------------------------------------------------------- confirm */
 
-.panel__add:hover {
-  color: var(--ink);
-}
-
-.panel__add-plus {
-  width: 11px;
-  text-align: center;
-}
-
-.panel__buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* The sync sign-in form: stacked fields rather than the wrapped button row
-   `.panel__buttons` is for. */
-.panel__form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.panel__form .btn {
-  align-self: flex-start;
-}
-
-.panel__buttons .btn,
-.panel__reset {
-  padding: 5px 11px;
-  font-size: var(--fs-12-5);
-  font-weight: 400;
-}
-
-.panel__reset {
-  align-self: flex-start;
-}
-
-.panel__note {
-  margin: 0;
-  font-size: var(--fs-11-5);
-  line-height: 1.5;
-  color: var(--ink-45);
-}
-
-.panel__note--error {
-  color: var(--danger);
-}
-
-/* ------------------------------------------------------ confirm dialog */
-
-/* Sits above the edit-planner panel, which owns z-index 50. */
+/* Frame 5j: a centred card over a dark scrim, two equal buttons along its foot. */
 .confirm__scrim {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background: rgba(15, 15, 15, 0.18);
+  padding: 28px;
+  background: var(--scrim);
 }
 
 .confirm {
-  width: 320px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px;
+  overflow: hidden;
   background: var(--surface);
-  border: 1px solid rgba(55, 53, 47, 0.1);
-  border-radius: var(--radius-shell);
-  box-shadow: var(--shadow-pop);
+  border-radius: 18px;
+}
+
+.confirm__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px 22px 18px;
+}
+
+.confirm__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
 }
 
 .confirm__message {
   margin: 0;
-  font-size: var(--fs-13);
+  font-size: 13px;
   line-height: 1.5;
-  color: var(--ink);
+  color: var(--ink-soft);
 }
 
 .confirm__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--line-hair);
+}
+
+.confirm__btn {
+  height: 52px;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+.confirm__btn:hover {
+  text-decoration: underline;
+}
+
+.confirm__btn--go {
+  border-left: 1px solid var(--line-hair);
+  font-weight: 600;
+}
+
+.confirm__btn--go[data-danger] {
+  color: var(--danger);
 }
 
 /* ------------------------------------------------- screenshot import */
@@ -451,7 +546,7 @@
 /* The review table needs room for five columns, so it takes most of the window. */
 .panel--wide {
   outline: none;
-  left: 16px;
+  left: 12px;
   width: auto;
   max-width: 880px;
   margin-left: auto;
@@ -466,34 +561,25 @@
 .ocr__tools {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   margin-left: auto;
-}
-
-.ocr__tools .btn {
-  padding: 5px 11px;
-  font-size: var(--fs-12-5);
-  font-weight: 400;
 }
 
 .ocr__rows {
   flex: 1;
-  gap: 4px;
+  min-height: 0;
+  gap: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 .ocr__row {
   display: grid;
-  grid-template-columns: var(--checkbox-size) minmax(0, 1fr) 138px 84px 132px 112px;
+  grid-template-columns: var(--checkbox-size) minmax(0, 1fr) 138px 84px 132px;
   align-items: center;
   gap: 8px;
-  padding: 5px 7px;
-  border-radius: var(--radius-card);
-}
-
-.ocr__row:hover {
-  background: #fafaf9;
+  padding: 8px 0;
+  border-top: 1px solid var(--line-row);
 }
 
 .ocr__row[data-selected='false'] .ocr__main,
@@ -503,7 +589,7 @@
 
 /* A row whose date could not be read is flagged until one is typed. */
 .ocr__row[data-undated='true'] .ocr__date {
-  border-color: var(--danger-line);
+  box-shadow: inset 0 0 0 1px var(--danger);
 }
 
 .ocr__main {
@@ -514,19 +600,22 @@
 }
 
 .ocr__row .field {
-  padding: 5px 8px;
-  font-size: var(--fs-12-5);
+  padding: 6px 8px;
+}
+
+.ocr__row .ocr__desc {
+  font-weight: 500;
 }
 
 .ocr__row .ocr__details {
-  font-size: var(--fs-11-5);
-  color: var(--ink-70);
+  font-size: var(--fs-9-5);
+  color: var(--ink-2);
 }
 
 .ocr__source {
   padding: 0 8px;
-  font-size: var(--fs-11);
-  color: var(--ink-35);
+  font-size: var(--fs-9);
+  color: var(--ink-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -542,12 +631,12 @@
   margin: 0;
   padding: 10px 12px;
   overflow: auto;
-  background: var(--surface-sunken);
-  border-radius: var(--radius-card);
+  background: var(--surface-field);
+  border-radius: 8px;
   font-family: var(--font-ui);
-  font-size: var(--fs-12);
+  font-size: var(--fs-10-5);
   line-height: 1.5;
-  color: var(--ink-70);
+  color: var(--ink-soft);
   white-space: pre-wrap;
 }
 
@@ -555,12 +644,9 @@
   flex: none;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
-}
-
-.ocr__footer .btn:disabled {
-  opacity: 0.45;
-  cursor: default;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-hair);
 }
 
 .ocr__hint {

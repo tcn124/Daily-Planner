@@ -1,4 +1,5 @@
 import { useRef, type PointerEvent, type ReactNode } from 'react';
+import { Check } from '../icons';
 
 /**
  * Swipe actions on a one-day row.
@@ -9,13 +10,14 @@ import { useRef, type PointerEvent, type ReactNode } from 'react';
  * Left for the two that deserve a second thought — Move and Delete — which
  * open and wait to be pressed.
  *
- * Only at one day. At two and three days a column is about 120pt wide, and a
- * 72pt action pane inside it would leave no row to swipe.
+ * Only on full-width rows — the one-day Week and the List. At two and three
+ * days a column is about 120pt wide, and an 84pt action pane inside it would
+ * leave no card to swipe.
  */
 
-/** Right swipe: one action. Left swipe: two, at 72pt each. */
-const DONE_W = 72;
-const ACTIONS_W = 144;
+/** Right swipe: one action. Left swipe: two, at 84pt each (frame 5l). */
+const DONE_W = 96;
+const ACTIONS_W = 168;
 /** Movement needed before the gesture commits to an axis. */
 const SLOP = 8;
 /** Travel needed to fire on release. */
@@ -140,7 +142,10 @@ export function SwipeRow({
     <div className="m-swipe" data-open={open} data-swipe-row={enabled ? '' : undefined}>
       {/* Both panes sit under the row, at the edge their swipe uncovers. */}
       <div className="m-swipe__pane m-swipe__pane--start" aria-hidden="true">
-        <span className="m-swipe__label">{doneLabel}</span>
+        <span className="m-swipe__label">
+          <Check size={14} strokeWidth={1.4} />
+          {doneLabel}
+        </span>
       </div>
       <div className="m-swipe__pane m-swipe__pane--end">
         <button

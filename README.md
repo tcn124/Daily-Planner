@@ -251,7 +251,7 @@ src/
   components/           one file per piece of UI (ScreenshotImport.tsx is the review table)
 tools/ocr/parse-check.ts  sanity checks for the OCR parser: npx tsx tools/ocr/parse-check.ts
 tools/ocr/fixtures/       real Vision output the checks replay
-  assets/fonts/         DM Sans + Source Serif 4, vendored so the app works offline
+  assets/fonts/         DM Sans + Newsreader, vendored so the app works offline
 public/                 copied verbatim into both builds
   manifest.webmanifest  name, icons, colours — what makes it installable
   icons/                home-screen icons, from tools/icons/make-pwa-icons.sh
@@ -265,19 +265,22 @@ src-tauri/
 
 ## Design
 
-The visual language comes from the design canvas in `design/` — `Main Page.dc.html`
-for the week grid, `Supporting Screens.dc.html` for the list view, day page,
-composer and edit-planner panel. Those two files are the source of truth for
-every size and colour; read the inline `style="…"` attributes for exact values.
+The visual language comes from the design canvases in `design/` —
+`Weekly Planner - Desktop.dc.html` ("Planner, in print": the week, the collapsed
+sidebar and the list) and `Weekly Planner - Phone.dc.html` (the three tabs and
+every sheet). Those two files are the source of truth for every size and colour;
+read the inline `style="…"` attributes for exact values.
 
-It is one ink colour at varying alpha over warm surfaces: `#37352f` on `#fff`,
-`#f7f7f5` and `#fcfcfb`, with borders from `rgba(55,53,47,0.07)` to `0.12`.
-Items are white cards with a 1px border, a 6px radius and a pale subject chip.
-Chrome is DM Sans; the mastheads are Source Serif 4. Weeks start on Monday.
+It reads like print: near-black ink `#111` with one secondary grey `#5c5c5c` on
+white, hairline column rules, and white panels as the only objects. Ultramarine
+`#002DFF` marks today and nothing else; red `#F22525` marks lateness and
+deletion. A subject's colour shrinks to a small square so the page stays
+two-tone. The display type is Newsreader — "October.", ending in a full stop —
+over a quiet DM Sans. Weeks start on Monday.
 
 Values in `tokens.css` were measured from the canvas rather than eyeballed — the
-236px sidebar, 52px collapsed rail, 30px band headers, 52px to-do strip, 6px card
-radius and 8px/9px card padding all come straight from the source.
+232px sidebar, 76px header, 52px collapsed rail, 42px day header, 30px band
+headers and 58px to-do strip all come straight from the source.
 
 ### Subject colours
 

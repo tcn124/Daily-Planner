@@ -1,20 +1,21 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePlanner } from '../../store/plannerStore';
 import { setDevicePrefs, useDevicePrefs } from '../../store/devicePrefs';
-import { activeDates, rowsForDate, type ListRow } from '../../lib/listRows';
-import { dayName, dayOfMonth, daysBetween, monthShort, todayISO } from '../../lib/dates';
-import { spanDates } from '../../lib/recurring';
-import { MobileCheckbox, MobileChip, subjectOf } from './MobileRows';
-import { useSheets } from './sheets';
+import { dayName, dayOfMonth, formatSpan, isWithin, todayISO } from '../../lib/dates';
+import type { Item, RecurringItem } from '../../types';
+import { ChevronDown } from '../icons';
+import { MobileItemRow, MobileRecurringRow, subjectOf } from './MobileRows';
+import { MissedRow } from './MissedRow';
+import { SwipeRow } from './SwipeRow';
+import { FilterSheet, type GroupBy, type ListView } from './FilterSheet';
+import { useSheets, type ItemTarget } from './sheets';
+import { useRowActions } from './rowActions';
 import { useStickyHead } from './useStickyHead';
-import type { Subject } from '../../types';
-
-type GroupBy = 'day' | 'subject';
 
 interface Props {
-  /** Set from the Planner tab; narrows the list to one subject. */
-  subjectFilter: string | null;
-  onClearFilter: () => void;
+  /** Subjects shown; empty means all. Held by the shell, set from the Planner tab too. */
+  subjectFilter: Set<string>;
+  onFilter: (ids: Set<string>) => void;
   /* Held by the shell so they outlive a trip to another tab. */
   groupBy: GroupBy;
   onGroupBy: (g: GroupBy) => void;
@@ -22,250 +23,289 @@ interface Props {
   onHideDone: (v: boolean) => void;
 }
 
-interface Section {
-  key: string;
-  title: string;
-  /** Day number for the badge; blank when grouped by subject. */
-  badge: string;
-  isToday: boolean;
-  rows: ListRow[];
-}
-
-/** "Event · 2:00 pm", "Recurring · day 2 of 3", "11:59 pm", "Done". */
-function metaFor(row: ListRow, recurringSpan: (id: string) => number, offset: (id: string) => number): string {
-  if (row.done) return 'Done';
-  if (row.kind === 'recurring') {
-    return `Recurring · day ${offset(row.id)} of ${recurringSpan(row.id)}`;
-  }
-  if (row.kind === 'event') return row.time ? `Event · ${row.time}` : 'Event';
-  return row.time;
-}
+/** One thing in the list: an item on its day, or a span placed once. */
+type Entry =
+  | { kind: 'item'; item: Item; date: string }
+  | { kind: 'recurring'; span: RecurringItem; date: string };
 
 /**
- * The desktop's four-column row, restacked into one column: title, then
- * details, then subject and meta. Day headers stick while scrolling so it is
- * always clear which day is on screen.
+ * The List tab (frame 4d).
+ *
+ * Spans running today sit together at the top as "Ongoing" rather than
+ * repeating under every day they cover. Days before today fold into one
+ * "Earlier" row you can open, so the list starts on today without throwing
+ * the past away. Every row swipes like the Week's.
  */
 export function MobileList({
   subjectFilter,
-  onClearFilter,
+  onFilter,
   groupBy,
   onGroupBy,
   hideDone,
   onHideDone,
 }: Props) {
-  const { state, dispatch } = usePlanner();
+  const { state } = usePlanner();
   const { subjects, items, recurring } = state;
   const { detailsVisible } = useDevicePrefs();
   const { openItem, openCompose } = useSheets();
-  /* Title, grouping and the two toggles stay put; the sections scroll under. */
+  const { toggleDone, remove } = useRowActions();
   const headRef = useStickyHead<HTMLDivElement>();
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [earlierOpen, setEarlierOpen] = useState(false);
+  const [swiped, setSwiped] = useState<string | null>(null);
 
   const today = todayISO();
-  const dates = activeDates(items, recurring);
 
-  const spanLength = (id: string) => {
-    const r = recurring.find((x) => x.id === id);
-    return r ? spanDates(r).length : 0;
-  };
-  const dayOffset = (id: string, date: string) => {
-    const r = recurring.find((x) => x.id === id);
-    return r ? daysBetween(r.startDate, date) + 1 : 0;
-  };
+  /* ---- what passes the filters --------------------------------------- */
 
-  function visible(rows: ListRow[]): ListRow[] {
-    return rows.filter(
-      (r) =>
-        (!hideDone || !r.done) &&
-        (subjectFilter === null || r.subjectId === subjectFilter),
-    );
+  function passes(subjectId: string | null, done: boolean, view: ListView): boolean {
+    if (view.hideDone && done) return false;
+    if (view.subjects.size === 0) return true;
+    return subjectId !== null && view.subjects.has(subjectId);
   }
 
-  const allRows = dates.flatMap((d) => rowsForDate(d, items, recurring, subjects));
+  const view: ListView = { subjects: subjectFilter, groupBy, hideDone, details: detailsVisible };
 
-  const sections: Section[] =
-    groupBy === 'day'
-      ? dates
-          .map((date) => ({
-            key: date,
-            title: dayName(date),
-            badge: dayOfMonth(date),
-            isToday: date === today,
-            rows: visible(rowsForDate(date, items, recurring, subjects)),
-          }))
-          .filter((s) => s.rows.length > 0)
-      : [...subjects, null as Subject | null]
-          .map((s) => ({
-            key: s?.id ?? 'none',
-            title: s?.name ?? 'No subject',
-            badge: '',
-            isToday: false,
-            rows: visible(allRows.filter((r) => r.subjectId === (s?.id ?? null))),
-          }))
-          .filter((s) => s.rows.length > 0);
+  function entriesFor(v: ListView): Entry[] {
+    const fromItems: Entry[] = items
+      .filter((i) => passes(i.subjectId, i.done, v))
+      .map((i) => ({ kind: 'item', item: i, date: i.date }));
+    // A span is placed once: on today if it is running, otherwise on its first day.
+    const fromSpans: Entry[] = recurring
+      .filter((r) => {
+        const date = isWithin(today, r.startDate, r.endDate) ? today : r.startDate;
+        return passes(r.subjectId, r.doneDates.includes(date), v);
+      })
+      .map((r) => ({
+        kind: 'recurring',
+        span: r,
+        date: isWithin(today, r.startDate, r.endDate) ? today : r.startDate,
+      }));
+    return [...fromItems, ...fromSpans];
+  }
 
-  const count = sections.reduce((n, s) => n + s.rows.length, 0);
+  const entries = entriesFor(view);
+  const ongoing = entries.filter(
+    (e): e is Extract<Entry, { kind: 'recurring' }> =>
+      e.kind === 'recurring' && isWithin(today, e.span.startDate, e.span.endDate),
+  );
+  const dated = entries.filter((e) => !ongoing.includes(e as never));
+
+  const byDate = new Map<string, Entry[]>();
+  for (const e of dated) byDate.set(e.date, [...(byDate.get(e.date) ?? []), e]);
+  const dates = [...byDate.keys()].sort();
+  const earlier = dates.filter((d) => d < today);
+  // Today is always listed, even with nothing on it, so the List always has
+  // its bearings and an empty today says so rather than vanishing.
+  const upcoming = [...new Set([today, ...dates.filter((d) => d >= today)])].sort();
+
+  const sortDay = (list: Entry[]) =>
+    list.slice().sort((a, b) => {
+      if (a.kind !== b.kind) return a.kind === 'item' ? -1 : 1;
+      if (a.kind === 'item' && b.kind === 'item') {
+        return Number(a.item.done) - Number(b.item.done) || a.item.createdAt - b.item.createdAt;
+      }
+      return 0;
+    });
+
+  const allDates = [...new Set([...items.map((i) => i.date), ...recurring.map((r) => r.startDate)])].sort();
+  const earlierDone = earlier.reduce(
+    (n, d) => n + (byDate.get(d) ?? []).filter((e) => e.kind === 'item' && e.item.done).length,
+    0,
+  );
 
   // Open on today rather than at the earliest day in the planner.
   const bodyRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (groupBy !== 'day') return;
-    const target = dates.find((d) => d >= today);
-    if (!target) return;
-    bodyRef.current
-      ?.querySelector<HTMLElement>(`[data-date="${target}"]`)
-      ?.scrollIntoView({ block: 'start' });
+    bodyRef.current?.querySelector<HTMLElement>('[data-today]')?.scrollIntoView({ block: 'start' });
     // First open only; later renders must not yank the scroll position.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function toggle(row: ListRow) {
-    dispatch(
-      row.kind === 'recurring'
-        ? { type: 'recurring/toggleDay', id: row.id, date: row.date }
-        : { type: 'item/toggle', id: row.id },
+  /* ---- rows ----------------------------------------------------------- */
+
+  function row(e: Entry, meta: 'day' | 'span' = 'span') {
+    const key = e.kind === 'item' ? e.item.id : `${e.span.id}:${e.date}`;
+    const target: ItemTarget =
+      e.kind === 'item'
+        ? { kind: 'item', id: e.item.id, date: e.date }
+        : { kind: 'recurring', id: e.span.id, date: e.date };
+    const done = e.kind === 'item' ? e.item.done : e.span.doneDates.includes(e.date);
+    return (
+      <SwipeRow
+        key={key}
+        enabled
+        open={swiped === key}
+        onOpen={() => setSwiped(key)}
+        onClose={() => setSwiped(null)}
+        doneLabel={done ? 'Undo' : 'Done'}
+        onDone={() => toggleDone(target)}
+        onMove={() => openItem(target)}
+        onDelete={() => remove(target)}
+      >
+        {e.kind === 'item' ? (
+          <MobileItemRow
+            item={e.item}
+            subject={subjectOf(subjects, e.item.subjectId)}
+            showDetails={detailsVisible}
+            onOpen={() => openItem(target)}
+          />
+        ) : (
+          <MobileRecurringRow
+            item={e.span}
+            subject={subjectOf(subjects, e.span.subjectId)}
+            date={e.date}
+            meta={meta}
+            onOpen={() => openItem(target)}
+          />
+        )}
+      </SwipeRow>
     );
   }
 
-  const filterName = subjectFilter
-    ? (subjectOf(subjects, subjectFilter)?.name ?? 'Subject')
-    : null;
+  function daySection(date: string) {
+    const list = sortDay(byDate.get(date) ?? []);
+    const isToday = date === today;
+    return (
+      <section key={date} data-date={date} data-today={isToday || undefined}>
+        <div className="m-dayhead" data-today={isToday}>
+          <span className="m-dayhead__name">{dayName(date)}</span>
+          <span className="m-dayhead__num">{dayOfMonth(date)}.</span>
+          {isToday ? (
+            <span className="m-dayhead__note">Today</span>
+          ) : (
+            <span className="m-dayhead__count">{list.length}</span>
+          )}
+        </div>
+        <div className="m-rows">
+          {isToday && list.length === 0 && (
+            <div className="m-nothing m-nothing--today">
+              <span>Nothing due today</span>
+              <button type="button" className="m-textbtn"
+                onClick={() => openCompose({ mode: 'new', date: today, band: 'assignment' })}>
+                + Add
+              </button>
+            </div>
+          )}
+          {list.map((e) => row(e))}
+        </div>
+      </section>
+    );
+  }
+
+  const shownLabel =
+    subjectFilter.size === 0
+      ? 'All subjects'
+      : subjectFilter.size === 1
+        ? (subjectOf(subjects, [...subjectFilter][0])?.name ?? 'No subjects')
+        : `${subjectFilter.size} subjects`;
+
+  // By day, today's own "Nothing due today" row stands in for an empty list.
+  const nothing = entries.length === 0 && groupBy === 'subject';
 
   return (
     <>
-      {/*
-        The masthead and its controls are one pinned shelf. Hide done and the
-        grouping change what you are looking at, so they have to stay in reach
-        of the part of the list you have scrolled to.
-      */}
       <div className="m-stickyhead" ref={headRef}>
         <div className="m-head">
-          <div className="m-head__stack">
-            <span className="m-head__eyebrow">
-              {filterName ?? 'All upcoming'} · {count} {count === 1 ? 'item' : 'items'}
-              {filterName && (
-                <button type="button" className="m-head__clear" onClick={onClearFilter}>
-                  Clear
-                </button>
-              )}
+          <div className="m-head__lead">
+            <h1 className="m-head__title">List.</h1>
+            <span className="m-head__sub">
+              {allDates.length ? formatSpan([allDates[0], allDates[allDates.length - 1]]) : ''}
             </span>
-            <h1 className="m-head__title m-head__title--short">List</h1>
           </div>
-          {/* The List is not looking at a particular day, so a new item lands on
-              today — the composer's date field is right there to change it. */}
-          <button
-            type="button"
-            className="m-plus"
-            aria-label="New item"
-            onClick={() => openCompose({ mode: 'new', date: today, band: 'assignment' })}
-          >
-            +
+          <button type="button" className="m-filterpill" onClick={() => setFilterOpen(true)}>
+            {shownLabel}
+            <ChevronDown strokeWidth={1.3} />
           </button>
         </div>
-
-        <div className="m-listctl">
-          <div className="m-seg" role="group" aria-label="Group by">
-            {(['day', 'subject'] as GroupBy[]).map((g) => (
-              <button
-                key={g}
-                type="button"
-                className="m-seg__opt"
-                data-active={groupBy === g}
-                aria-pressed={groupBy === g}
-                onClick={() => onGroupBy(g)}
-              >
-                {g === 'day' ? 'Day' : 'Subject'}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className="m-toggle m-toggle--wide"
-            data-on={hideDone}
-            aria-pressed={hideDone}
-            onClick={() => onHideDone(!hideDone)}
-          >
-            Hide done
-          </button>
-          <button
-            type="button"
-            className="m-toggle m-toggle--wide"
-            data-on={detailsVisible}
-            aria-pressed={detailsVisible}
-            onClick={() => setDevicePrefs({ detailsVisible: !detailsVisible })}
-          >
-            Details
-          </button>
-        </div>
+        <MissedRow />
       </div>
 
       <div ref={bodyRef}>
-        {sections.map((section) => (
-          <section key={section.key} data-date={groupBy === 'day' ? section.key : undefined}>
-            <div className="m-group" data-today={section.isToday}>
-              <span className="m-group__title">{section.title}</span>
-              {section.badge && (
-                <span className="m-group__badge" data-today={section.isToday}>
-                  {groupBy === 'day' ? `${monthShort(section.key)} ${section.badge}` : section.badge}
-                </span>
-              )}
-              {section.isToday && <span className="m-group__note">today</span>}
-              <span className="m-group__count">{section.rows.length}</span>
-            </div>
-
-            {section.rows.map((row) => (
-              <div key={`${row.id}-${row.date}`} className="m-row" data-done={row.done}>
-                <button
-                  type="button"
-                  className="m-row__body"
-                  onClick={() =>
-                    openItem({
-                      kind: row.kind === 'recurring' ? 'recurring' : 'item',
-                      id: row.id,
-                      date: row.date,
-                    })
-                  }
-                >
-                  <span className="m-row__title">{row.desc}</span>
-                  {detailsVisible && row.details && (
-                    <span className="m-row__details">{row.details}</span>
-                  )}
-                  <span className="m-row__meta">
-                    <MobileChip subject={subjectOf(subjects, row.subjectId)} done={row.done} />
-                    <span className="m-row__time">
-                      {metaFor(
-                        row,
-                        (id) => spanLength(id),
-                        (id) => dayOffset(id, row.date),
-                      )}
-                    </span>
-                  </span>
-                </button>
-                <div className="m-row__check">
-                  <MobileCheckbox
-                    done={row.done}
-                    label={row.done ? 'Mark as not done' : 'Mark as done'}
-                    onToggle={() => toggle(row)}
-                  />
-                </div>
-              </div>
-            ))}
-          </section>
-        ))}
-
-        {count === 0 && (
+        {nothing ? (
           <div className="m-empty">
-            <span className="m-empty__title">Nothing here</span>
+            <span className="m-empty__title">Nothing here.</span>
             <p className="m-empty__note">
-              {subjectFilter
-                ? 'No items for this subject.'
+              {subjectFilter.size
+                ? 'No items for these subjects.'
                 : hideDone
                   ? 'Everything on the list is done.'
-                  : 'Add something from the Week tab.'}
+                  : 'Add an assignment with +, or import a syllabus from the desktop app.'}
             </p>
           </div>
+        ) : groupBy === 'subject' ? (
+          [...subjects, null].map((s) => {
+            const id = s?.id ?? null;
+            const list = entries
+              .filter((e) => (e.kind === 'item' ? e.item.subjectId : e.span.subjectId) === id)
+              .sort((a, b) => a.date.localeCompare(b.date));
+            if (list.length === 0) return null;
+            return (
+              <section key={id ?? 'none'}>
+                <div className="m-sec m-sec--sticky">
+                  <span className="m-sec__title">{s?.name ?? 'No subject'}</span>
+                  <span className="m-sec__count">{list.length}</span>
+                </div>
+                <div className="m-rows">{list.map((e) => row(e))}</div>
+              </section>
+            );
+          })
+        ) : (
+          <>
+            {ongoing.length > 0 && (
+              <section>
+                <div className="m-sec">
+                  <span className="m-sec__title">Ongoing</span>
+                  <span className="m-sec__count">{ongoing.length}</span>
+                </div>
+                <div className="m-rows">{ongoing.map((e) => row(e))}</div>
+              </section>
+            )}
+
+            {earlier.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  className="m-earlier"
+                  aria-expanded={earlierOpen}
+                  onClick={() => setEarlierOpen((o) => !o)}
+                >
+                  <span className="m-earlier__label">Earlier</span>
+                  <span className="m-earlier__span">
+                    {formatSpan([earlier[0], earlier[earlier.length - 1]])} · {earlierDone} done
+                  </span>
+                  <span className="m-earlier__caret" data-open={earlierOpen}>
+                    <ChevronDown strokeWidth={1.3} />
+                  </span>
+                </button>
+                {earlierOpen && earlier.map(daySection)}
+              </>
+            )}
+
+            {upcoming.map(daySection)}
+          </>
         )}
       </div>
+
+      {filterOpen && (
+        <FilterSheet
+          subjects={subjects}
+          countFor={(id) =>
+            items.filter((i) => i.subjectId === id).length +
+            recurring.filter((r) => r.subjectId === id).length
+          }
+          countWith={(v) => entriesFor(v).length}
+          value={view}
+          onApply={(v) => {
+            onFilter(v.subjects);
+            onGroupBy(v.groupBy);
+            onHideDone(v.hideDone);
+            if (v.details !== detailsVisible) setDevicePrefs({ detailsVisible: v.details });
+          }}
+          onClose={() => setFilterOpen(false)}
+        />
+      )}
     </>
   );
 }

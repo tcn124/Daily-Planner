@@ -1,4 +1,5 @@
 import { BandResizer } from './BandResizer';
+import { ChevronDown } from './icons';
 
 interface Props {
   label: string;
@@ -40,7 +41,7 @@ export function BandHeader({
         <span className="bandhead__label">{label}</span>
         <span className="bandhead__count">{count}</span>
         <span className="bandhead__caret" data-collapsed={collapsed} aria-hidden="true">
-          ▾
+          <ChevronDown />
         </span>
       </button>
     </div>

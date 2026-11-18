@@ -1,4 +1,8 @@
-/* List view — the agenda grouped by day or subject. */
+/*
+ * List view (frame 2d) — the agenda as a ruled table. Each day is a block:
+ * its name and big serif number down the left, its rows in columns to the
+ * right (Subject · Item · Type · Due).
+ */
 
 .list {
   flex: 1;
@@ -9,6 +13,39 @@
   background: var(--surface);
 }
 
+/* What the Zoom control scales: the column heads and the body, not the to-do strip. */
+.list__zoom {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The five columns. The day block's left column is the first; its rows carry the rest. */
+.list__colheads,
+.list__row {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) 92px 52px;
+  gap: 16px;
+}
+
+.list__colheads {
+  flex: none;
+  grid-template-columns: 112px 148px minmax(0, 1fr) 92px 52px;
+  align-items: center;
+  height: 30px;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line-strong);
+  font-size: var(--fs-9);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  color: var(--ink-2);
+}
+
+.list__colhead-due {
+  text-align: right;
+}
+
 .list__body {
   flex: 1;
   min-height: 0;
@@ -16,181 +53,358 @@
   overscroll-behavior: contain;
 }
 
-/* Group heading ---------------------------------------------------------- */
+.list__empty {
+  margin: 0;
+  padding: 24px 28px;
+  font-size: var(--fs-10);
+  color: var(--ink-2);
+}
 
+/* Day block ---------------------------------------------------------------- */
+
+.list__section {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 28px 14px;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+/* The day's label rides down with a long day, so you always know where you are. */
 .list__group {
   position: sticky;
-  top: 0;
-  z-index: 1;
+  top: 16px;
+  align-self: start;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 20px;
-  background: var(--surface-head);
-  border-bottom: 1px solid var(--line-soft);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .list__group-name {
-  font-size: var(--fs-12);
+  font-size: var(--fs-9-5);
   font-weight: 600;
+  letter-spacing: var(--track-label);
 }
 
 .list__group-date {
-  font-size: var(--fs-12);
-  color: var(--ink-40);
+  font-family: var(--font-display);
+  font-size: var(--fs-30);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
 }
 
-.list__group-today {
-  font-size: var(--fs-11);
-  color: var(--ink-45);
+.list__group[data-past] .list__group-date {
+  color: var(--ink-2);
 }
 
-.list__group--today {
-  background: #f6f6f3;
-  border-top: 1px solid var(--line-soft);
+.list__group-subject {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: var(--fs-20-5);
+  letter-spacing: var(--track-head);
+  line-height: 1.1;
 }
 
-.list__group--today .list__group-name {
+/*
+ * Today: blue, bold, with its pill, on the shaded block — and a blue rule down
+ * its left edge, so it can be found at a glance in a long list. It is always
+ * present, even with nothing due.
+ */
+.list__section:has(.list__group[data-today]) {
+  background: var(--surface-today);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.list__nothing {
+  margin: 0;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line-row);
+  font-size: var(--fs-10);
+  color: var(--accent);
+}
+
+.list__group[data-today] .list__group-name,
+.list__group[data-today] .list__group-date {
+  color: var(--accent);
+}
+
+.list__group[data-today] .list__group-name {
   font-weight: 700;
 }
 
-.list__group--today .list__group-date {
-  font-weight: 600;
-  color: var(--on-accent);
-  background: var(--accent-solid);
-  border-radius: 3px;
-  padding: 0 5px;
+.list__group[data-today] .list__group-date {
+  font-weight: 500;
 }
 
-/* Rows ------------------------------------------------------------------- */
+.list__group-today {
+  margin-top: 2px;
+  padding: 3px 7px 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-primary);
+  font-size: var(--fs-8-5);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  line-height: 1;
+}
+
+.list__rows {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* A dragged item is over this block: shade it and ring its label. */
+.list__section--drop {
+  background: var(--surface-today);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* Row ------------------------------------------------------------------------ */
 
 .list__row {
-  display: grid;
-  grid-template-columns: 96px 118px 1fr 48px;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 20px;
-  border-bottom: 1px solid var(--line-faint);
+  position: relative;
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line-row);
   cursor: pointer;
-  text-align: left;
+  user-select: none;
 }
 
-.list__row:hover {
-  background: #fafaf9;
-}
-
-.list__pill {
-  justify-self: start;
-  background: var(--surface-active);
-  color: var(--ink-60);
+.list__row:hover .list__title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .list__subject {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: var(--fs-12);
+  gap: 7px;
   min-width: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-12);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
 }
 
-.list__subject-dot {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+.list__subject-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .list__desc {
-  font-size: var(--fs-13);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.list__time {
-  color: var(--ink-40);
-  font-size: var(--fs-11-5);
+.list__title {
+  font-size: var(--fs-10);
+  font-weight: 500;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .list__details {
-  display: block;
-  font-size: var(--fs-11-5);
-  color: var(--ink-45);
+  font-size: var(--fs-9-5);
+  line-height: 1.4;
+  color: var(--ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.list__type {
+  font-size: var(--fs-9);
+  color: var(--ink-2);
+}
+
+.list__due {
+  text-align: right;
+  font-size: var(--fs-9-5);
+  font-weight: 500;
+  letter-spacing: var(--track-time);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.list__due[data-late] {
+  color: var(--danger);
+}
+
+/* Checkbox and ✕ take the Due cell's place on hover. */
 .list__row-actions {
-  justify-self: end;
-  display: flex;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding-left: 8px;
+  background: var(--surface);
 }
 
-.list__kill {
-  opacity: 0;
-  transition: opacity 120ms ease;
+.list__section:has(.list__group[data-today]) .list__row-actions {
+  background: var(--surface-today);
 }
 
-.list__row:hover .list__kill,
-.list__kill:focus-visible {
-  opacity: 1;
+.list__row:hover .list__row-actions,
+.list__row:focus-within .list__row-actions {
+  display: flex;
 }
 
 .list__row--done {
-  opacity: 0.55;
+  color: var(--ink-2);
 }
 
-/* Drag and drop --------------------------------------------------------- */
-
-/* The row being dragged stays in place, faded, until it lands. */
-.list__row--dragging {
-  opacity: 0.35;
-}
-
-/* A dragged item is over this group: tint the whole section and mark its
-   header, which is sticky and so stays visible however long the group is. */
-.list__section--drop {
-  background: var(--surface-hover);
-}
-
-.list__section--drop .list__group {
-  box-shadow: inset 0 0 0 1.5px var(--ink-30);
-}
-
-.list__row--done .list__desc {
+.list__row--done .list__title {
   text-decoration: line-through;
 }
 
-.list__row--done .list__details {
-  text-decoration: none;
+.list__row--dragging {
+  opacity: 0.3;
 }
 
+/* Add / edit --------------------------------------------------------------- */
+
 .list__new {
-  display: block;
-  width: 100%;
-  padding: 10px 20px;
-  font-size: var(--fs-12-5);
-  color: var(--ink-30);
-  text-align: left;
+  align-self: flex-start;
+  padding: 9px 0 0;
+  font-size: var(--fs-9);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
+  color: var(--ink-2);
+  text-underline-offset: 3px;
 }
 
 .list__new:hover {
-  color: var(--ink-60);
-  background: #fafaf9;
+  color: var(--ink);
+  text-decoration: underline;
 }
 
-/* The composer is inline here rather than a popover, so it needs no anchor. */
 .list__composer {
   position: relative;
-  padding: 8px 20px;
-  border-bottom: 1px solid var(--line-faint);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-row);
 }
 
 .list__composer .composer {
   position: static;
   width: 340px;
-  box-shadow: var(--shadow-panel);
+}
+
+/* Header menu -------------------------------------------------------------- */
+
+.menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-9-5);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
+}
+
+.menu__trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.menu__list {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+
+.menu__item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 0;
+  white-space: nowrap;
+  text-underline-offset: 3px;
+}
+
+.menu__item:hover {
+  text-decoration: underline;
+}
+
+.menu__item + .menu__item {
+  border-top: 1px solid var(--line-row);
+}
+
+.menu__check {
+  width: 10px;
+  flex: none;
+}
+
+.menu__label {
+  padding: 8px 0 2px;
+  font-size: var(--fs-9);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* Missed page ----------------------------------------------------------------
+ * The List's table, keyed by the day each item was due. Its day labels open
+ * that day, and its rows keep their actions in view on hover like the List's.
+ */
+.missed__day {
+  text-align: left;
+  text-underline-offset: 3px;
+}
+
+.missed__day:hover .list__group-name {
+  text-decoration: underline;
+}
+
+.missed__actions {
+  gap: 10px;
+}
+
+.missed__note {
+  margin: 0;
+  padding: 16px 28px 24px;
+  font-size: var(--fs-9-5);
+  color: var(--ink-2);
+}
+
+.missed__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 48px 28px;
+}
+
+.missed__empty-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-30);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.missed__empty-note {
+  margin: 0;
+  font-size: var(--fs-10);
+  color: var(--ink-2);
+}
+
+/* A drag over today's block keeps its blue rule as well as the drop ring. */
+.list__section--drop:has(.list__group[data-today]) {
+  box-shadow: inset 3px 0 0 var(--accent), inset 0 0 0 1px var(--ink);
 }

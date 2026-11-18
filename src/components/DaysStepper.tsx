@@ -5,7 +5,7 @@ interface Props {
   onChange: (days: number) => void;
 }
 
-/** `[−] 7 days [+]` — the one control for how many day columns the week shows. */
+/** `− 7 days +`, set as text — the one control for how many day columns the week shows. */
 export function DaysStepper({ value, onChange }: Props) {
   return (
     <div className="stepper" role="group" aria-label="Days shown">

@@ -1,121 +1,118 @@
 /*
- * Design tokens measured from the Claude Design canvas in `design/`
- * ("Main Page.dc.html" and "Supporting Screens.dc.html").
+ * Design tokens measured from the Claude Design canvases in `design/`:
+ * "Weekly Planner - Desktop.dc.html" (frames 2a, 2c, 2d) and
+ * "Weekly Planner - Phone.dc.html" (frames 4a–4d, 5a–5m). Where a canvas's
+ * written notes and its drawn frames disagree, the frames win — they are the
+ * later turn.
  *
  * Three layers: primitives, type, geometry. Subject colours are NOT here —
  * they are generated per-hue in src/lib/color.ts and applied inline.
  */
 :root {
   /* ---- Primitives ------------------------------------------------------ */
-  /* The whole design is one ink colour at varying alpha over warm surfaces. */
-  --ink: #37352f;
-  --ink-82: rgba(55, 53, 47, 0.82);
-  --ink-70: rgba(55, 53, 47, 0.7);
-  --ink-60: rgba(55, 53, 47, 0.6);
-  --ink-45: rgba(55, 53, 47, 0.45);
-  --ink-40: rgba(55, 53, 47, 0.4);
-  --ink-35: rgba(55, 53, 47, 0.35);
-  --ink-30: rgba(55, 53, 47, 0.3);
+  /*
+   * "Planner, in print": near-black ink on white, one secondary grey, and a
+   * single ultramarine for today. Red is reserved for lateness and deletion.
+   */
+  --ink: #111111;
+  --ink-2: #5c5c5c;          /* every secondary label, count and meta line */
+  --ink-soft: #3a3a3a;       /* long-form body copy in sheets and dialogs */
+  --ink-faint: rgba(17, 17, 17, 0.4); /* placeholders */
+  /* Alpha steps for strokes that must stay quieter than the secondary grey. */
+  --ink-30: rgba(17, 17, 17, 0.3);
+  --ink-25: rgba(17, 17, 17, 0.25);
+  --ink-15: rgba(17, 17, 17, 0.15);
 
   --surface: #ffffff;
-  --surface-sunken: #f7f7f5;  /* sidebar, notes box, composer fields */
-  --surface-alt: #fcfcfb;     /* alternating day columns, to-do strip */
-  --surface-head: #fafaf8;    /* list-view day group headers */
-  --surface-today: #f6f6f4;   /* today's column in the day header */
-  --surface-hover: rgba(55, 53, 47, 0.045);
-  --surface-active: rgba(55, 53, 47, 0.07);
+  --surface-today: #f6f6f4;  /* today's column, today's list group, input fields */
+  --surface-field: #f6f6f4;
+  --surface-chip: #f1f1ee;   /* to-do chips, segmented-control track, pills */
+  --surface-bar: #ececea;    /* recurring bars, the strip's shown-days block */
+  --surface-bar-hover: #e2e2df;
+  --surface-hover: rgba(17, 17, 17, 0.04);
+  --shade-done: rgba(17, 17, 17, 0.07); /* a ticked day inside a recurring bar */
+  --grabber: #d9d9d6;
+  --scrim: rgba(17, 17, 17, 0.35);
 
-  --line-strong: rgba(55, 53, 47, 0.12); /* shell border, button outlines */
-  --line: rgba(55, 53, 47, 0.09);        /* band separators */
-  --line-soft: rgba(55, 53, 47, 0.07);   /* day column separators */
-  --line-faint: rgba(55, 53, 47, 0.06);  /* list row separators */
+  --line-strong: rgba(17, 17, 17, 0.2);  /* header, sidebar and band rules */
+  --line: rgba(17, 17, 17, 0.14);        /* day columns, row separators */
+  --line-row: rgba(17, 17, 17, 0.08);    /* list rows */
+  --line-hair: rgba(17, 17, 17, 0.12);   /* phone hairlines */
 
-  --accent-solid: #37352f;    /* primary button fill, today's date pill */
-  --accent-solid-hover: #4a4740;
-  --on-accent: #ffffff;
-
-  --danger: #a13b2f;
-  --danger-line: rgba(161, 59, 47, 0.25);
-  --missed-dot: #c25a4b;
-  --missed-badge-bg: #f7e3e0;
-  --missed-badge-ink: #8c352a;
+  --accent: #002dff;         /* today, the Upcoming underline */
+  --danger: #f22525;         /* missed, late, delete */
+  --primary: #111111;        /* the one filled button */
+  --primary-hover: #2a2a2a;
+  --on-primary: #ffffff;
 
   /* ---- Type ------------------------------------------------------------ */
   --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
 
-  --fs-10-5: 10.5px;  /* subject chips */
-  --fs-11: 11px;      /* section eyebrows, counts, meta */
-  --fs-11-5: 11.5px;  /* header eyebrow, day-page meta */
-  --fs-12: 12px;      /* to-do chips, breadcrumb, secondary buttons */
-  --fs-12-5: 12.5px;  /* card description, recurring bar text, buttons */
-  --fs-13: 13px;      /* sidebar rows, list row text */
-  --fs-13-5: 13.5px;  /* sidebar nav rows */
-  --fs-14: 14px;      /* day-page item rows */
-  --fs-14-5: 14.5px;  /* weekday names */
-  --fs-18: 18px;      /* "Edit planner" panel title */
-  --fs-21: 21px;      /* "List" panel title */
-  --fs-title: 29px;   /* "August 2026" */
-  --fs-day-title: 34px; /* "August 25" on the day page */
+  /*
+   * The desktop is set at the canvas's literal sizes: small, print-like type
+   * with the hierarchy carried by the serif rather than by weight.
+   */
+  --fs-8-5: 8.5px;   /* "+ Add", the Today pill */
+  --fs-9: 9px;       /* counts, eyebrows, column heads */
+  --fs-9-5: 9.5px;   /* nav, controls, day names, details, times */
+  --fs-10: 10px;     /* card titles, sidebar rows */
+  --fs-10-5: 10.5px; /* body default */
+  --fs-11: 11px;     /* sidebar subject names (serif) */
+  --fs-12: 12px;     /* card subject line (serif) */
+  --fs-15: 15px;     /* day numbers in the week header (serif) */
+  --fs-19: 19px;     /* "To-do" (serif) */
+  --fs-20-5: 20.5px; /* sidebar section heads (serif) */
+  --fs-30: 30px;     /* list day numbers (serif) */
+  --fs-title: 57px;  /* "October." */
 
-  --track-eyebrow: 0.06em;
-  --track-section: 0.05em;
-  --track-title: -0.01em;
+  --track-title: -0.045em;
+  --track-head: -0.02em;
+  --track-label: 0.01em;
+  --track-time: 0.04em;
 
   /* ---- Geometry -------------------------------------------------------- */
-  --sidebar-w: 236px;
-  --topbar-h: 36px;
-  /* Room for the desktop's traffic lights before the brand text; none in a browser. */
-  --brand-inset: 16px;
-  --rail-w: 52px;          /* collapsed sidebar */
+  --sidebar-w: 232px;
+  --rail-w: 52px;            /* collapsed sidebar */
+  /* Tall enough that the desktop's traffic lights sit above the nav row. */
+  --header-h: 76px;
   --band-head-h: 30px;
-  --todo-h: 52px;
-  --header-pad-x: 26px;
+  --dayhead-h: 42px;
+  --todo-h: 58px;
 
-  --radius-card: 6px;      /* item cards, buttons, recurring bars */
-  --radius-shell: 10px;    /* panels, popovers */
-  --radius-chip: 4px;      /* subject chips */
-  --radius-row: 5px;       /* sidebar rows */
-  --radius-pill: 14px;     /* to-do chips */
+  --radius-bar: 3px;         /* recurring bars */
+  --radius-field: 10px;      /* inputs, cards on the phone */
+  --radius-shell: 12px;      /* panels, popovers */
+  --radius-pill: 14px;       /* to-do chips */
 
-  --card-bar-w: 3px;       /* recurring bar's coloured left border */
   --checkbox-size: 13px;
-  --nav-size: 30px;
+  --square: 9px;             /* the subject colour square */
 
-  --shadow-card: 0 1px 2px rgba(15, 15, 15, 0.04);
-  --shadow-card-hover: 0 2px 6px rgba(15, 15, 15, 0.07);
-  --shadow-panel: 0 12px 32px rgba(15, 15, 15, 0.08);
-  --shadow-pop: 0 14px 34px rgba(15, 15, 15, 0.14);
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-panel: 0 18px 44px rgba(0, 0, 0, 0.12);
 
   /* ---- Phone ----------------------------------------------------------
-   * Measured from the mobile design canvas (`design/Mobile.dc.html`), which
-   * is the source of truth for the phone the way the other two canvases are
-   * for the desktop. Prefixed `--m-` so a mobile value can never be mistaken
-   * for the desktop one it overrides.
+   * Measured from "Weekly Planner - Phone.dc.html". Prefixed `--m-` so a
+   * mobile value can never be mistaken for the desktop one it overrides.
    */
   --m-hit: 44px;              /* HIG minimum tap target */
-  --m-tabbar-h: 49px;         /* plus the home-indicator inset below it */
-  --m-pad-x: 16px;            /* screen edge padding; the desktop header uses 26 */
-  --m-band-head-h: 36px;      /* desktop is 30; taller for the ▾ tap target */
-  --m-strip-cell-h: 64px;
-  --m-dayrow-h: 48px;
+  --m-tabbar-h: 54px;         /* plus the home-indicator inset below it */
+  --m-plus: 52px;             /* the tab bar's add button */
+  --m-pad-x: 20px;            /* screen edge padding */
+  --m-strip-cell-h: 58px;
+  --m-missed-h: 52px;
+  --m-seg-w: 44px;
+  --m-seg-h: 36px;
 
-  --m-checkbox: 18px;         /* 1-day row and 2-day card */
-  --m-checkbox-sm: 16px;      /* 3-day card */
-  --m-fs-title: 15px;         /* 1-day row */
-  --m-fs-title-card: 14px;    /* 2-day card */
-  --m-fs-title-card-sm: 13.5px; /* 3-day card */
-  --m-fs-details: 13px;
-  --m-fs-details-card: 12px;
+  --m-fs-title: 15px;         /* 1-day row title */
+  --m-fs-meta: 11.5px;
   --m-fs-input: 16px;         /* body inputs — under this, iOS zooms on focus */
-  --m-fs-input-title: 17px;
-  --m-col-pad-y: 6px;
-  --m-col-pad-x: 5px;
-  --m-bar-h: 34px;            /* 3-day recurring bar, 40pt row pitch */
+  --m-field-h: 48px;
+  --m-button-h: 50px;
+  --m-card-min-h: 64px;
 
-  --m-radius-sheet: 14px;
-  --m-scrim: rgba(15, 15, 15, 0.28);
-  --m-tabbar-bg: rgba(252, 252, 251, 0.94);
-  --m-swipe-action-w: 72px;
-  --m-move-bg: #ecebe8;       /* surface-sunken, one step darker */
+  --m-radius-sheet: 22px;
+  --m-radius-card: 10px;
+  --m-swipe-action-w: 84px;
+  --m-toast-h: 48px;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RecurringItem, Subject } from '../types';
-import { addDays, daysBetween, isWeekend } from '../lib/dates';
-import { ROW_H } from '../lib/recurring';
+import { addDays, daysBetween, todayISO } from '../lib/dates';
+import { BAR_INSET, BAR_TOP, ROW_H } from '../lib/recurring';
 import { RecurringBar } from './RecurringBar';
 import { SubjectChips } from './SubjectChips';
 
@@ -229,9 +229,11 @@ export function RecurringBand({
       : null;
 
   const geometry = (startIndex: number, span: number) => ({
-    left: `calc(${(startIndex / days) * 100}% + 4px)`,
-    width: `calc(${(span / days) * 100}% - 8px)`,
+    left: `calc(${(startIndex / days) * 100}% + ${BAR_INSET}px)`,
+    width: `calc(${(span / days) * 100}% - ${BAR_INSET * 2}px)`,
   });
+
+  const today = todayISO();
 
   return (
     <div
@@ -252,9 +254,9 @@ export function RecurringBand({
         {Array.from({ length: days }, (_, i) => (
           <span
             key={i}
-            /* Carries the same weekend tint down from the day cells above,
-               since this band has no per-day cells of its own to tint. */
-            className={isWeekend(addDays(anchorDate, i)) ? 'rec-track__day--weekend' : undefined}
+            /* Carries today's shade down from the day cells above, since this
+               band has no per-day cells of its own to shade. */
+            className={addDays(anchorDate, i) === today ? 'rec-track__day--today' : undefined}
           />
         ))}
       </div>
@@ -314,7 +316,7 @@ export function RecurringBand({
           className="rec-preview"
           style={{
             ...geometry(preview.start, preview.span),
-            top: 6 + rowFor(preview.start, preview.start + preview.span - 1) * ROW_H,
+            top: BAR_TOP + rowFor(preview.start, preview.start + preview.span - 1) * ROW_H,
           }}
         />
       )}
@@ -324,7 +326,7 @@ export function RecurringBand({
           className="rec-editor"
           style={{
             ...geometry(editor.startIndex, editor.endIndex - editor.startIndex + 1),
-            top: 6 + editor.row * ROW_H,
+            top: BAR_TOP + editor.row * ROW_H,
           }}
           onMouseDown={(e) => e.stopPropagation()}
           onKeyDown={(e) => {
@@ -352,7 +354,7 @@ export function RecurringBand({
             <button type="button" className="btn btn--primary" onClick={commitEditor}>
               {editor.id ? 'Save' : 'Add'}
             </button>
-            <button type="button" className="btn" onClick={() => setEditor(null)}>
+            <button type="button" className="link link--muted" onClick={() => setEditor(null)}>
               Cancel
             </button>
           </div>

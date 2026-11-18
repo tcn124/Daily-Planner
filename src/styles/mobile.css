@@ -4,10 +4,12 @@
  * Imported last, so it wins over the desktop rules without editing them. The
  * `.m-` components only ever render inside <MobileShell>, which React mounts
  * only below the breakpoint — so most of this file needs no media query. The
- * exceptions are the two blocks at the end, which reach back into desktop
- * rules that would otherwise still apply at phone width.
+ * exceptions are the blocks at the end, which reach back into desktop rules
+ * that would otherwise still apply at phone width.
  *
- * Geometry comes from `design/Mobile.dc.html`; see the `--m-` tokens.
+ * Geometry comes from `design/Weekly Planner - Phone.dc.html` (frames 4a–5m);
+ * see the `--m-` tokens. "Fewer things, bigger targets": open rows, soft grey
+ * cards, one black pill per sheet, and nothing tappable under 44pt.
  */
 
 /* --------------------------------------------------------------- shell */
@@ -18,6 +20,7 @@
   display: flex;
   flex-direction: column;
   background: var(--surface);
+  color: var(--ink);
   /* The status bar sits over the app once it is installed to the home screen. */
   padding-top: env(safe-area-inset-top);
   overflow: hidden;
@@ -25,8 +28,7 @@
 
 /*
  * The scrolling pane for whichever tab is showing. The bottom padding clears
- * the tab bar, which floats over the content rather than taking layout space —
- * that way a list scrolls up behind its blur instead of stopping short of it.
+ * the tab bar, which sits over the content rather than taking layout space.
  */
 .m-pane {
   flex: 1;
@@ -34,24 +36,32 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--m-tabbar-h) + env(safe-area-inset-bottom) + 28px);
+  scrollbar-width: none;
+  padding-bottom: calc(var(--m-tabbar-h) + env(safe-area-inset-bottom) + 40px);
 }
 
-/* Sits above the pane, inside the shell's own safe-area padding, so it never
-   needs its own top-safe-area handling. */
+.m-pane::-webkit-scrollbar {
+  display: none;
+}
+
+body.m-locked .m-pane {
+  overflow: hidden;
+}
+
+/* Sits above the pane, inside the shell's own safe-area padding. */
 .m-offlinebar {
   flex: none;
-  padding: 7px var(--m-pad-x);
-  font-size: var(--fs-11);
+  padding: 8px var(--m-pad-x);
+  font-size: 12px;
   line-height: 1.4;
   text-align: center;
-  color: var(--ink-70);
-  background: var(--surface-sunken);
-  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+  background: var(--surface-field);
+  border-bottom: 1px solid var(--line-hair);
 }
 
 /* A blocking overlay for the one-time additive first sync — above the tab
-   bar (z-index 20) so nothing is tappable mid-merge. */
+   bar so nothing is tappable mid-merge. */
 .m-firstsync {
   position: absolute;
   inset: 0;
@@ -65,42 +75,39 @@
 
 .m-firstsync__text {
   margin: 0;
-  font-size: var(--fs-13);
-  line-height: 1.5;
-  color: var(--ink-60);
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: -0.03em;
   text-align: center;
 }
 
 /* -------------------------------------------------------------- tab bar */
 
+/* Three text tabs and the round + at the right, in thumb reach (frame 4a). */
 .m-tabbar {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 20;
-  box-sizing: border-box;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding-bottom: env(safe-area-inset-bottom);
-  background: var(--m-tabbar-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--line);
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 64px;
+  align-items: center;
+  padding: 4px 16px max(env(safe-area-inset-bottom), 10px) 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--line-hair);
 }
 
 .m-tab {
-  position: relative;
+  height: 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  height: var(--m-tabbar-h);
-  font-size: var(--fs-10-5);
+  gap: 6px;
+  font-size: var(--m-fs-meta);
   font-weight: 500;
-  color: var(--ink-45);
-  /* Kill the tap flash; the colour change is the feedback. */
+  color: var(--ink-2);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -109,22 +116,30 @@
   color: var(--ink);
 }
 
-/* The icons are drawn with currentColor so one rule colours both states. */
-.m-tab svg {
-  stroke: currentColor;
+.m-tab__rule {
+  width: 18px;
+  height: 1.5px;
 }
 
-/* Something is overdue. Ringed in the bar's own colour so it reads as a dot
-   sitting on the bar rather than a badge floating above it. */
-.m-tab__dot {
-  position: absolute;
-  top: 5px;
-  left: calc(50% + 8px);
-  width: 7px;
-  height: 7px;
+.m-tab[data-active='true'] .m-tab__rule {
+  background: var(--ink);
+}
+
+.m-tabbar__plus {
+  justify-self: end;
+  width: var(--m-plus);
+  height: var(--m-plus);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
-  background: var(--missed-dot);
-  box-shadow: 0 0 0 2px var(--surface-alt);
+  background: var(--primary);
+  color: var(--on-primary);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-tabbar__plus:active {
+  background: var(--primary-hover);
 }
 
 /* ------------------------------------------------------- pinned header */
@@ -133,12 +148,8 @@
  * The Week's and List's header blocks, pinned to the top of the pane.
  *
  * One sticky element rather than one per piece: several would each stop at
- * `top: 0` and pile up on each other. Wrapping them keeps their own spacing
- * and moves them as the single shelf they read as.
- *
- * Its measured height is published as `--m-sticky-h` (see `useStickyHead`),
- * because it is not a constant — the month masthead scales with the viewport,
- * and the column headers exist only at two and three days.
+ * `top: 0` and pile up on each other. Its measured height is published as
+ * `--m-sticky-h` (see `useStickyHead`) for the List's day headers.
  */
 .m-stickyhead {
   position: sticky;
@@ -148,344 +159,387 @@
   background: var(--surface);
 }
 
-/*
- * The line and the shadow arrive together, and only once something has gone
- * underneath. At rest the shelf's lower edge is the next band's own top border,
- * and a second one there would read as a double rule.
- */
 .m-stickyhead[data-stuck='true'] {
-  box-shadow:
-    0 1px 0 var(--line),
-    0 6px 12px -8px rgba(15, 15, 15, 0.16);
+  box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.16);
 }
 
-/* ----------------------------------------------------------- week head */
+/* ------------------------------------------------------------- mastheads */
 
+/* "October." with its quiet note beside it, and whatever the tab puts right. */
 .m-head {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 14px var(--m-pad-x);
+  border-bottom: 1px solid var(--line-hair);
+}
+
+.m-head__lead {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
   gap: 8px;
-  padding: 6px var(--m-pad-x) 12px;
+}
+
+.m-head__today {
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .m-head__title {
-  flex: 1;
-  min-width: 0;
   margin: 0;
   font-family: var(--font-display);
-  /*
-   * The canvas draws this at 29px, which fits "August 2026" but not
-   * "September 2026" — the longest month overruns the day control by 9px at
-   * 393pt. Scaling with the viewport keeps the full month on one line at
-   * every size and still reaches the canvas's 29px on a Pro Max.
-   */
-  font-size: clamp(22px, 6.5vw, var(--fs-title));
-  font-weight: 600;
+  font-size: 36px;
+  font-weight: 400;
   letter-spacing: var(--track-title);
-  line-height: 1.1;
+  line-height: 1;
   white-space: nowrap;
-  /* Belt and braces: if a font substitution ever makes the month wider than
-     the scale allows, it truncates rather than sliding under the controls. */
+}
+
+.m-head__sub {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--ink-2);
 }
 
-.m-head__year {
-  color: var(--ink-40);
+/* The Week's masthead and strip share one ruled block. */
+.m-weekhead {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 16px 14px var(--m-pad-x);
+  border-bottom: 1px solid var(--line-hair);
 }
 
-/* The desktop's "Days shown" stepper, as a segmented control. */
+.m-weekhead .m-head {
+  padding: 0;
+  border-bottom: none;
+}
+
+/* 1 · 2 · 3: a grey track, 44pt segments, the chosen one filled in ink. */
 .m-days {
+  flex: none;
   display: flex;
   gap: 2px;
-  flex: none;
   padding: 2px;
-  background: #f2f2f0;
-  border-radius: 7px;
+  border-radius: 20px;
+  background: var(--surface-chip);
 }
 
 .m-days__opt {
-  position: relative;
-  width: 36px;
-  height: 32px;
+  width: var(--m-seg-w);
+  height: var(--m-seg-h);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 5px;
-  font-size: var(--fs-14);
-  font-weight: 500;
-  color: var(--ink-60);
-}
-
-.m-days__opt::after {
-  width: 36px;
-  height: var(--m-hit);
+  border-radius: 18px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--ink-2);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .m-days__opt[data-active='true'] {
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--surface);
-  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06);
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
-.m-plus {
-  position: relative;
-  width: 36px;
-  height: 36px;
+/* The List's "All subjects ▾". */
+.m-filterpill {
   flex: none;
+  height: 40px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-card);
-  background: var(--accent-solid);
-  color: var(--on-accent);
-  font-size: 22px;
-  font-weight: 300;
-  line-height: 1;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 20px;
+  background: var(--surface-chip);
+  font-size: 12px;
+  font-weight: 500;
 }
 
-/*
- * Several controls are drawn smaller than they can be tapped — the canvas
- * gives the + a 36pt face and a 44pt hit area, and the column checkbox a
- * 16pt face in a 36pt corner. An invisible ::after does that without moving
- * anything or disturbing the layout around it.
- */
-.m-plus::after,
-.m-days__opt::after,
-.m-check::after,
-.m-band__action::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.m-plus::after {
-  width: var(--m-hit);
-  height: var(--m-hit);
-}
-
-/* ---------------------------------------------------------- week strip */
+/* ------------------------------------------------------------- week strip */
 
 .m-strip {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  padding: 0 12px 10px;
+  margin: 0 -4px;
 }
 
 .m-strip__cell {
+  height: var(--m-strip-cell-h);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  height: var(--m-strip-cell-h);
+  gap: 6px;
+  border-radius: 10px;
   -webkit-tap-highlight-color: transparent;
 }
 
-/*
- * The days on screen read as one block rather than as separate selections,
- * so only the outer two cells are rounded.
- */
+/* The shown days are one shaded block; only its outer corners are rounded. */
 .m-strip__cell[data-shown='true'] {
-  background: var(--surface-active);
+  background: var(--surface-bar);
+  border-radius: 0;
 }
 
 .m-strip__cell[data-first='true'] {
-  border-radius: 8px 0 0 8px;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
 }
 
 .m-strip__cell[data-last='true'] {
-  border-radius: 0 8px 8px 0;
-}
-
-.m-strip__cell[data-first='true'][data-last='true'] {
-  border-radius: 8px;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 .m-strip__label {
-  font-size: var(--fs-11);
+  font-size: 9.5px;
   font-weight: 500;
-  color: var(--ink-60);
-}
-
-.m-strip__cell[data-weekend='true'] .m-strip__label {
-  color: var(--ink-35);
-}
-
-.m-strip__cell[data-shown='true'] .m-strip__label {
-  color: var(--ink);
+  color: var(--ink-2);
 }
 
 .m-strip__date {
-  min-width: 26px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 5px;
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
 }
 
-.m-strip__cell[data-weekend='true'] .m-strip__date {
-  color: var(--ink-45);
+/* Today stays blue and bold everywhere. */
+.m-strip__cell[data-today='true'] .m-strip__label,
+.m-strip__cell[data-today='true'] .m-strip__date {
+  font-weight: 700;
+  color: var(--accent);
 }
 
-.m-strip__date[data-today='true'] {
-  background: var(--accent-solid);
-  color: var(--on-accent);
-}
+/* ------------------------------------------------------------ missed row */
 
-.m-strip__dots {
-  display: flex;
-  gap: 3px;
-  height: 5px;
-}
-
-.m-strip__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-}
-
-/* ------------------------------------------------------------- day row */
-
-.m-dayrow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: var(--m-dayrow-h);
-  flex: none;
-  padding: 0 6px 0 var(--m-pad-x);
-  border-top: 1px solid var(--line);
-}
-
-.m-dayrow__right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-}
-
-.m-missed {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  height: 32px;
-  padding: 0 10px;
-  border-radius: var(--radius-card);
-  background: var(--surface-sunken);
-  border: 1px solid var(--line);
-}
-
-.m-missed__label {
-  font-size: var(--fs-11);
-  font-weight: 600;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-60);
-}
-
-.m-missed__count {
-  font-size: var(--fs-10-5);
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 10px;
-  background: var(--missed-badge-bg);
-  color: var(--missed-badge-ink);
-}
-
-.m-toggle {
-  display: flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 10px;
-  margin-right: 4px;
-  border-radius: var(--radius-card);
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
-  color: var(--ink-60);
-  font-size: var(--fs-13);
-  font-weight: 500;
-}
-
-.m-toggle[data-on='true'] {
-  border-color: rgba(55, 53, 47, 0.2);
-  background: var(--surface-active);
-  color: var(--ink);
-}
-
-.m-nav {
-  width: var(--m-hit);
-  height: var(--m-hit);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-60);
-}
-
-/* --------------------------------------------------------- band header */
-
-.m-band {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* One tappable row under the header: count, "Missed", the oldest title. */
+.m-missedbar {
   width: 100%;
-  height: var(--m-band-head-h);
-  flex: none;
+  height: var(--m-missed-h);
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 0 var(--m-pad-x);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line-soft);
-  background: var(--surface-alt);
+  border-bottom: 1px solid var(--line-hair);
   text-align: left;
+  color: var(--ink-2);
 }
 
-.m-band__label {
-  font-size: var(--fs-11);
+.m-missedbar__count {
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: var(--track-section);
-  text-transform: uppercase;
+}
+
+.m-missedbar__label {
+  font-size: 12px;
+  font-weight: 600;
   color: var(--ink);
 }
 
-.m-band__count {
-  font-size: var(--fs-11);
-  color: var(--ink-30);
+.m-missedbar__first {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
 }
 
-.m-band__caret {
-  margin-left: auto;
-  font-size: var(--fs-11);
-  color: var(--ink-30);
-  transition: transform 120ms ease;
-}
+/* ------------------------------------------------- day headings, sections */
 
-.m-band__caret[data-collapsed='true'] {
-  transform: rotate(-90deg);
-}
-
-.m-band__action {
-  position: relative;
-  margin-left: auto;
-  font-size: var(--fs-12);
-  color: var(--ink-45);
-}
-
-.m-band__action::after {
-  width: 100%;
-  min-width: 64px;
-  height: var(--m-band-head-h);
-}
-
-/* ------------------------------------------------------ item row (1 day) */
-
-.m-row {
+/* "Thursday 15." — the day you are on, in the serif. */
+.m-dayhead {
   display: flex;
-  align-items: flex-start;
-  border-bottom: 1px solid var(--line-faint);
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px var(--m-pad-x) 6px;
   background: var(--surface);
+}
+
+.m-dayhead__name,
+.m-dayhead__num {
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.m-dayhead[data-today='true'] .m-dayhead__name,
+.m-dayhead[data-today='true'] .m-dayhead__num {
+  color: var(--accent);
+}
+
+.m-dayhead[data-today='true'] .m-dayhead__num {
+  font-weight: 700;
+}
+
+.m-dayhead__note {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.m-dayhead__count {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--ink-2);
+}
+
+/* The one-day Week's heading is bigger, and sets its number apart. */
+.m-dayhead--big {
+  padding: 12px var(--m-pad-x) 2px;
+}
+
+.m-dayhead--big .m-dayhead__name {
+  font-size: 22px;
+  letter-spacing: -0.035em;
+}
+
+.m-dayhead--big .m-dayhead__num {
+  font-size: 30px;
+  letter-spacing: -0.035em;
+}
+
+.m-dayhead--big[data-today='false'] .m-dayhead__name {
+  color: var(--ink);
+}
+
+/* In the List, each day's heading sticks under the pinned shelf. */
+section[data-date] > .m-dayhead {
+  position: sticky;
+  top: var(--m-sticky-h, 0px);
+  z-index: 5;
+}
+
+section[data-date] {
+  scroll-margin-top: var(--m-sticky-h, 0px);
+}
+
+/*
+ * Today's block in the List carries a blue rule down its left edge. Drawn as
+ * an overlay rather than a border, because every row inside paints its own
+ * white background (the swipe panes sit under it) and would cover one.
+ */
+section[data-today] {
+  position: relative;
+}
+
+section[data-today]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  z-index: 6;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.m-nothing.m-nothing--today {
+  color: var(--accent);
+}
+
+/* "Due 2", "Recurring 2", "To-do 2" — serif section heads with a quiet count. */
+.m-sec {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 12px var(--m-pad-x) 6px;
+  background: var(--surface);
+}
+
+.m-sec__title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.m-sec__count {
+  font-size: 10px;
+  color: var(--ink-2);
+}
+
+.m-sec__action {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.m-sec--big {
+  padding: 20px var(--m-pad-x) 8px;
+}
+
+.m-sec--big .m-sec__title {
+  font-size: 21px;
+}
+
+.m-sec--sticky {
+  position: sticky;
+  top: var(--m-sticky-h, 0px);
+  z-index: 5;
+}
+
+/* ------------------------------------------------------------------ rows */
+
+/* A run of hairline-separated rows, closed by a final rule. */
+.m-rows {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--line-hair);
+}
+
+.m-rows > * {
+  border-top: 1px solid var(--line-hair);
+}
+
+/* Inside a swipe wrapper the rule belongs to the wrapper, not the row. */
+.m-swipe > .m-swipe__body > * {
+  border-top: none;
+}
+
+/* Open rows, no boxes: title first, subject and time on one line (frame 4a). */
+.m-row {
+  width: 100%;
+  min-height: var(--m-card-min-h);
+  display: flex;
+  gap: 12px;
+  padding: 14px var(--m-pad-x);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-row:active {
+  background: var(--surface-field);
+}
+
+.m-row__mark {
+  flex: none;
+  display: flex;
+  padding-top: 5px;
+}
+
+.m-row__mark .square {
+  border-radius: 2px;
 }
 
 .m-row__body {
@@ -494,465 +548,525 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 0 12px var(--m-pad-x);
-  text-align: left;
 }
 
 .m-row__title {
   font-size: var(--m-fs-title);
-  line-height: 1.35;
-  color: var(--ink);
-  text-wrap: pretty;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
-.m-row[data-done='true'] .m-row__title {
-  color: var(--ink-40);
-  text-decoration: line-through;
+.m-row__meta,
+.m-row__details {
+  font-size: var(--m-fs-meta);
+  color: var(--ink-2);
 }
 
 .m-row__details {
-  font-size: var(--m-fs-details);
-  line-height: 1.45;
-  color: var(--ink-60);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.m-row__meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-  min-width: 0;
-}
-
-.m-row__time {
-  font-size: var(--fs-12);
-  color: var(--ink-45);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* The checkbox gets a 52×44 target of its own, top-aligned with the title. */
-.m-row__check {
-  width: 52px;
-  height: var(--m-hit);
-  flex: none;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: center;
-  padding-top: 13px;
-}
-
-.m-chip {
-  flex: none;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--fs-11);
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: var(--radius-chip);
 }
 
-.m-check {
-  position: relative;
-  width: var(--m-checkbox);
-  height: var(--m-checkbox);
-  flex: none;
-  box-sizing: border-box;
-  display: flex;
+.m-row[data-done='true'] {
+  opacity: 0.5;
+}
+
+.m-row[data-done='true'] .m-row__title {
+  text-decoration: line-through;
+}
+
+/* Recurring rows are shorter and carry their ticks at the right. */
+.m-row--recurring {
+  min-height: var(--m-hit);
   align-items: center;
-  justify-content: center;
-  border: 1.5px solid rgba(55, 53, 47, 0.28);
-  border-radius: 4px;
-  font-size: var(--fs-11);
-  line-height: 1;
+  padding: 7px var(--m-pad-x);
 }
 
-.m-check--sm {
-  width: var(--m-checkbox-sm);
-  height: var(--m-checkbox-sm);
-  font-size: 10px;
+.m-row--recurring .m-row__mark {
+  padding-top: 0;
 }
 
-/* The 1-day row already sits in its own 52×44 target, so only the cards
-   need the box widened into a corner. */
-.m-card__head .m-check::after {
-  width: 36px;
-  height: 36px;
-}
-
-.m-check[data-checked='true'] {
-  background: var(--accent-solid);
-  border-color: var(--accent-solid);
-  color: var(--on-accent);
-}
-
-.m-add {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: var(--m-hit);
+/* Progress ticks: one per day of the span, ink once ticked. */
+.m-ticks {
   flex: none;
-  padding-left: var(--m-pad-x);
-  font-size: var(--fs-14);
-  color: var(--ink-40);
-  text-align: left;
-}
-
-/* ------------------------------------------------- recurring (1 day) */
-
-.m-row--recurring .m-row__body {
-  padding-left: 13px;
-}
-
-.m-track {
-  display: grid;
-  grid-template-columns: repeat(7, 16px);
+  display: flex;
   gap: 3px;
-  align-items: center;
-  height: 8px;
-  margin-top: 4px;
 }
 
-.m-track__seg {
+.m-ticks__seg {
+  width: 12px;
+  height: 3px;
   border-radius: 2px;
+  background: var(--ink-15);
 }
 
-/* --------------------------------------------------- columns (2–3 days) */
+.m-ticks__seg[data-on='true'] {
+  background: var(--ink);
+}
 
-.m-colheads,
-.m-cols {
+.m-ticks--wide .m-ticks__seg {
+  width: 16px;
+}
+
+/* "+ Add assignment", "+ New subject", "Edit planner ›" — a 48pt line. */
+.m-action {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 var(--m-pad-x);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  text-underline-offset: 3px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-action:active {
+  background: var(--surface-field);
+}
+
+.m-action--muted,
+.m-action--plain {
+  min-height: 48px;
+  font-size: 12px;
+}
+
+.m-action--muted {
+  color: var(--ink-2);
+}
+
+.m-action--danger,
+.m-action--danger .m-action__glyph {
+  color: var(--danger);
+}
+
+.m-action--static:active {
+  background: none;
+}
+
+.m-action__glyph {
+  width: 18px;
+  flex: none;
+  display: flex;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.m-action__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m-action__meta {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+.m-action__chevron {
+  color: var(--ink-2);
+  font-size: 16px;
+}
+
+.m-actions {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+  border-bottom: 1px solid var(--line-hair);
+}
+
+.m-actions > * {
+  border-top: 1px solid var(--line-hair);
+}
+
+/* An empty day section: "Nothing due · + Add" (frame 5m). */
+.m-nothing {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--m-pad-x);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.m-textbtn {
+  min-height: var(--m-hit);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.m-empty-row {
+  padding: 14px var(--m-pad-x);
+  font-size: 13px;
+  color: var(--ink-2);
+  border-top: 1px solid var(--line-hair);
+}
+
+/* -------------------------------------------------- two and three days */
+
+/* Each column's head stays pinned with the shelf: "Thursday · Today 15.". */
+.m-colheads {
   display: grid;
   grid-template-columns: repeat(var(--m-cols), minmax(0, 1fr));
-  flex: none;
-}
-
-.m-colheads {
-  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-hair);
 }
 
 .m-colhead {
+  min-width: 0;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 6px;
-  height: var(--m-band-head-h);
-  padding: 0 10px;
-  border-right: 1px solid var(--line-soft);
-  background: var(--surface-alt);
-}
-
-.m-colhead:last-child {
-  border-right: none;
-}
-
-.m-colhead[data-today='true'] {
-  background: var(--surface-today);
-}
-
-.m-colhead__name {
-  font-size: var(--fs-13);
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.m-colhead[data-today='true'] .m-colhead__name {
-  font-weight: 700;
-}
-
-.m-colhead__date {
-  font-size: var(--fs-12);
-  font-weight: 600;
-  padding: 1px 5px;
-  border-radius: var(--radius-chip);
-  color: var(--ink-40);
-}
-
-.m-colhead__date[data-today='true'] {
-  background: var(--accent-solid);
-  color: var(--on-accent);
-}
-
-.m-col {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: var(--m-col-pad-y) var(--m-col-pad-x);
-  border-right: 1px solid var(--line-soft);
-  background: var(--surface);
-}
-
-.m-col:last-child {
-  border-right: none;
-}
-
-/* Columns alternate, as the desktop grid does — the day header carries the
-   "today" tint instead, so the two cues don't fight. */
-.m-col:nth-child(even) {
-  background: var(--surface-alt);
-}
-
-.m-col__add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  border-radius: var(--radius-card);
-  font-size: var(--fs-13);
-  color: var(--ink-35);
-}
-
-/* ------------------------------------------------------ card (2–3 days) */
-
-.m-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 7px 7px 8px 8px;
-  background: var(--surface);
-  border: 1px solid rgba(55, 53, 47, 0.11);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  padding: 8px 8px 7px 10px;
+  border-left: 1px solid var(--line-hair);
   text-align: left;
 }
 
-.m-card[data-done='true'] {
-  background: #fbfbfa;
+.m-colhead:first-child {
+  padding-left: var(--m-pad-x);
+  border-left: none;
 }
 
-.m-card__head {
+.m-colhead__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.m-colhead__num {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.m-colhead[data-today='true'] .m-colhead__name,
+.m-colhead[data-today='true'] .m-colhead__num {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.m-cols {
+  display: grid;
+  grid-template-columns: repeat(var(--m-cols), minmax(0, 1fr));
+  min-height: 300px;
+}
+
+.m-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 6px 8px;
+  border-left: 1px solid var(--line-hair);
+}
+
+.m-col:first-child {
+  padding-left: 12px;
+  border-left: none;
+}
+
+.m-col:last-child {
+  padding-right: 12px;
+}
+
+.m-col__empty {
+  padding: 10px 4px 0;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.m-col__add {
+  height: 48px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-align: left;
+}
+
+/* Soft grey cards with no borders, at least 64pt tall (frames 4b, 4c). */
+.m-card {
+  min-height: var(--m-card-min-h);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 11px 12px;
+  border-radius: var(--m-radius-card);
+  background: var(--surface-today);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-card:active {
+  background: var(--surface-bar);
+}
+
+.m-card--tight {
+  padding: 11px 10px;
+}
+
+.m-card__subject {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
+  font-size: 10px;
+  color: var(--ink-2);
 }
 
-/*
- * In a column the chip gives way so the checkbox always has its corner; in a
- * full-width row there is room for the whole subject name, so it holds size.
- */
-.m-card__head .m-chip {
-  flex: 0 1 auto;
+.m-card__subject .square {
+  border-radius: 2px;
 }
 
-.m-card__head .m-check {
-  margin-left: auto;
+.m-card__subject-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .m-card__title {
-  font-size: var(--m-fs-title-card);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   line-height: 1.3;
-  color: var(--ink);
   overflow-wrap: anywhere;
 }
 
 .m-card--tight .m-card__title {
-  font-size: var(--m-fs-title-card-sm);
-}
-
-.m-card--tight .m-chip {
-  font-size: var(--fs-10-5);
-  padding: 2px 6px;
-}
-
-.m-card[data-done='true'] .m-card__title {
-  color: var(--ink-40);
-  text-decoration: line-through;
+  font-size: 12px;
 }
 
 .m-card__details {
-  font-size: var(--m-fs-details-card);
+  font-size: 11px;
   line-height: 1.4;
-  color: var(--ink-60);
+  color: var(--ink-2);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
 }
 
 .m-card__meta {
-  font-size: var(--fs-11-5);
-  color: var(--ink-45);
+  font-size: 10.5px;
+  color: var(--ink-2);
 }
 
-/* --------------------------------------------- recurring bars (2–3 days) */
+.m-card[data-done='true'] {
+  opacity: 0.5;
+}
 
+.m-card[data-done='true'] .m-card__title {
+  text-decoration: line-through;
+}
+
+.m-cols__recurring {
+  border-top: 1px solid var(--line-hair);
+}
+
+/* Recurring bars across the columns, over the columns' own hairlines. */
 .m-bars {
   position: relative;
-  flex: none;
+  border-top: 1px solid var(--line-hair);
 }
 
-.m-bars--empty {
-  display: flex;
-  align-items: center;
-  height: var(--m-hit);
-  padding-left: var(--m-pad-x);
-  font-size: var(--fs-13);
-  color: var(--ink-35);
+.m-bars__grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  pointer-events: none;
+}
+
+.m-bars__grid > span + span {
+  border-left: 1px solid var(--line-hair);
 }
 
 .m-bar {
   position: absolute;
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 12px;
+  border-radius: var(--m-radius-card);
+  background: var(--surface-bar);
+  overflow: hidden;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-bar:active {
+  background: var(--surface-bar-hover);
+}
+
+.m-bar__line {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 8px;
-  background: var(--surface);
-  border: 1px solid rgba(55, 53, 47, 0.11);
-  border-left-width: var(--card-bar-w);
-  border-left-style: solid;
-  box-shadow: var(--shadow-card);
+  min-width: 0;
+  font-size: 10px;
+  color: var(--ink-2);
+  white-space: nowrap;
 }
 
-.m-bar__dot {
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+.m-bar__line .square {
+  border-radius: 2px;
+}
+
+.m-bar__subject {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.m-bar__pos {
+  margin-left: auto;
+  font-weight: 500;
+  color: var(--ink);
 }
 
 .m-bar__title {
-  flex: 1;
-  min-width: 0;
-  font-size: var(--fs-12-5);
-  color: var(--ink);
-  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
+  white-space: nowrap;
 }
 
-/* Marks a span that carries on past the edge of the window. */
-.m-bar__edge {
-  flex: none;
-  font-size: var(--fs-12);
-  color: var(--ink-30);
-}
-
-/* ---------------------------------------------------------- to-do band */
-
-.m-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px var(--m-pad-x);
-}
-
-.m-pill {
-  display: flex;
-  align-items: center;
-  height: 36px;
-  padding: 0 14px;
-  font-size: var(--fs-14);
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: 18px;
-  color: var(--ink);
-}
-
-.m-pill[data-done='true'] {
-  background: #f4f4f2;
-  border-color: var(--line-soft);
-  color: var(--ink-40);
-  text-decoration: line-through;
-}
-
-.m-pill--add {
-  color: var(--ink-40);
-  border-style: dashed;
-  border-color: rgba(55, 53, 47, 0.18);
-}
-
-/* 16px or iOS zooms the page when the field takes focus. */
-.m-pill--input {
-  font-size: var(--m-fs-input);
-  min-width: 140px;
-}
-
-/* --------------------------------------------------------------- notes */
+/* ------------------------------------------------------- notes, empties */
 
 .m-notes {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 4px var(--m-pad-x) 0;
+  padding-bottom: 8px;
 }
 
-.m-notes__label {
-  font-size: var(--fs-11);
-  font-weight: 600;
-  letter-spacing: var(--track-section);
-  text-transform: uppercase;
-  color: var(--ink-45);
+.m-input.m-notes__field {
+  display: block;
+  width: calc(100% - 2 * var(--m-pad-x));
+  margin: 0 var(--m-pad-x);
+  min-height: 96px;
 }
 
-.m-notes__field {
-  min-height: 72px;
-  padding: 12px 14px;
-  background: var(--surface-sunken);
-  border: none;
-  border-radius: 8px;
-  font-family: var(--font-ui);
-  font-size: var(--m-fs-input);
-  line-height: 1.5;
-  color: var(--ink);
-  resize: none;
-}
-
-.m-notes__field::placeholder {
-  color: var(--ink-40);
-}
-
-/* --------------------------------------------------------- empty state */
-
+/* "A clear week." — the whole strip's week is empty (frame 5m). */
+.m-clear,
 .m-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 64px 32px;
+  gap: 10px;
+  padding: 48px 32px 44px;
   text-align: center;
 }
 
+.m-clear__title,
 .m-empty__title {
   font-family: var(--font-display);
-  font-size: var(--fs-18);
+  font-size: 28px;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.m-clear__note,
+.m-empty__note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.m-pillbtn {
+  margin-top: 8px;
+  height: var(--m-hit);
+  padding: 0 20px;
+  border-radius: 22px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 13px;
   font-weight: 600;
 }
 
-.m-empty__note {
-  margin: 0;
-  font-size: var(--fs-13);
-  color: var(--ink-45);
-}
+/* ------------------------------------------------------------------ list */
 
-.m-empty__actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.m-empty__btn {
+/* Past days fold into this one row until it is opened. */
+.m-earlier {
+  width: 100%;
+  height: var(--m-hit);
   display: flex;
   align-items: center;
-  height: 36px;
-  padding: 0 14px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-card);
-  font-size: var(--fs-13);
-  color: var(--ink);
+  gap: 10px;
+  margin-top: 8px;
+  padding: 0 var(--m-pad-x);
+  border-top: 1px solid var(--line-hair);
+  border-bottom: 1px solid var(--line-hair);
+  text-align: left;
+  color: var(--ink-2);
 }
 
-/* ------------------------------------------------------------ list tab */
+.m-earlier__label {
+  font-size: 12px;
+  font-weight: 600;
+}
 
-/* The List and Planner mastheads stack an eyebrow over the title. */
-.m-head__stack {
+.m-earlier__span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.m-earlier__caret {
+  display: flex;
+  transition: transform 120ms ease;
+}
+
+.m-earlier__caret[data-open='true'] {
+  transform: rotate(180deg);
+}
+
+/* --------------------------------------------------------------- planner */
+
+.m-planner__foot {
+  margin-top: 20px;
+}
+
+.m-late {
+  color: var(--danger);
+}
+
+/* A missed item: square, title over "Subject · 2 days late", then its actions. */
+.m-missedrow {
+  min-height: var(--m-card-min-h);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px 10px var(--m-pad-x);
+}
+
+.m-missedrow > .square {
+  border-radius: 2px;
+}
+
+.m-missedrow__body {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -960,307 +1074,125 @@
   gap: 4px;
 }
 
-.m-head__eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--fs-11-5);
+.m-missedrow__title {
+  font-size: var(--m-fs-title);
   font-weight: 500;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-45);
+  letter-spacing: -0.01em;
 }
 
-.m-head__clear {
-  font-size: var(--fs-11-5);
-  font-weight: 500;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-60);
-  text-decoration: underline;
-  text-decoration-color: var(--ink-30);
+.m-missedrow__meta {
+  font-size: var(--m-fs-meta);
+  color: var(--ink-2);
 }
 
-/* "List" and "Planner" are short, so they never need the month's scaling. */
-.m-head__title--short {
-  font-size: var(--fs-title);
-}
-
-.m-listctl {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 var(--m-pad-x) 12px;
-}
-
-/* The same segmented control as the week's 1/2/3, sized for words. */
-.m-seg {
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  background: #f2f2f0;
-  border-radius: 7px;
-}
-
-.m-seg__opt {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 16px;
-  border-radius: 5px;
-  font-size: var(--fs-14);
-  font-weight: 500;
-  color: var(--ink-60);
-}
-
-.m-seg__opt::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: var(--m-hit);
-}
-
-.m-seg__opt[data-active='true'] {
-  color: var(--ink);
-  background: var(--surface);
-  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06);
-}
-
-/* The day row's toggles are 32 tall against 32-tall neighbours; here they
-   stand alone, so they take the taller resting height the canvas gives them. */
-.m-toggle--wide {
+.m-pill {
+  flex: none;
   height: 36px;
+  display: flex;
+  align-items: center;
   padding: 0 12px;
-  font-size: var(--fs-14);
-  color: var(--ink-65, var(--ink-60));
+  border-radius: 18px;
+  background: var(--surface-chip);
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.m-listctl .m-toggle {
-  margin-right: 0;
-}
-
-/*
- * The List opens on today rather than at the earliest day in the planner. The
- * margin is what keeps that scroll from parking the day behind the shelf — the
- * only desktop rule this shares is the `data-date` hook itself.
- */
-.m-pane section[data-date] {
-  scroll-margin-top: var(--m-sticky-h, 0px);
-}
-
-/* Day headers stay put while their rows scroll past — below the pinned
-   masthead, not behind it. */
-.m-group {
-  position: sticky;
-  top: var(--m-sticky-h, 0px);
-  z-index: 2;
+.m-more {
+  flex: none;
+  width: var(--m-hit);
+  height: var(--m-hit);
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 var(--m-pad-x);
-  background: var(--surface-head);
-  border-top: 1px solid var(--line-soft);
-  border-bottom: 1px solid var(--line-soft);
+  justify-content: center;
+  font-size: 18px;
+  color: var(--ink-2);
 }
 
-.m-group[data-today='true'] {
-  background: #f6f6f3;
-}
-
-.m-group__title {
-  font-size: var(--fs-13);
-  font-weight: 600;
-}
-
-.m-group[data-today='true'] .m-group__title {
-  font-weight: 700;
-}
-
-.m-group__badge {
-  font-size: var(--fs-12);
-  font-weight: 600;
-  padding: 0 5px;
-  border-radius: 3px;
-  color: var(--ink-40);
-}
-
-.m-group__badge[data-today='true'] {
-  background: var(--accent-solid);
-  color: var(--on-accent);
-}
-
-.m-group__note {
-  font-size: var(--fs-11);
-  color: var(--ink-45);
-}
-
-.m-group__count {
-  margin-left: auto;
-  font-size: var(--fs-11);
-  color: var(--ink-35);
-}
-
-/* --------------------------------------------------------- planner tab */
-
-/* Grouped cards on a sunken field, the way iOS settings screens read. */
-.m-planner {
-  min-height: 100%;
-  background: var(--surface-sunken);
-  padding-bottom: 12px;
-}
-
-.m-head--planner {
-  padding-bottom: 10px;
-}
-
-/* Sits just under the masthead, pulled up into the head's own bottom padding
-   so it reads as a subtitle rather than a new section. */
-.m-planner__sync {
-  display: block;
-  margin: -6px var(--m-pad-x) 10px;
-  font-size: var(--fs-11);
-  color: var(--ink-45);
-}
-
-.m-section {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 24px 6px;
-}
-
-.m-section__label {
-  font-size: var(--fs-11);
-  font-weight: 600;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-40);
-}
-
-.m-section__action {
-  margin-left: auto;
-  font-size: var(--fs-13);
-  color: var(--ink-60);
-}
-
-.m-card-list {
-  display: flex;
-  flex-direction: column;
-  margin: 0 12px 20px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-shell);
-  overflow: hidden;
-}
-
-.m-listrow {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
+/* A to-do: square box, text, and a 44pt ✕. */
+.m-todo {
   min-height: 48px;
-  padding: 0 14px;
-  border-bottom: 1px solid var(--line-faint);
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 var(--m-pad-x);
+}
+
+.m-todo__main {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   text-align: left;
 }
 
-.m-listrow:last-child {
-  border-bottom: none;
-}
-
-.m-listrow__dot {
-  width: 7px;
-  height: 7px;
+.m-todo__box {
+  width: 18px;
+  height: 18px;
   flex: none;
-  border-radius: 50%;
-  background: var(--missed-dot);
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1.5px var(--ink-30);
 }
 
-.m-listrow__dot--subject {
-  width: 9px;
-  height: 9px;
+.m-todo__text {
+  font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
-.m-listrow__body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 0;
+.m-todo[data-done='true'] .m-todo__box {
+  background: var(--primary);
+  box-shadow: none;
 }
 
-.m-listrow__title {
-  flex: 1;
-  min-width: 0;
-  font-size: var(--m-fs-title);
-  color: var(--ink-82);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.m-todo[data-done='true'] .m-todo__text {
+  color: var(--ink-2);
+  text-decoration: line-through;
 }
 
-.m-listrow__body .m-listrow__title {
-  flex: none;
-}
-
-.m-listrow__sub {
-  font-size: var(--fs-12);
-  color: var(--ink-45);
-}
-
-.m-listrow__count {
-  font-size: var(--fs-12);
-  color: var(--ink-35);
-}
-
-.m-listrow__chevron {
-  font-size: 16px;
-  color: var(--ink-30);
-}
-
-.m-listrow__glyph {
-  width: 16px;
-  flex: none;
-  text-align: center;
-  font-size: var(--fs-13);
-  color: var(--ink-60);
-}
-
-.m-listrow__plus {
-  width: 9px;
-  flex: none;
-  text-align: center;
-}
-
-.m-listrow__more {
+.m-todo__kill {
   width: var(--m-hit);
   height: var(--m-hit);
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  color: var(--ink-35);
+  color: var(--ink-2);
 }
 
-.m-listrow--action {
-  min-height: var(--m-hit);
-  font-size: var(--fs-14);
-  color: var(--ink-60);
+.m-todo--input {
+  padding: 8px var(--m-pad-x);
 }
 
-.m-planner__note {
-  margin: 0;
-  padding: 0 24px;
-  font-size: var(--fs-12);
-  line-height: 1.5;
-  color: var(--ink-45);
+/* A subject on the Planner tab: square, serif name, count, chevron. */
+.m-subjectrow {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 var(--m-pad-x);
+  text-align: left;
+  color: var(--ink-2);
+}
+
+.m-subjectrow > .square {
+  border-radius: 2px;
+}
+
+.m-subjectrow__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.m-subjectrow__count {
+  font-size: 11px;
 }
 
 /* ---------------------------------------------------------- swipe areas */
@@ -1268,8 +1200,7 @@
 /*
  * The regions a horizontal fling moves. `pan-y` is the declarative half of the
  * axis lock in `useSwipeX`: the browser keeps vertical panning for itself and
- * hands horizontal movement to the pointer handlers, so a scroll that drifts
- * sideways stays a scroll without any of it being computed in JS.
+ * hands horizontal movement to the pointer handlers.
  */
 .m-swipearea {
   touch-action: pan-y;
@@ -1277,12 +1208,14 @@
 }
 
 .m-swipearea--strip {
-  /* The strip's own padding lives inside it; this is only a carrier. */
   overflow: hidden;
+  margin: 0 -4px;
+  padding: 0 4px;
 }
 
 /* ------------------------------------------------------- swipe actions */
 
+/* Right to finish, left to move or delete (frame 5l). */
 .m-swipe {
   position: relative;
   overflow: hidden;
@@ -1302,10 +1235,15 @@
   transform: translateX(calc(-2 * var(--m-swipe-action-w)));
 }
 
+/*
+ * Inset a pixel from the row's edges: rows can land on half-pixel heights,
+ * and a pane flush with them anti-aliases a hairline of red or ink around a
+ * row at rest.
+ */
 .m-swipe__pane {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 1px;
+  bottom: 1px;
   display: flex;
   align-items: center;
 }
@@ -1313,43 +1251,47 @@
 /* Revealed by a swipe to the right: the row slides off it. */
 .m-swipe__pane--start {
   left: 0;
-  width: var(--m-swipe-action-w);
-  justify-content: center;
-  background: var(--accent-solid);
+  right: 0;
+  padding-left: 22px;
+  background: var(--primary);
 }
 
 .m-swipe__label {
-  font-size: var(--fs-12-5);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--on-accent);
+  color: var(--on-primary);
 }
 
 .m-swipe__pane--end {
-  right: 0;
+  right: 1px;
   width: calc(2 * var(--m-swipe-action-w));
 }
 
 .m-swipe__btn {
   width: var(--m-swipe-action-w);
   height: 100%;
-  font-size: var(--fs-12-5);
+  font-size: 13px;
   font-weight: 600;
+  text-align: center;
 }
 
 .m-swipe__btn--move {
-  background: var(--m-move-bg);
-  color: var(--ink-82);
+  background: var(--surface-bar);
+  color: var(--ink);
 }
 
 .m-swipe__btn--delete {
   background: var(--danger);
-  color: #fff;
+  color: var(--on-primary);
 }
 
 /*
- * Closed, the pane is decoration: taking it out of the tab order stops Tab
- * walking through two hidden buttons per row, and `inert` would also swallow
- * the click that the row itself uses to close the pane.
+ * Closed, the pane is decoration: taking it out of the hit-testing stops a
+ * stray tap on a hidden button, and `inert` would also swallow the click that
+ * the row itself uses to close the pane.
  */
 .m-swipe[data-open='false'] .m-swipe__pane--end {
   pointer-events: none;
@@ -1364,23 +1306,26 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: var(--m-scrim);
+  background: var(--scrim);
   animation: m-fade 140ms ease-out;
 }
 
+/*
+ * Every action opens a sheet over the current view (frame 5 "Sheets, not
+ * screens"). It sits on the keyboard rather than under it: `--m-kb` is how
+ * much of the screen the keyboard is covering, kept current by Sheet.tsx.
+ */
 .m-sheet {
-  box-sizing: border-box;
   width: 100%;
-  /* Never the full height: the scrim above it is what says this is a layer
-     over the week rather than a screen that replaced it. */
-  max-height: 88%;
+  max-height: calc(100% - 40px - var(--m-kb, 0px));
+  margin-bottom: var(--m-kb, 0px);
   display: flex;
   flex-direction: column;
-  background: var(--surface-sunken);
+  background: var(--surface);
   border-radius: var(--m-radius-sheet) var(--m-radius-sheet) 0 0;
-  box-shadow: 0 -2px 24px rgba(15, 15, 15, 0.14);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.12);
   animation: m-sheet-in 240ms cubic-bezier(0.2, 0.9, 0.3, 1);
-  transition: transform 200ms ease-out;
+  transition: transform 200ms ease-out, margin-bottom 120ms ease-out;
   outline: none;
 }
 
@@ -1412,10 +1357,9 @@
    band rather than the 36px pill drawn inside it. */
 .m-sheet__grab {
   flex: none;
-  height: 28px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  padding: 8px 0 4px;
   touch-action: none;
   cursor: grab;
 }
@@ -1424,62 +1368,50 @@
   width: 36px;
   height: 4px;
   border-radius: 2px;
-  background: var(--ink-30);
+  background: var(--grabber);
 }
 
 .m-sheet__head {
   flex: none;
-  display: grid;
-  grid-template-columns: minmax(64px, auto) 1fr minmax(64px, auto);
+  display: flex;
   align-items: center;
-  padding: 0 8px 8px;
-  border-bottom: 1px solid var(--line);
-}
-
-.m-sheet__close,
-.m-sheet__action {
-  height: var(--m-hit);
-  padding: 0 8px;
-  font-size: var(--fs-14);
-  color: var(--ink-60);
-}
-
-.m-sheet__close {
-  justify-self: start;
-}
-
-/* Add and Save. Weighted because it is the one thing in the header to press. */
-.m-sheet__action {
-  justify-self: end;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.m-sheet__action:disabled {
-  color: var(--ink-30);
-}
-
-.m-sheet__action--empty {
-  pointer-events: none;
+  gap: 10px;
+  padding: 6px 8px 10px var(--m-pad-x);
 }
 
 .m-sheet__titles {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
+  flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .m-sheet__title {
-  font-size: var(--fs-14-5);
-  font-weight: 600;
-  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .m-sheet__sub {
-  font-size: var(--fs-11-5);
-  color: var(--ink-45);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.m-sheet__close {
+  flex: none;
+  width: var(--m-hit);
+  height: var(--m-hit);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
 }
 
 .m-sheet__body {
@@ -1489,421 +1421,546 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   /* Clears the home indicator when the sheet is flush with the bottom. */
-  padding: 14px 0 calc(env(safe-area-inset-bottom) + 20px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
 }
 
-/* Held while a sheet is up: the pane behind must not scroll under the scrim. */
-body.m-locked .m-pane {
-  overflow: hidden;
+.m-sheet__body[data-footed] {
+  padding-bottom: 4px;
 }
 
-.m-sheet__eyebrow {
-  display: block;
-  padding: 10px 24px 6px;
-  font-size: var(--fs-11);
-  font-weight: 600;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-40);
+/* One primary button: a black pill, 50pt, full width — at the sheet's foot. */
+.m-sheet__footer {
+  flex: none;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
+  border-top: 1px solid transparent;
 }
 
-/* The Planner tab's grouped card, reused so a sheet's rows read the same. */
-.m-sheet__group {
+.m-sheet__foot {
   display: flex;
-  flex-direction: column;
-  margin: 0 12px 8px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-shell);
-  overflow: hidden;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--m-pad-x) 0;
+}
+
+.m-primary {
+  flex: 1;
+  height: var(--m-button-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 25px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.m-primary:active {
+  background: var(--primary-hover);
+}
+
+.m-primary:disabled {
+  opacity: 0.4;
+}
+
+.m-sheet__cancel {
+  height: var(--m-button-h);
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
 }
 
 .m-sheet__note {
-  margin: 8px 0 0;
-  padding: 0 24px;
-  font-size: var(--fs-12);
-  line-height: 1.5;
-  color: var(--ink-45);
+  margin: 0;
+  padding: 10px var(--m-pad-x) 0;
+  font-size: var(--m-fs-meta);
+  line-height: 1.45;
+  color: var(--ink-2);
 }
 
 .m-sheet__note--error {
   color: var(--danger);
 }
 
-.m-listrow--danger .m-listrow__title,
-.m-listrow--danger .m-listrow__glyph {
-  color: var(--danger);
-}
+/* -------------------------------------------------------------- forms */
 
-/* --------------------------------------------------------- item detail */
-
-.m-detail {
-  padding: 2px 24px 14px;
-}
-
-.m-detail__top {
+/* Field labels: 11px, semibold, 14pt above (frame 5a). */
+.m-label {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.m-detail__done {
-  font-size: var(--fs-11);
-  font-weight: 600;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-40);
-}
-
-/* The subject's accent as a rule down the left, the way the recurring row
-   carries it — a colour the chip states and the title then belongs to. */
-.m-detail__title {
-  margin: 0;
-  padding-left: 11px;
-  border-left: 3px solid;
-  font-family: var(--font-display);
-  font-size: 21px;
-  font-weight: 500;
-  line-height: 1.25;
-  color: var(--ink);
-}
-
-.m-detail__details {
-  margin: 10px 0 0;
-  font-size: var(--fs-14);
-  line-height: 1.5;
-  color: var(--ink-70);
-  white-space: pre-wrap;
-}
-
-.m-detail__meta {
-  margin: 8px 0 0;
-  font-size: var(--fs-13);
-  color: var(--ink-45);
-}
-
-/* ------------------------------------------------------------ move to */
-
-.m-move {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-  padding: 0 12px;
-}
-
-.m-move__day {
-  box-sizing: border-box;
-  height: 52px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-}
-
-.m-move__name {
-  font-size: var(--fs-10-5);
-  color: var(--ink-45);
-}
-
-.m-move__date {
-  font-size: var(--fs-14);
-  color: var(--ink-82);
-}
-
-.m-move__day[data-today='true'] .m-move__date {
+  align-items: baseline;
+  gap: 6px;
+  padding: 14px var(--m-pad-x) 6px;
+  font-size: 11px;
   font-weight: 600;
 }
 
-/* Where it is now. Filled rather than ringed, so the one day a tap would not
-   change is unmistakable. */
-.m-move__day[data-current='true'] {
-  background: var(--accent-solid);
-  border-color: var(--accent-solid);
+.m-label__note {
+  font-weight: 400;
+  color: var(--ink-2);
 }
-
-.m-move__day[data-current='true'] .m-move__name,
-.m-move__day[data-current='true'] .m-move__date {
-  color: var(--on-accent);
-}
-
-.m-move__more {
-  display: block;
-  height: var(--m-hit);
-  padding: 0 24px;
-  font-size: var(--fs-13);
-  color: var(--ink-60);
-}
-
-.m-move__other {
-  width: calc(100% - 24px);
-  margin: 6px 12px 0;
-}
-
-/* --------------------------------------------------------------- forms */
 
 .m-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 0 16px;
+}
+
+.m-form__pad {
+  padding: 0 var(--m-pad-x);
 }
 
 .m-form__row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
+}
+
+.m-form__row.m-form__pad {
+  padding-top: 8px;
 }
 
 .m-field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
 }
 
 .m-field__label {
-  font-size: var(--fs-11);
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-40);
 }
 
-/*
- * 16px is not a taste: below it, iOS zooms the page when the field takes focus
- * and the sheet is left half off screen. Every input in every sheet is at or
- * above it, including the ones borrowed from the desktop below.
- */
+form.m-form {
+  gap: 12px;
+  padding-top: 4px;
+}
+
+/* One field style: borderless grey, 48pt, 16px so iOS doesn't zoom on focus. */
 .m-input {
-  box-sizing: border-box;
   width: 100%;
-  min-height: var(--m-hit);
-  padding: 10px 12px;
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-card);
-  font: inherit;
+  min-height: var(--m-field-h);
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-field);
+  background: var(--surface-field);
   font-size: var(--m-fs-input);
   line-height: 1.4;
   color: var(--ink);
-  resize: none;
-}
-
-.m-input--title {
-  font-size: var(--m-fs-input-title);
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .m-input:focus {
   outline: none;
-  border-color: var(--ink-45);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
 }
 
-/* The segmented control, sized for words rather than the week's digits. */
+.m-input--title {
+  font-weight: 500;
+}
+
+.m-input--area {
+  min-height: 72px;
+  padding: 13px 14px;
+  resize: none;
+}
+
+textarea.m-input {
+  padding: 13px 14px;
+  resize: none;
+}
+
+.m-hint {
+  margin: 0;
+  padding: 8px var(--m-pad-x) 0;
+  font-size: var(--m-fs-meta);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* Assignment | Recurring — the same track as the day switch, full width. */
+.m-seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 20px;
+  background: var(--surface-chip);
+}
+
 .m-seg--form {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  width: 100%;
+  margin: 4px var(--m-pad-x) 0;
 }
 
-.m-seg--form .m-seg__opt {
-  height: 38px;
-  font-size: var(--fs-13);
+.m-form__pad .m-seg--form,
+.m-filter__view .m-seg--form {
+  margin: 0;
 }
 
-/* Subject chips and hue swatches come from the desktop composer. They are
-   drawn for a mouse, so the sheet grows their targets rather than restyling
-   them — a 3px-padded chip is a miss on a phone. */
+.m-seg__opt {
+  flex: 1;
+  height: var(--m-seg-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.m-seg__opt[data-active='true'] {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* The desktop's subject pills, sized up for a thumb. */
 .m-form .chips {
   gap: 8px;
 }
 
-/* 26px dots on a 44px pitch: the gap is what keeps their targets from
-   overlapping, and the row wraps rather than squeezing eight onto one line. */
-.m-sheet .swatches__row {
-  gap: 18px;
+.m-form .chips__option,
+.m-form .chips__new,
+.m-form .chips__new-field {
+  height: 36px;
+  border-radius: 18px;
+  font-size: 12.5px;
 }
 
-.m-form .chip,
+.m-form .chips__option {
+  padding: 0 14px;
+  gap: 7px;
+}
+
+.m-form .chips__option .square {
+  border-radius: 2px;
+}
+
 .m-form .chips__new {
-  position: relative;
-  min-width: 44px;
-  min-height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  font-size: var(--fs-13);
-}
-
-/*
- * A chip is drawn at 36 and tapped at 44. The 8px gap is exactly the 4px each
- * overlay borrows above and below, so the targets tile the row rather than
- * overlapping — two chips can never both claim the same point.
- */
-.m-form .chip::after,
-.m-form .chips__new::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: var(--m-hit);
-  transform: translateY(-50%);
+  padding: 0 12px;
 }
 
 .m-form .chips__new-field {
-  width: 120px;
-  min-height: 36px;
+  width: 150px;
+  padding: 0 14px;
   font-size: var(--m-fs-input);
 }
 
-.m-sheet .swatches {
-  padding: 8px 14px 12px;
+/* 9 am · Noon */
+.m-quick {
+  display: flex;
+  gap: 6px;
 }
 
-.m-sheet .swatches__dot {
-  position: relative;
-  width: 26px;
-  height: 26px;
-}
-
-/* The dots are 26px because that is the size they read at; the target around
-   them is the 44 they need. The 8px gap keeps two of them from overlapping. */
-.m-sheet .swatches__dot::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--m-hit);
-  height: var(--m-hit);
-  transform: translate(-50%, -50%);
-}
-
-.m-sheet .swatches__custom {
-  position: relative;
-  min-height: 36px;
-  padding: 6px 12px;
-  font-size: var(--fs-13);
-}
-
-/* Same 44px pitch as the dots it sits beside. */
-.m-sheet .swatches__custom::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: var(--m-hit);
-  transform: translateY(-50%);
-}
-
-.m-sheet .swatches__bar {
-  height: 22px;
-  border-radius: 11px;
-}
-
-.m-sheet .swatches__bar::-webkit-slider-thumb {
-  width: 26px;
-  height: 26px;
-}
-
-/* ------------------------------------------------------ subject rows */
-
-.m-subject {
-  border-bottom: 1px solid var(--line-faint);
-}
-
-.m-subject:last-of-type {
-  border-bottom: none;
-}
-
-.m-subject__row {
+.m-quick__opt {
+  flex: 1;
+  height: var(--m-field-h);
   display: flex;
   align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-field);
+  background: var(--surface-chip);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.m-quick__opt[data-active='true'] {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* The week strip again, inside a sheet: pick a day, or a span's two ends. */
+.m-daystrip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
-  min-height: 48px;
-  padding-left: 4px;
+  padding: 0 16px;
 }
 
-/* The dot is the disclosure: tapping the colour is what opens the colours. */
-.m-subject__dot {
-  position: relative;
-  width: 12px;
-  height: 12px;
-  flex: none;
-  margin: 0 8px;
-  border-radius: 50%;
+.m-daystrip__cell {
+  height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 10px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.m-subject__dot::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--m-hit);
+.m-daystrip__label {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.m-daystrip__date {
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.m-daystrip__cell[data-today='true'] .m-daystrip__label,
+.m-daystrip__cell[data-today='true'] .m-daystrip__date {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.m-daystrip__cell[data-range='true'] {
+  background: var(--surface-bar);
+}
+
+.m-daystrip__cell[data-selected='true'] {
+  background: var(--primary);
+}
+
+.m-daystrip__cell[data-selected='true'] .m-daystrip__label,
+.m-daystrip__cell[data-selected='true'] .m-daystrip__date {
+  color: var(--on-primary);
+}
+
+.m-daystrip__other {
+  padding: 8px var(--m-pad-x);
+}
+
+/* "Other date…", "Longer than a week…" */
+.m-linkrow {
   height: var(--m-hit);
-  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--m-pad-x);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+/* ---------------------------------------------------------- item detail */
+
+.m-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px var(--m-pad-x) 18px;
+}
+
+.m-detail__subject {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.m-detail__subject .square {
+  border-radius: 2px;
+}
+
+.m-detail__time {
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: var(--m-fs-meta);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.m-detail__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.m-detail__title[data-done='true'] {
+  color: var(--ink-2);
+  text-decoration: line-through;
+}
+
+.m-detail__details {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.m-detail__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--m-fs-meta);
+  color: var(--ink-2);
+}
+
+/* --------------------------------------------------------- filter sheet */
+
+.m-filter__links {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 var(--m-pad-x) 10px;
+}
+
+.m-filter__view {
+  padding-bottom: 12px;
+}
+
+.m-checkrow {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 var(--m-pad-x);
+  text-align: left;
+}
+
+.m-checkrow > .square {
+  border-radius: 2px;
+}
+
+.m-checkrow__name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.m-checkrow__name--plain {
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+.m-checkrow__count {
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.m-checkrow__box {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1.5px var(--ink-25);
+}
+
+.m-checkrow__box[data-on='true'] {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: none;
+}
+
+/* ------------------------------------------------- edit planner sheet */
+
+.m-subject__row {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 0 var(--m-pad-x);
+}
+
+.m-subject__swatch {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m-subject__swatch span {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.m-subject[data-open='true'] .m-subject__swatch span {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--ink);
 }
 
 .m-subject__name {
   flex: 1;
   min-width: 0;
   min-height: var(--m-hit);
-  padding: 0 4px;
-  background: none;
+  padding: 0;
   border: none;
-  font: inherit;
-  font-size: var(--m-fs-input);
-  color: var(--ink);
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .m-subject__name:focus {
   outline: none;
-  background: var(--surface-sunken);
-  border-radius: var(--radius-chip);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .m-subject__count {
-  font-size: var(--fs-12);
-  color: var(--ink-35);
+  font-size: 11px;
+  color: var(--ink-2);
 }
 
 .m-subject__del {
   width: var(--m-hit);
   height: var(--m-hit);
   flex: none;
-  font-size: var(--fs-14);
-  color: var(--ink-35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
 }
 
-/* ---------------------------------------------------------- undo toast */
+/* The desktop's swatch grid, at touch size. */
+.m-sheet .swatches {
+  padding: 2px var(--m-pad-x) 16px 54px;
+}
+
+.m-sheet .swatches__row {
+  gap: 8px;
+}
+
+.m-sheet .swatches__dot {
+  border-radius: 8px;
+}
+
+.m-sheet .swatches__custom {
+  min-height: var(--m-hit);
+  font-size: 12px;
+}
+
+.m-sheet .swatches__bar {
+  height: 20px;
+  border-radius: 10px;
+}
+
+/* ---------------------------------------------------------------- toast */
 
 /*
  * Above the tab bar rather than over it, so the three tabs stay reachable while
- * an undo is still on offer — the toast is not a modal and must not act like
- * one.
+ * an undo is still on offer — the toast is not a modal (frame 5k).
  */
 .m-toast {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(var(--m-tabbar-h) + env(safe-area-inset-bottom) + 10px);
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--m-tabbar-h) + max(env(safe-area-inset-bottom), 10px) + 12px);
   z-index: 55;
-  box-sizing: border-box;
+  height: var(--m-toast-h);
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: var(--m-hit);
-  padding: 0 6px 0 16px;
-  background: var(--accent-solid);
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(15, 15, 15, 0.18);
+  padding: 0 6px 0 18px;
+  border-radius: 24px;
+  background: var(--primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   animation: m-toast-in 200ms ease-out;
 }
 
@@ -1917,19 +1974,19 @@ body.m-locked .m-pane {
 .m-toast__text {
   flex: 1;
   min-width: 0;
-  font-size: var(--fs-13);
-  color: var(--on-accent);
+  font-size: 13px;
+  color: var(--on-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .m-toast__undo {
-  height: var(--m-hit);
-  padding: 0 12px;
-  font-size: var(--fs-13);
+  height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--on-accent);
+  color: var(--on-primary);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1949,6 +2006,12 @@ body.m-locked .m-pane {
   .app {
     min-width: 0;
   }
+
+  /* The confirm dialog is shared with the desktop; at phone size it is the
+     full-width card of frame 5j. */
+  .confirm__scrim {
+    padding: 40px 28px;
+  }
 }
 
 /*
@@ -1957,8 +2020,7 @@ body.m-locked .m-pane {
  * behind it show, rather than stretching rows to 899px.
  */
 @media (min-width: 600px) and (max-width: 899px) {
-  /* Wide enough that a full-bleed sheet would be a long way from the thumb;
-     the design draws it as a 540px card instead. */
+  /* Wide enough that a full-bleed sheet would be a long way from the thumb. */
   .m-sheet__scrim {
     align-items: center;
     padding: 24px;
@@ -1967,11 +2029,8 @@ body.m-locked .m-pane {
   .m-sheet {
     width: 540px;
     max-height: 80%;
+    margin-bottom: 0;
     border-radius: var(--m-radius-sheet);
-  }
-
-  .m-sheet__body {
-    padding-bottom: 20px;
   }
 
   /* Centred by margin, not a transform — the toast's entry animation owns
@@ -1986,7 +2045,7 @@ body.m-locked .m-pane {
     right: auto;
     width: 600px;
     transform: translateX(-50%);
-    border-left: 1px solid var(--line);
-    border-right: 1px solid var(--line);
+    border-left: 1px solid var(--line-hair);
+    border-right: 1px solid var(--line-hair);
   }
 }

@@ -13,7 +13,7 @@ export interface ComposerTarget {
 interface Props {
   date: string;
   type: ItemType;
-  /** Weekend and today columns take the alternate tint from the design. */
+  /** Today's column — the design shades it and lets its cards sit flat on the shade. */
   tinted: boolean;
   /** Anchor the composer to the cell's right edge — used near the viewport edge. */
   flipComposer: boolean;
@@ -89,7 +89,7 @@ export function DayCell({
         <button
           type="button"
           className="cell__add"
-          aria-label={`Add ${type} on ${date}`}
+          aria-label={`Add an item on ${date}`}
           onClick={() => onOpenComposer({ date, type, itemId: null })}
         >
           + Add
@@ -100,7 +100,7 @@ export function DayCell({
         <ItemComposer
           subjects={subjects}
           date={date}
-          title={editing ? 'Edit item' : `New ${type}`}
+          title={editing ? 'Edit item' : 'New item'}
           submitLabel={editing ? 'Save' : 'Add item'}
           initial={
             editing

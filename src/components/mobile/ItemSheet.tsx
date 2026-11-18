@@ -1,21 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { usePlanner } from '../../store/plannerStore';
 import { useSheets, type ComposeTarget, type ItemTarget } from './sheets';
 import { useRowActions } from './rowActions';
 import { Sheet } from './Sheet';
-import { MobileChip, subjectOf } from './MobileRows';
-import { subjectAccent } from '../../lib/color';
-import {
-  addDays,
-  buildWindow,
-  dayName,
-  dayOfMonth,
-  daysBetween,
-  shortDate,
-  startOfWeek,
-  todayISO,
-} from '../../lib/dates';
-import { spanDates } from '../../lib/recurring';
+import { TickTrack, subjectOf } from './MobileRows';
+import { DayStrip } from './DayStrip';
+import { SubjectSquare } from '../SubjectSquare';
+import { addDays, dayName, daysBetween, shortDate } from '../../lib/dates';
+import { recurringProgress } from '../../lib/recurring';
 
 interface Props {
   target: ItemTarget;
@@ -54,8 +46,11 @@ export function ItemSheet({ target, onClose, onEdit }: Props) {
 
   /* ---- actions ------------------------------------------------------- */
 
+  /** What "Move to" picks: the item's day, or the day a span starts on. */
+  const moveFrom = span ? span.startDate : date;
+
   function moveTo(next: string) {
-    if (next === date) {
+    if (next === moveFrom) {
       onClose();
       return;
     }
@@ -100,50 +95,48 @@ export function ItemSheet({ target, onClose, onEdit }: Props) {
 
   /* ---- body ---------------------------------------------------------- */
 
-  const bandLabel = item
-    ? item.type === 'assignment'
-      ? 'Assignment'
-      : 'Event'
-    : 'Recurring';
-
-  const spanLine = span
-    ? `${shortDate(span.startDate)} – ${shortDate(span.endDate)} · day ${
-        daysBetween(span.startDate, target.date) + 1
-      } of ${spanDates(span).length}`
-    : '';
+  // Events are folded in with assignments; the stored type is left alone.
+  const kindLabel = item ? 'Assignment' : 'Recurring';
+  const progress = span ? recurringProgress(span, target.date) : null;
+  const subtitle = span && progress
+    ? `${shortDate(span.startDate)} – ${shortDate(span.endDate)} · day ${progress.dayIndex} of ${progress.total}`
+    : shortDate(date);
 
   return (
-    <Sheet title={bandLabel} subtitle={item ? shortDate(date) : spanLine} onClose={onClose}>
+    <Sheet title={kindLabel} subtitle={subtitle} onClose={onClose}>
       <div className="m-detail">
-        <div className="m-detail__top">
-          <MobileChip subject={subject} done={done} />
-          {done && <span className="m-detail__done">Done</span>}
-        </div>
-        <h2 className="m-detail__title" style={{ borderColor: subjectAccent(subject?.hue ?? null) }}>
+        <span className="m-detail__subject">
+          <SubjectSquare hue={subject?.hue ?? null} />
+          {subject?.name ?? 'No subject'}
+          {item?.time && <span className="m-detail__time">{item.time}</span>}
+        </span>
+        <h2 className="m-detail__title" data-done={done}>
           {(item ? item.description : span?.title) || 'Untitled'}
         </h2>
         {/* Unclamped: the two-line limit on a card is the reason to open this. */}
         {item?.details && <p className="m-detail__details">{item.details}</p>}
-        {item?.time && <p className="m-detail__meta">{item.time}</p>}
+        {progress && (
+          <span className="m-detail__progress">
+            <TickTrack ticks={progress.ticks} wide />
+            {progress.doneCount} of {progress.total} done
+          </span>
+        )}
       </div>
 
-      <MoveStrip
-        current={date}
-        label={span ? 'Move span to' : 'Move to'}
-        onPick={moveTo}
-      />
+      <span className="m-label">{span ? 'Move span to' : 'Move to'}</span>
+      <DayStrip weekOf={moveFrom} selected={[moveFrom]} onPick={moveTo} />
 
-      <div className="m-sheet__group">
+      <div className="m-actions">
         <button
           type="button"
-          className="m-listrow"
+          className="m-action"
           onClick={() => {
             toggleDone(target);
             onClose();
           }}
         >
-          <span className="m-listrow__glyph">{done ? '○' : '✓'}</span>
-          <span className="m-listrow__title">
+          <span className="m-action__glyph" aria-hidden="true">{done ? '○' : '✓'}</span>
+          <span className="m-action__label">
             {span
               ? done
                 ? `Clear ${dayName(target.date)}`
@@ -155,99 +148,25 @@ export function ItemSheet({ target, onClose, onEdit }: Props) {
         </button>
         <button
           type="button"
-          className="m-listrow"
-          onClick={() =>
-            onEdit({ mode: 'edit', kind: target.kind, id: target.id })
-          }
+          className="m-action"
+          onClick={() => onEdit({ mode: 'edit', kind: target.kind, id: target.id })}
         >
-          <span className="m-listrow__glyph">✎</span>
-          <span className="m-listrow__title">Edit</span>
-          <span className="m-listrow__chevron" aria-hidden="true">
-            ›
-          </span>
+          <span className="m-action__glyph" aria-hidden="true">✎</span>
+          <span className="m-action__label">Edit</span>
+          <span className="m-action__chevron" aria-hidden="true">›</span>
         </button>
         <button
           type="button"
-          className="m-listrow m-listrow--danger"
+          className="m-action m-action--danger"
           onClick={() => {
             remove(target);
             onClose();
           }}
         >
-          <span className="m-listrow__glyph">⌫</span>
-          <span className="m-listrow__title">Delete</span>
+          <span className="m-action__glyph" aria-hidden="true">⌫</span>
+          <span className="m-action__label">{span ? 'Delete recurring' : 'Delete'}</span>
         </button>
       </div>
     </Sheet>
-  );
-}
-
-/* ------------------------------------------------------------------- move */
-
-/**
- * The week the item is in, as seven tappable days, plus a way out to any other
- * date. Seven covers "tomorrow" and "not until Friday", which is nearly every
- * move anyone makes; the date field is there so the other ones are possible
- * without leaving the sheet.
- */
-function MoveStrip({
-  current,
-  label,
-  onPick,
-}: {
-  current: string;
-  label: string;
-  onPick: (date: string) => void;
-}) {
-  const [other, setOther] = useState(false);
-  const dateRef = useRef<HTMLInputElement>(null);
-  const week = buildWindow(startOfWeek(current), 7);
-  const today = todayISO();
-
-  useEffect(() => {
-    if (!other) return;
-    const el = dateRef.current;
-    el?.focus();
-    // Safari and Chrome open the picker from a gesture; the focus alone is
-    // enough on iOS, where the wheel follows the field.
-    el?.showPicker?.();
-  }, [other]);
-
-  return (
-    <>
-      <span className="m-sheet__eyebrow">{label}</span>
-      <div className="m-move">
-        {week.map((d) => (
-          <button
-            key={d}
-            type="button"
-            className="m-move__day"
-            data-current={d === current}
-            data-today={d === today}
-            aria-label={shortDate(d)}
-            onClick={() => onPick(d)}
-          >
-            <span className="m-move__name">{dayName(d).slice(0, 3)}</span>
-            <span className="m-move__date">{dayOfMonth(d)}</span>
-          </button>
-        ))}
-      </div>
-      {other ? (
-        <input
-          ref={dateRef}
-          type="date"
-          className="m-input m-move__other"
-          value={current}
-          aria-label="Move to another date"
-          onChange={(e) => {
-            if (e.target.value) onPick(e.target.value);
-          }}
-        />
-      ) : (
-        <button type="button" className="m-move__more" onClick={() => setOther(true)}>
-          Other date…
-        </button>
-      )}
-    </>
   );
 }

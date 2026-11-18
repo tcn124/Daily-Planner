@@ -5,8 +5,8 @@ import { headerSubject, parseOcr, type Candidate } from '../lib/ocrParse';
 import { startOfWeek, todayISO } from '../lib/dates';
 import { setAnchor, useDevicePrefs } from '../store/devicePrefs';
 import { formatTimeInput } from '../lib/time';
-import { subjectChipBg, subjectChipInk } from '../lib/color';
-import type { ItemType } from '../types';
+import { subjectAccent } from '../lib/color';
+import { Close } from './icons';
 
 interface Props {
   /** The screenshots and PDFs to read, in the order they were given. */
@@ -25,11 +25,6 @@ interface Row extends Candidate {
   /** Which file (and page, for a PDF) the row was read from. */
   origin: string;
 }
-
-const BAND_LABEL: Record<ItemType, string> = {
-  assignment: 'Assignment',
-  event: 'Event',
-};
 
 /**
  * Reads screenshots and PDFs on-device and lets the user check what was found
@@ -113,7 +108,9 @@ export function ScreenshotImport({ sources, onClose }: Props) {
       dispatch({
         type: 'item/add',
         item: {
-          type: r.type,
+          // The parser still guesses event vs assignment, but the redesign has
+          // one kind of dated item, so everything lands as an assignment.
+          type: 'assignment',
           subjectId: r.subjectId,
           description: r.description.trim(),
           details: r.details.trim(),
@@ -151,7 +148,9 @@ export function ScreenshotImport({ sources, onClose }: Props) {
       >
         <div className="panel__head">
           <h2 className="panel__title">Import from screenshot</h2>
-          <button type="button" className="kill panel__close" aria-label="Close" onClick={onClose} />
+          <button type="button" className="panel__close" aria-label="Close" onClick={onClose}>
+            <Close />
+          </button>
         </div>
 
         {phase.kind === 'reading' && (
@@ -270,26 +269,12 @@ export function ScreenshotImport({ sources, onClose }: Props) {
                       className="field ocr__select"
                       aria-label="Subject"
                       value={r.subjectId ?? ''}
-                      style={
-                        subject
-                          ? { background: subjectChipBg(subject.hue), color: subjectChipInk(subject.hue) }
-                          : undefined
-                      }
+                      style={subject ? { boxShadow: `inset 3px 0 0 ${subjectAccent(subject.hue)}` } : undefined}
                       onChange={(e) => patch(r.id, { subjectId: e.target.value || null })}
                     >
                       <option value="">No subject</option>
                       {subjects.map((s) => (
                         <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                    <select
-                      className="field ocr__select"
-                      aria-label="Band"
-                      value={r.type}
-                      onChange={(e) => patch(r.id, { type: e.target.value as ItemType })}
-                    >
-                      {(Object.keys(BAND_LABEL) as ItemType[]).map((t) => (
-                        <option key={t} value={t}>{BAND_LABEL[t]}</option>
                       ))}
                     </select>
                   </div>
@@ -306,7 +291,7 @@ export function ScreenshotImport({ sources, onClose }: Props) {
               >
                 Import {ready} {ready === 1 ? 'item' : 'items'}
               </button>
-              <button type="button" className="btn" onClick={onClose}>
+              <button type="button" className="link link--muted" onClick={onClose}>
                 Cancel
               </button>
               <span className="panel__note ocr__hint">

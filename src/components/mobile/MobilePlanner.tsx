@@ -1,12 +1,15 @@
+import { useEffect, useRef, useState } from 'react';
 import { usePlanner } from '../../store/plannerStore';
 import { missedItems } from '../../lib/missed';
-import { subjectAccent } from '../../lib/color';
-import { daysBetween, todayISO } from '../../lib/dates';
-import { activeDates, rowsForDate } from '../../lib/listRows';
-import { exportState } from '../../store/persistence';
+import { lateLong } from '../../lib/format';
+import { todayISO } from '../../lib/dates';
 import { DEFAULT_HUE } from '../../store/defaults';
 import { formatRelativeTime, useSyncStatus } from '../../sync/status';
+import { SubjectSquare } from '../SubjectSquare';
+import { ChevronRight, Close } from '../icons';
+import { subjectOf } from './MobileRows';
 import { useSheets } from './sheets';
+import { useRowActions } from './rowActions';
 
 interface Props {
   /** Opens the List tab narrowed to one subject. */
@@ -14,41 +17,38 @@ interface Props {
 }
 
 /**
- * Everything the desktop sidebar held that is not a view: missed items,
- * subjects, and the planner's own settings.
+ * The third tab (frame 5h): what the desktop sidebar holds that is not a view
+ * — Missed, To-do, Subjects — and the way into Edit planner.
  *
- * The canvas shows a sync line under the masthead ("Synced with desktop · 2
- * min ago"). It only renders once there is something true to say — not
- * configured, or not signed in yet, and it stays off rather than showing a
- * status that describes nothing.
+ * The sync line beside the masthead only renders once there is something true
+ * to say; not configured, or not signed in yet, and it stays off rather than
+ * showing a status that describes nothing.
  */
 export function MobilePlanner({ onOpenSubject }: Props) {
   const { state, dispatch } = usePlanner();
   const { openItem, openPlanner } = useSheets();
+  const { moveToToday } = useRowActions();
   const syncStatus = useSyncStatus();
-  const { subjects, items, recurring } = state;
+  const { subjects, items, recurring, todos } = state;
+  const [adding, setAdding] = useState(false);
+  const [text, setText] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (adding) inputRef.current?.focus();
+  }, [adding]);
 
   const today = todayISO();
   const missed = missedItems(items, today);
 
   /*
-   * Counted as rows, not records, because tapping a subject opens the List
-   * filtered to it — the number has to be a promise about what appears there.
-   * A recurring span covering five days is five rows in both places.
+   * Counted as the List counts them — an item once, a span once — because
+   * tapping a subject opens the List filtered to it, so the number is a
+   * promise about what appears there.
    */
-  const allRows = activeDates(items, recurring).flatMap((d) =>
-    rowsForDate(d, items, recurring, subjects),
-  );
-  const countFor = (id: string) => allRows.filter((r) => r.subjectId === id).length;
-
-  const subjectName = (id: string | null) =>
-    subjects.find((s) => s.id === id)?.name ?? 'No subject';
-
-  function moveAllToToday() {
-    for (const item of missed) {
-      dispatch({ type: 'item/update', id: item.id, patch: { date: today } });
-    }
-  }
+  const countFor = (id: string) =>
+    items.filter((i) => i.subjectId === id).length +
+    recurring.filter((r) => r.subjectId === id).length;
 
   function addSubject() {
     dispatch({
@@ -57,42 +57,54 @@ export function MobilePlanner({ onOpenSubject }: Props) {
       // Spread new subjects around the wheel so they stay distinct.
       hue: (DEFAULT_HUE + subjects.length * 47) % 360,
     });
+    openPlanner();
   }
+
+  function commitTodo() {
+    const trimmed = text.trim();
+    if (trimmed) dispatch({ type: 'todo/add', text: trimmed });
+    setText('');
+  }
+
+  const openTodos = todos.filter((t) => !t.done).length;
 
   return (
     <div className="m-planner">
-      <div className="m-head m-head--planner">
-        <h1 className="m-head__title m-head__title--short">Planner</h1>
+      <div className="m-head">
+        <div className="m-head__lead">
+          <h1 className="m-head__title">Planner.</h1>
+          {syncStatus.phase === 'synced' && (
+            <span className="m-head__sub">
+              {syncStatus.lastSyncedAt == null
+                ? 'Synced with desktop'
+                : `Synced with desktop · ${formatRelativeTime(syncStatus.lastSyncedAt)}`}
+            </span>
+          )}
+        </div>
       </div>
-      {syncStatus.phase === 'synced' && (
-        <span className="m-planner__sync">
-          {syncStatus.lastSyncedAt == null
-            ? 'Synced with desktop'
-            : `Synced with desktop · ${formatRelativeTime(syncStatus.lastSyncedAt)}`}
-        </span>
-      )}
 
       {missed.length > 0 && (
-        <>
-          <div className="m-section">
-            <span className="m-section__label">Missed</span>
-            <span className="m-missed__count">{missed.length}</span>
+        <section>
+          <div className="m-sec m-sec--big">
+            <span className="m-sec__title">Missed</span>
+            <span className="m-sec__count m-late">{missed.length}</span>
           </div>
-          <div className="m-card-list">
+          <div className="m-rows">
             {missed.map((item) => {
-              const late = daysBetween(item.date, today);
+              const subject = subjectOf(subjects, item.subjectId);
               return (
-                <div key={item.id} className="m-listrow">
-                  <span className="m-listrow__dot" />
-                  <span className="m-listrow__body">
-                    <span className="m-listrow__title">{item.description || 'Untitled'}</span>
-                    <span className="m-listrow__sub">
-                      {subjectName(item.subjectId)} · {late} day{late === 1 ? '' : 's'} late
+                <div key={item.id} className="m-missedrow">
+                  <SubjectSquare hue={subject?.hue ?? null} />
+                  <span className="m-missedrow__body">
+                    <span className="m-missedrow__title">{item.description || 'Untitled'}</span>
+                    <span className="m-missedrow__meta">
+                      {subject?.name ?? 'No subject'} ·{' '}
+                      <span className="m-late">{lateLong(item.date, today)}</span>
                     </span>
                   </span>
                   <button
                     type="button"
-                    className="m-listrow__more"
+                    className="m-more"
                     aria-label={`Actions for ${item.description || 'item'}`}
                     onClick={() => openItem({ kind: 'item', id: item.id, date: item.date })}
                   >
@@ -101,60 +113,115 @@ export function MobilePlanner({ onOpenSubject }: Props) {
                 </div>
               );
             })}
-            <button type="button" className="m-listrow m-listrow--action" onClick={moveAllToToday}>
+            <button
+              type="button"
+              className="m-action m-action--plain"
+              onClick={() => moveToToday(missed.map((i) => i.id))}
+            >
               Move all to today →
             </button>
           </div>
-        </>
+        </section>
       )}
 
-      <div className="m-section">
-        <span className="m-section__label">Subjects</span>
-        <button type="button" className="m-section__action" onClick={openPlanner}>
-          Edit
-        </button>
-      </div>
-      <div className="m-card-list">
-        {subjects.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            className="m-listrow"
-            onClick={() => onOpenSubject(s.id)}
-          >
-            <span
-              className="m-listrow__dot m-listrow__dot--subject"
-              style={{ background: subjectAccent(s.hue) }}
-            />
-            <span className="m-listrow__title">{s.name}</span>
-            <span className="m-listrow__count">{countFor(s.id)}</span>
-            <span className="m-listrow__chevron" aria-hidden="true">
-              ›
-            </span>
+      <section>
+        <div className="m-sec m-sec--big">
+          <span className="m-sec__title">To-do</span>
+          <span className="m-sec__count">{openTodos}</span>
+          {todos.some((t) => t.done) && (
+            <button
+              type="button"
+              className="m-sec__action"
+              onClick={() => dispatch({ type: 'todo/clearDone' })}
+            >
+              Clear done
+            </button>
+          )}
+        </div>
+        <div className="m-rows">
+          {todos.map((todo) => (
+            <div key={todo.id} className="m-todo" data-done={todo.done}>
+              <button
+                type="button"
+                className="m-todo__main"
+                role="checkbox"
+                aria-checked={todo.done}
+                onClick={() => dispatch({ type: 'todo/toggle', id: todo.id })}
+              >
+                <span className="m-todo__box" aria-hidden="true" />
+                <span className="m-todo__text">{todo.text}</span>
+              </button>
+              <button
+                type="button"
+                className="m-todo__kill"
+                aria-label={`Delete ${todo.text}`}
+                onClick={() => dispatch({ type: 'todo/delete', id: todo.id })}
+              >
+                <Close size={10} />
+              </button>
+            </div>
+          ))}
+          {adding ? (
+            <div className="m-todo m-todo--input">
+              <input
+                ref={inputRef}
+                className="m-input"
+                value={text}
+                placeholder="New to-do"
+                aria-label="New to-do"
+                enterKeyHint="done"
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitTodo();
+                  }
+                  if (e.key === 'Escape') setAdding(false);
+                }}
+                onBlur={() => {
+                  commitTodo();
+                  setAdding(false);
+                }}
+              />
+            </div>
+          ) : (
+            <button type="button" className="m-action m-action--muted" onClick={() => setAdding(true)}>
+              + Add to-do
+            </button>
+          )}
+        </div>
+      </section>
+
+      <section>
+        <div className="m-sec m-sec--big">
+          <span className="m-sec__title">Subjects</span>
+          <button type="button" className="m-sec__action" onClick={openPlanner}>
+            Edit
           </button>
-        ))}
-        <button type="button" className="m-listrow m-listrow--action" onClick={addSubject}>
-          <span className="m-listrow__plus">+</span>New subject
+        </div>
+        <div className="m-rows">
+          {subjects.map((s) => (
+            <button key={s.id} type="button" className="m-subjectrow"
+              onClick={() => onOpenSubject(s.id)}>
+              <SubjectSquare hue={s.hue} />
+              <span className="m-subjectrow__name">{s.name}</span>
+              <span className="m-subjectrow__count">{countFor(s.id)}</span>
+              <ChevronRight strokeWidth={1.3} />
+            </button>
+          ))}
+          <button type="button" className="m-action m-action--muted" onClick={addSubject}>
+            + New subject
+          </button>
+        </div>
+      </section>
+
+      <div className="m-rows m-planner__foot">
+        <button type="button" className="m-action" onClick={openPlanner}>
+          <span className="m-action__glyph" aria-hidden="true">⚙</span>
+          <span className="m-action__label">Edit planner</span>
+          <span className="m-action__chevron" aria-hidden="true">›</span>
         </button>
       </div>
-
-      <div className="m-card-list">
-        <button type="button" className="m-listrow" onClick={openPlanner}>
-          <span className="m-listrow__glyph">⚙</span>
-          <span className="m-listrow__title">Edit planner</span>
-          <span className="m-listrow__chevron" aria-hidden="true">
-            ›
-          </span>
-        </button>
-        <button type="button" className="m-listrow" onClick={() => void exportState(state)}>
-          <span className="m-listrow__glyph">↧</span>
-          <span className="m-listrow__title">Export backup</span>
-        </button>
-      </div>
-
-      <p className="m-planner__note">
-        Syllabus and screenshot import are only on the desktop app.
-      </p>
     </div>
   );
 }

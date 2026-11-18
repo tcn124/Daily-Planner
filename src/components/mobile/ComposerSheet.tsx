@@ -2,31 +2,42 @@ import { useEffect, useRef, useState } from 'react';
 import { usePlanner } from '../../store/plannerStore';
 import { uid } from '../../store/defaults';
 import { SubjectChips } from '../SubjectChips';
-import { Sheet, SheetField } from './Sheet';
-import type { BandChoice, ComposeTarget } from './sheets';
+import { Sheet } from './Sheet';
+import { DayStrip } from './DayStrip';
+import type { ComposeTarget } from './sheets';
 import { formatTimeInput } from '../../lib/time';
-import { addDays, shortDate } from '../../lib/dates';
-import type { ItemType } from '../../types';
+import { addDays, dayName, dayOfMonth, daysBetween, shortDate } from '../../lib/dates';
 
 interface Props {
   target: ComposeTarget;
   onClose: () => void;
 }
 
-const BANDS: { id: BandChoice; label: string }[] = [
-  { id: 'assignment', label: 'Assignment' },
-  { id: 'event', label: 'Event' },
-  { id: 'recurring', label: 'Recurring' },
+type Kind = 'assignment' | 'recurring';
+
+/** Quick times beside the Time field (frame 5a). */
+const QUICK_TIMES = [
+  { label: '9 am', value: '9:00 am' },
+  { label: 'Noon', value: '12:00 pm' },
 ];
 
+/** "Mon 12 – Fri 16 · 5 days" — the Runs label for a span being picked. */
+function runsLabel(start: string, end: string): string {
+  const days = daysBetween(start, end) + 1;
+  const day = (d: string) => `${dayName(d).slice(0, 3)} ${dayOfMonth(d)}`;
+  return `${start === end ? day(start) : `${day(start)} – ${day(end)}`} · ${days} day${days === 1 ? '' : 's'}`;
+}
+
 /**
- * The desktop's popover composer, as a sheet.
+ * New and edit, for both kinds of record (frames 5a, 5b, 5e).
  *
- * Two changes the phone forces. Band comes first rather than last: it decides
- * whether the rest of the form asks for one date or two, and a question that
- * rearranges the fields below it cannot sit underneath them. And Add is in the
- * sheet header, because the keyboard covers the bottom third of the screen —
- * the one place a form's submit button would normally go.
+ * The kind comes first because it decides whether the rest of the form asks
+ * for one day or a span. Days are picked on the same week strip the header
+ * uses, so choosing a date feels the same everywhere; "Other date…" reaches
+ * anything outside that week.
+ *
+ * There is no Event choice: the redesign has one kind of dated item. An item
+ * that was stored as an event keeps that type when it is edited here.
  */
 export function ComposerSheet({ target, onClose }: Props) {
   const { state, dispatch } = usePlanner();
@@ -41,12 +52,14 @@ export function ComposerSheet({ target, onClose }: Props) {
       ? recurring.find((r) => r.id === target.id)
       : undefined;
 
-  const [band, setBand] = useState<BandChoice>(
+  const [kind, setKind] = useState<Kind>(
     target.mode === 'new'
-      ? target.band
+      ? target.band === 'recurring'
+        ? 'recurring'
+        : 'assignment'
       : editingSpan
         ? 'recurring'
-        : (editingItem?.type ?? 'assignment'),
+        : 'assignment',
   );
   const [subjectId, setSubjectId] = useState<string | null>(
     (editingItem ?? editingSpan)?.subjectId ?? null,
@@ -60,17 +73,18 @@ export function ComposerSheet({ target, onClose }: Props) {
   const [endDate, setEndDate] = useState(
     editingSpan?.endDate ?? addDays(target.mode === 'new' ? target.date : date, 4),
   );
+  /** A span is picked as two taps: the start, then the end. */
+  const [picking, setPicking] = useState<'start' | 'end'>('start');
 
-  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     // A composer is opened to type in, so this one field does take focus.
     titleRef.current?.focus();
   }, []);
 
-  // A record already exists as one kind or the other; changing which would be a
-  // delete and an add wearing the same button. Assignment and Event are the
-  // same record with a different `type`, so those two stay interchangeable.
-  const bands = editingSpan ? BANDS.slice(2) : target.mode === 'edit' ? BANDS.slice(0, 2) : BANDS;
+  // A record already exists as one kind or the other; changing which would be
+  // a delete and an add wearing the same button.
+  const canSwitch = target.mode === 'new';
 
   function createSubject(name: string, hue: number | null): string {
     const id = uid();
@@ -78,10 +92,27 @@ export function ComposerSheet({ target, onClose }: Props) {
     return id;
   }
 
+  function pickRange(d: string) {
+    if (picking === 'start') {
+      setDate(d);
+      setEndDate(d);
+      setPicking('end');
+      return;
+    }
+    // An end before the start restarts the span from there.
+    if (d < date) {
+      setDate(d);
+      setEndDate(d);
+      return;
+    }
+    setEndDate(d);
+    setPicking('start');
+  }
+
   function submit() {
     const trimmed = title.trim();
 
-    if (band === 'recurring') {
+    if (kind === 'recurring') {
       const patch = {
         subjectId,
         title: trimmed,
@@ -93,7 +124,7 @@ export function ComposerSheet({ target, onClose }: Props) {
       else dispatch({ type: 'recurring/add', item: { ...patch, doneDates: [] } });
     } else {
       const patch = {
-        type: band as ItemType,
+        type: editingItem?.type ?? ('assignment' as const),
         subjectId,
         description: trimmed,
         details: details.trim(),
@@ -108,100 +139,160 @@ export function ComposerSheet({ target, onClose }: Props) {
     onClose();
   }
 
-  const recurringBand = band === 'recurring';
+  const isRecurring = kind === 'recurring';
+  const editing = target.mode === 'edit';
 
   return (
     <Sheet
-      title={target.mode === 'edit' ? 'Edit' : 'New'}
-      subtitle={recurringBand ? undefined : shortDate(date)}
-      closeLabel="Cancel"
-      action={{ label: target.mode === 'edit' ? 'Save' : 'Add', onClick: submit }}
+      title={editing ? 'Edit item' : 'New item'}
+      subtitle={isRecurring ? 'Recurring' : shortDate(date)}
+      action={{
+        label: editing ? 'Save' : isRecurring ? 'Add recurring' : 'Add item',
+        onClick: submit,
+      }}
       onClose={onClose}
     >
       <div className="m-form">
-        <SheetField label="Band">
-          <div className="m-seg m-seg--form" role="group" aria-label="Band">
-            {bands.map((b) => (
+        {canSwitch && (
+          <div className="m-seg m-seg--form" role="group" aria-label="Kind">
+            {(['assignment', 'recurring'] as Kind[]).map((k) => (
               <button
-                key={b.id}
+                key={k}
                 type="button"
                 className="m-seg__opt"
-                data-active={band === b.id}
-                aria-pressed={band === b.id}
-                onClick={() => setBand(b.id)}
+                data-active={kind === k}
+                aria-pressed={kind === k}
+                onClick={() => setKind(k)}
               >
-                {b.label}
+                {k === 'assignment' ? 'Assignment' : 'Recurring'}
               </button>
             ))}
           </div>
-        </SheetField>
+        )}
 
-        <SheetField label="Subject">
+        <span className="m-label">Subject</span>
+        <div className="m-form__pad">
           <SubjectChips
             subjects={subjects}
             value={subjectId}
             onChange={setSubjectId}
             onCreate={createSubject}
           />
-        </SheetField>
+        </div>
 
-        <SheetField label="Title">
-          <textarea
+        <label className="m-label" htmlFor="m-compose-title">Title</label>
+        <div className="m-form__pad">
+          <input
+            id="m-compose-title"
             ref={titleRef}
             className="m-input m-input--title"
-            rows={2}
             value={title}
+            enterKeyHint="done"
             onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                submit();
+              }
+            }}
           />
-        </SheetField>
+        </div>
 
         {/* Recurring items carry no details or time — they are a span with a
             name, ticked off a day at a time. */}
-        {!recurringBand && (
-          <SheetField label="Details">
-            <textarea
-              className="m-input"
-              rows={3}
-              placeholder="Pages, prompt, where to submit…"
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-            />
-          </SheetField>
+        {!isRecurring && (
+          <>
+            <label className="m-label" htmlFor="m-compose-details">Details</label>
+            <div className="m-form__pad">
+              <textarea
+                id="m-compose-details"
+                className="m-input m-input--area"
+                rows={3}
+                placeholder="Pages, prompt, where to submit…"
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+              />
+            </div>
+          </>
         )}
 
-        <div className="m-form__row">
-          <SheetField label={recurringBand ? 'Starts' : 'Date'}>
-            <input
-              type="date"
-              className="m-input"
-              value={date}
-              onChange={(e) => e.target.value && setDate(e.target.value)}
+        {isRecurring ? (
+          <>
+            <span className="m-label">
+              Runs <span className="m-label__note">{runsLabel(date, endDate)}</span>
+            </span>
+            <DayStrip
+              weekOf={date}
+              selected={date === endDate ? [date] : [date, endDate]}
+              range={{ start: date, end: endDate }}
+              onPick={pickRange}
+              otherLabel="Longer than a week…"
+              other={
+                <div className="m-form__row">
+                  <label className="m-field">
+                    <span className="m-field__label">Starts</span>
+                    <input
+                      type="date"
+                      className="m-input"
+                      value={date}
+                      onChange={(e) => e.target.value && setDate(e.target.value)}
+                    />
+                  </label>
+                  <label className="m-field">
+                    <span className="m-field__label">Ends</span>
+                    <input
+                      type="date"
+                      className="m-input"
+                      value={endDate}
+                      min={date}
+                      onChange={(e) => e.target.value && setEndDate(e.target.value)}
+                    />
+                  </label>
+                </div>
+              }
             />
-          </SheetField>
-          {recurringBand ? (
-            <SheetField label="Ends">
-              <input
-                type="date"
-                className="m-input"
-                value={endDate}
-                min={date}
-                onChange={(e) => e.target.value && setEndDate(e.target.value)}
-              />
-            </SheetField>
-          ) : (
-            <SheetField label="Time">
-              <input
-                className="m-input"
-                placeholder="11:59 pm"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                // Formatting as you type would turn "12" into "12:00" before
-                // the "30" arrives, so it waits until the field is left.
-                onBlur={() => setTime(formatTimeInput(time))}
-              />
-            </SheetField>
-          )}
-        </div>
+            <p className="m-hint">
+              {picking === 'end'
+                ? 'Now tap the last day.'
+                : 'Tap a start day, then an end day. Each day gets its own tick.'}
+            </p>
+          </>
+        ) : (
+          <>
+            <span className="m-label">Due</span>
+            <DayStrip weekOf={date} selected={[date]} onPick={setDate} />
+            <div className="m-form__row m-form__pad">
+              <label className="m-field">
+                <span className="m-field__label">Time</span>
+                <input
+                  className="m-input"
+                  placeholder="11:59 pm"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  // Formatting as you type would turn "12" into "12:00" before
+                  // the "30" arrives, so it waits until the field is left.
+                  onBlur={() => setTime(formatTimeInput(time))}
+                />
+              </label>
+              <div className="m-field">
+                <span className="m-field__label">Quick</span>
+                <div className="m-quick">
+                  {QUICK_TIMES.map((q) => (
+                    <button
+                      key={q.label}
+                      type="button"
+                      className="m-quick__opt"
+                      data-active={time === q.value}
+                      onClick={() => setTime(q.value)}
+                    >
+                      {q.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </Sheet>
   );

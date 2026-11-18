@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+@font-face { font-family: 'DM Sans'; font-weight: 300 700; font-display: swap; src: url('./fonts/dm-sans.woff2') format('woff2'); }
+@font-face { font-family: 'Source Serif 4'; font-weight: 400 600; font-display: swap; src: url('./fonts/source-serif-4.woff2') format('woff2'); }
+body { margin: 0; background: #e9e9e6; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; color: #37352f; -webkit-font-smoothing: antialiased; }
+*, *::before, *::after { box-sizing: border-box; }
+a { color: #37352f; text-decoration: none; }
+a:hover { color: rgba(55,53,47,0.7); }
+textarea::placeholder { color: rgba(55,53,47,0.4); }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,200..600&amp;display=swap">
+</helmet>
+<section style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:56px;padding:48px 48px 24px;border-bottom:1px solid rgba(55,53,47,0.12)">
+
+<div style="width:340px;display:flex;flex-direction:column;gap:22px;color:#111111">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span style="font-size:9.5px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c">Turn 2 · Redesign</span>
+    <h2 style="margin:0;font-family:'Newsreader', Georgia, serif;font-size:34.5px;font-weight:400;letter-spacing:-0.03em;line-height:0.95">Planner, <br>in print.</h2>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">What the references share</span>
+    <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:6px;font-size:10.5px;line-height:1.5;color:#111111">
+      <li>Two tones only: ultramarine on warm paper, flipped from panel to panel. No greys, no shadows.</li>
+      <li>One oversized serif with tight tracking, ending in a full stop ("Authors."). A light serif for the lead-in text.</li>
+      <li>A quiet sans in small uppercase for nav and labels, with counts written as <span style="font-family:'Newsreader', serif">/128</span>.</li>
+      <li>Hairline column rules form the grid. White panels are the only objects.</li>
+      <li>Lots of empty space, set asymmetrically. Some type is turned or overlaps.</li>
+    </ul>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Plan, mapped to the app</span>
+    <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:6px;font-size:10.5px;line-height:1.5">
+      <li>The month becomes the display title: "October." Week number and dates sit beside it in small caps.</li>
+      <li>Week / List / Today move to a top-right text nav, like Books / Authors. The sidebar keeps Subjects, Missed and tools.</li>
+      <li>Day columns are hairline rules. Day numbers are large light serif. Today is the one ink-filled block.</li>
+      <li>Cards become white panels with a serif title, a small-caps subject and a square checkbox.</li>
+      <li>Recurring bars become solid ultramarine bands, the reversed panel. Shading marks the days already done.</li>
+      <li>Subject colour shrinks to a 6px mark so the page stays two-tone. Missed is shown with ink and a count, not red.</li>
+      <li>Phone: same system. The tab bar becomes text nav, the bands get serif headings, and touch targets stay at 44px or more.</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<div id="2a" style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:10px;font-size:10.5px;color:rgba(55,53,47,0.6)"><span style="padding:2px 8px;border-radius:4px;background:#111111;color:#fff;font-weight:600;font-size:9.5px">2a</span>Desktop · Week view · 1280×800</div>
+
+<div style="width:1280px;height:800px;display:flex;flex-direction:column;background:#ffffff;color:#111111;border-radius:16px;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,0.10);font-size:10.5px">
+
+  <header style="flex:none;height:76px;display:grid;grid-template-columns:232px minmax(0,1fr);border-bottom:1px solid rgba(17,17,17,0.2)">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;padding:12px 18px 10px 20px;border-right:1px solid rgba(17,17,17,0.2)">
+      <div style="display:flex;gap:8px"><span style="width:12px;height:12px;border-radius:50%;background:#ff5f57"></span><span style="width:12px;height:12px;border-radius:50%;background:#febc2e"></span><span style="width:12px;height:12px;border-radius:50%;background:#28c840"></span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <nav style="display:flex;gap:16px;font-size:9.5px;font-weight:500;letter-spacing:0.01em"><span style="padding-bottom:3px;border-bottom:1px solid #111111;color:#111111">Week</span><span style="padding-bottom:3px;border-bottom:1px solid transparent" style-hover="border-bottom-color:#111111;color:#111111">List</span><span style="padding-bottom:3px;border-bottom:1px solid transparent" style-hover="border-bottom-color:#111111;color:#111111">Today <span style="font-family:'DM Sans', sans-serif;font-size:9.5px;color:#5c5c5c;letter-spacing:0.02em">/03</span></span></nav>
+        <span style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid transparent; border-radius: 0; font-size: 15.5px; line-height: 1" style-hover="border-bottom-color:#111111;color:#111111">«</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:12px 28px 14px 28px">
+      <div style="display:flex;align-items:flex-end;gap:18px">
+        <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 57px; font-weight: 400; letter-spacing: -0.045em; line-height: 0.78; width: 206px; height: 34px; color: #111111">October.</h1>
+        <div style="display:flex;flex-direction:column;gap:4px;padding-bottom:2px;font-size:9px;font-weight:500;letter-spacing:0.01em">
+          
+          <span style="color:#5c5c5c">2026</span><span>Week 42 — Oct 12 – 18</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:16px">
+        <div style="display:flex;align-items:center;gap:22px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid transparent;border-radius:0" style-hover="border-bottom-color:#111111;color:#111111"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6.5 2L3.5 5l3 3"></path></svg></span>
+            <span style="padding:0 6px;font-size:9.5px;font-weight:500;letter-spacing:0.01em" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">Today</span>
+            <span style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid transparent;border-radius:0" style-hover="border-bottom-color:#111111;color:#111111"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3.5 2l3 3-3 3"></path></svg></span>
+          </div>
+          
+          <div style="display:flex;align-items:center;gap:10px;font-size:9.5px;font-weight:500;letter-spacing:0.01em">
+            <span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11.5px;letter-spacing:0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">−</span>
+            <span>&nbsp;7 days</span>
+            <span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11.5px;letter-spacing:0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+</span>
+          </div>
+          
+          <span style="display: flex; align-items: center; gap: 10px; font-family: DM Sans; font-size: 9.5px; font-weight: 500; letter-spacing: 0.01em" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">New item<span style="width: 10px; height: 16px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid transparent; border-radius: 0"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 1v8M1 5h8"></path></svg></span></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div style="flex:1;min-height:0;display:flex">
+    <aside style="flex:none;width:232px;display:flex;flex-direction:column;gap:24px;padding:20px 20px 18px;border-right:1px solid rgba(17,17,17,0.2);overflow:hidden">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'Newsreader', Georgia, serif;font-size:20.5px;letter-spacing:-0.02em;line-height:1;text-decoration:underline;text-decoration-color:#002DFF;text-decoration-thickness:2px;text-underline-offset:4px">Upcoming</span></div>
+        <div style="display:flex;flex-direction:column">
+          <div style="display:flex;align-items:baseline;gap:6px;padding:0 0 2px"><span style="font-size:9px;font-weight:600">Today</span><span style="font-size:9px;color:#5c5c5c">Thu 15</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">Econ</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Reading — Smith 1–20</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">11:59p</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">History</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Essay — Hamlet</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">11:59p</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">History</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Read 20 pages</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">Day 4/5</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">Journalism</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">News quiz prep</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">Day 3/3</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px;padding:10px 0 2px"><span style="font-size:9px;font-weight:600">Tomorrow</span><span style="font-size:9px;color:#5c5c5c">Fri 16</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">Pol. Sci</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Quiz — Ch. 4</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">10:00a</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">History</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Read 20 pages</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">Day 5/5</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'Newsreader', Georgia, serif;font-size:20.5px;letter-spacing:-0.02em;line-height:1;text-decoration:underline;text-decoration-color:#F22525;text-decoration-thickness:2px;text-underline-offset:4px">Missed</span><span style="font-size:9px;color:#5c5c5c">/01</span></div>
+        <div style="display:flex;flex-direction:column"><div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">Pol. Sci</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Response — Federalist 10</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">2d late</span></div></div>
+        <span style="font-size:9.5px;font-weight:500;letter-spacing:0.01em" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">Reschedule all →</span>
+      </div><div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-family:'Newsreader', Georgia, serif;font-size:20.5px;letter-spacing:-0.02em;line-height:1">Subjects</span>
+        <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10px;font-weight:500">
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#6a7ecd"></span>Economics</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#8b73c5"></span>Political Science</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#b96f2c"></span>Journalism</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#3c9960"></span>History</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#9b9a94"></span>Meeting</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#9b9a94"></span>Other</span>
+          <span style="color:#5c5c5c" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ New</span>
+        </div>
+      </div>
+      
+
+      <div style="margin-top:auto;display:flex;font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c">
+        <span style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">Edit planner</span>
+      </div>
+    </aside>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+      <div style="flex:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));height:42px;border-bottom:1px solid rgba(17,17,17,0.2)">
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Mon</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1">12</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Tue</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1">13</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Wed</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1">14</span></div>
+        <div style="display: flex; align-items: baseline; gap: 8px; padding: 12px 12px 0; color: #111111; background-color: #f6f6f4; border-right: 1px solid rgba(17,17,17,0.14); position: relative"><span style="font-size:9.5px;font-weight:700;letter-spacing:0.01em;color:#002DFF">Thu</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:700;letter-spacing:-0.02em;line-height:1;color:#002DFF">15.</span><span style="margin-left:auto;margin-right:-7px;padding:3px 7px 4px;border-radius:999px;background:#002DFF;color:#ffffff;font-size:8.5px;font-weight:600;letter-spacing:0.01em">Today</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Fri</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1">16</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Sat</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:#5c5c5c">17</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Sun</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:#5c5c5c">18</span></div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-bottom:1px solid rgba(17,17,17,0.14)"><span style="font-size:9px;font-weight:600;letter-spacing:0.01em">Assignments</span><span style="font-size:9px;color:#5c5c5c">/04</span><span style="margin-left:auto;display:flex;color:#5c5c5c"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 3.5l3 3 3-3"></path></svg></span></div>
+      <div style="flex:220 1 0;min-height:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:minmax(0,1fr);border-bottom:1px solid rgba(17,17,17,0.2)">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:f1f1ee;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#6a7ecd;opacity:0.5"></span>Economics</div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3;color:#5c5c5c;text-decoration:line-through">Problem Set 4</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:#fff;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#8b73c5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pol. Sci</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3">Response — Federalist 10</span></div>
+            <div style="font-size:9.5px;line-height:1.4;color:#5c5c5c;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden">300 words, post to the discussion board before section.</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:f1f1ee;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c;opacity:0.5"></span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Journalism</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em">5:00p</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3;color:#5c5c5c;text-decoration:line-through">Pitch draft</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);background:#f6f6f4;min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:transparent;border:1px solid transparent;border-bottom-color:rgba(17,17,17,0.14);border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#6a7ecd"></span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Economics</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3">Reading — Smith 1–20</span></div>
+            <div style="font-size:9.5px;line-height:1.4;color:#5c5c5c;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden">Wealth of Nations Book I ch. 1–3. Bring two questions.</div>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:transparent;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960"></span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3">Essay — Hamlet</span></div>
+            <div style="font-size:9.5px;line-height:1.4;color:#5c5c5c">1500 words, submit on Canvas</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:#fff;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#8b73c5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pol. Sci</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">10:00a</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3">Quiz — Ch. 4</span></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 8.5px; font-weight: 500; letter-spacing:0.01em;  border-width: 0px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ Add</div>
+        </div>
+        <div style="border-right:1px solid rgba(17,17,17,0.14)"></div>
+        <div style=""></div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-bottom:1px solid rgba(17,17,17,0.14)"><span style="font-size:9px;font-weight:600;letter-spacing:0.01em">Recurring</span><span style="font-size:9px;color:#5c5c5c">/02</span><span style="margin-left:auto;display:flex;color:#5c5c5c"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 3.5l3 3 3-3"></path></svg></span></div>
+      <div style="flex:100 1 0;min-height:0;position:relative;cursor:crosshair">
+        <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(7,1fr);pointer-events:none"><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style="border-right: 1px solid rgba(17,17,17,0.14); background-color: #FFFFFF"></span><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style=""></span></div>
+        <div data-toggle="1" style="position:absolute;left:calc(0% + 6px);width:calc(71.4286% - 12px);top:10px;height:36px;display:flex;align-items:center;background:#ececea;color:#111111;border-radius:3px;overflow:hidden;cursor:pointer" style-hover="background:#e2e2df;color:#111111">
+          <div style="position:absolute;top:0;bottom:0;left:-6px;right:-6px;display:grid;grid-template-columns:repeat(5,1fr)"><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span style="border-right:1px solid rgba(17,17,17,0.08)"></span><span></span></div>
+          <div style="position:relative;display:flex;align-items:center;gap:10px;width:100%;padding:0 12px;min-width:0">
+            <span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960;box-shadow:none"></span>
+            <span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0">History</span>
+            <span style="min-width:0;font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Read 20 pages</span>
+            <span style="margin-left:auto;flex:none;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0">Mon – Fri </span>
+          </div>
+        </div>
+        <div data-toggle="1" style="position:absolute;left:calc(14.2857% + 6px);width:calc(42.8571% - 12px);top:54px;height:36px;display:flex;align-items:center;background:#ececea;color:#111111;border-radius:3px;overflow:hidden;cursor:pointer" style-hover="background:#e2e2df;color:#111111">
+          <div style="position:absolute;top:0;bottom:0;left:-6px;right:-6px;display:grid;grid-template-columns:repeat(3,1fr)"><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span></span></div>
+          <div style="position:relative;display:flex;align-items:center;gap:10px;width:100%;padding:0 12px;min-width:0">
+            <span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c;box-shadow:none"></span>
+            <span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0">Journalism</span>
+            <span style="min-width:0;font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">News quiz prep</span>
+            <span style="margin-left:auto;flex:none;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0">Tue – Thu </span>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;gap:18px;height:58px;padding:0 24px;border-top:1px solid rgba(17,17,17,0.2)">
+        <span style="flex:none;display:flex;align-items:baseline;gap:6px"><span style="font-family:'Newsreader', Georgia, serif;font-size:19px;letter-spacing:-0.02em;line-height:1">To-do</span><span style="font-size:9px;color:#5c5c5c">/02</span></span>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden">
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;background:#f1f1ee;border-radius:14px;font-size:9.5px;white-space:nowrap">Email TA about extension<span style="color:#5c5c5c;font-size:9.5px">✕</span></span>
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;border:1px solid rgba(17,17,17,0.2);border-radius:14px;font-size:9.5px;white-space:nowrap;color:#5c5c5c;text-decoration:line-through">Buy blue books</span>
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;background:#f1f1ee;border-radius:14px;font-size:9.5px;white-space:nowrap">Print essay</span>
+          <span style="flex:none;padding:0 6px;font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c;white-space:nowrap" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ Add note</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="2c" style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:10px;font-size:10.5px;color:rgba(55,53,47,0.6)"><span style="padding:2px 8px;border-radius:4px;background:#111111;color:#fff;font-weight:600;font-size:9.5px">2c</span>Desktop · Week view · sidebar collapsed · 1280×800</div>
+
+<div style="width:1280px;height:800px;display:flex;flex-direction:column;background:#ffffff;color:#111111;border-radius:16px;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,0.10);font-size:10.5px">
+
+  <header style="position:relative;flex:none;height:76px;display:grid;grid-template-columns:52px minmax(0,1fr);border-bottom:1px solid rgba(17,17,17,0.2)">
+    <div style="position:absolute;top:12px;left:20px;display:flex;gap:8px"><span style="width:12px;height:12px;border-radius:50%;background:#ff5f57"></span><span style="width:12px;height:12px;border-radius:50%;background:#febc2e"></span><span style="width:12px;height:12px;border-radius:50%;background:#28c840"></span></div>
+    <div style="position:absolute;left:20px;bottom:10px;height:26px;display:flex;align-items:center"><nav style="display:flex;gap:16px;font-size:9.5px;font-weight:500;letter-spacing:0.01em"><span style="padding-bottom:3px;border-bottom:1px solid #111111;color:#111111">Week</span><span style="padding-bottom:3px;border-bottom:1px solid transparent" style-hover="border-bottom-color:#111111;color:#111111">List</span><span style="padding-bottom:3px;border-bottom:1px solid transparent" style-hover="border-bottom-color:#111111;color:#111111">Today <span style="font-family:'DM Sans', sans-serif;font-size:9.5px;color:#5c5c5c;letter-spacing:0.02em">/03</span></span></nav></div>
+    <div></div>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:12px 28px 14px 208px">
+      <div style="display:flex;align-items:flex-end;gap:18px">
+        
+        <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 57px; font-weight: 400; letter-spacing: -0.045em; line-height: 0.78; width: 206px; height: 34px; color: #111111">October.</h1><div style="display:flex;flex-direction:column;gap:4px;padding-bottom:2px;font-size:9px;font-weight:500;letter-spacing:0.01em">
+          
+          <span style="color:#5c5c5c">2026</span><span>Week 42 — Oct 12 – 18</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:16px">
+        <div style="display:flex;align-items:center;gap:22px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid transparent;border-radius:0" style-hover="border-bottom-color:#111111;color:#111111"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6.5 2L3.5 5l3 3"></path></svg></span>
+            <span style="padding:0 6px;font-size:9.5px;font-weight:500;letter-spacing:0.01em" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">Today</span>
+            <span style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid transparent;border-radius:0" style-hover="border-bottom-color:#111111;color:#111111"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3.5 2l3 3-3 3"></path></svg></span>
+          </div>
+          
+          <div style="display:flex;align-items:center;gap:10px;font-size:9.5px;font-weight:500;letter-spacing:0.01em">
+            <span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11.5px;letter-spacing:0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">−</span>
+            <span>&nbsp;7 days</span>
+            <span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11.5px;letter-spacing:0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+</span>
+          </div>
+          
+          <span style="display: flex; align-items: center; gap: 10px; font-family: DM Sans; font-size: 9.5px; font-weight: 500; letter-spacing: 0.01em" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">New item<span style="width: 10px; height: 16px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid transparent; border-radius: 0"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 1v8M1 5h8"></path></svg></span></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div style="flex:1;min-height:0;display:flex">
+    <aside style="flex:none;width:52px;display:flex;flex-direction:column;align-items:center;gap:22px;padding:16px 0 18px;border-right:1px solid rgba(17,17,17,0.2)">
+        <span title="Expand sidebar" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#5c5c5c;cursor:pointer" style-hover="color:#111111">»</span>
+        
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:18px;border-top:1px solid rgba(17,17,17,0.14)">
+          <span style="font-family: 'Newsreader', Georgia, serif; font-size: 15px; line-height: 1; color: #111111">3</span>
+          <span style="font-size:8px;color:#111111;padding-bottom:2px;border-bottom:1.5px solid #002DFF">Today</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <span style="font-family: 'Newsreader', Georgia, serif; font-size: 15px; line-height: 1; color: #111111">1</span>
+          <span style="font-size:8px;color:#111111;padding-bottom:2px;border-bottom:1.5px solid #F22525">Missed</span>
+        </div>
+        <span style="margin-top:auto;font-size:9px;font-weight:500;color:#5c5c5c" style-hover="text-decoration:underline;text-underline-offset:3px">Edit</span>
+      </aside>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+      <div style="flex:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));height:42px;border-bottom:1px solid rgba(17,17,17,0.2)">
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Mon</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1">12</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Tue</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1">13</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Wed</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1">14</span></div>
+        <div style="display: flex; align-items: baseline; gap: 8px; padding: 12px 12px 0; color: #111111; background-color: #f6f6f4; border-right: 1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:700;letter-spacing:0.01em;color:#002DFF">Thu</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:700;letter-spacing:-0.02em;line-height:1;color:#002DFF">15.</span><span style="margin-left:auto;margin-right:-7px;padding:3px 7px 4px;border-radius:999px;background:#002DFF;color:#ffffff;font-size:8.5px;font-weight:600;letter-spacing:0.01em">Today</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Fri</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1">16</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0;border-right:1px solid rgba(17,17,17,0.14)"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Sat</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:#5c5c5c">17</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:12px 12px 0"><span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Sun</span><span style="font-family:'Newsreader', Georgia, serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:#5c5c5c">18</span></div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-bottom:1px solid rgba(17,17,17,0.14)"><span style="font-size:9px;font-weight:600;letter-spacing:0.01em">Assignments</span><span style="font-size:9px;color:#5c5c5c">/04</span><span style="margin-left:auto;display:flex;color:#5c5c5c"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 3.5l3 3 3-3"></path></svg></span></div>
+      <div style="flex:220 1 0;min-height:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:minmax(0,1fr);border-bottom:1px solid rgba(17,17,17,0.2)">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:f1f1ee;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#6a7ecd;opacity:0.5"></span>Economics</div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3;color:#5c5c5c;text-decoration:line-through">Problem Set 4</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:#fff;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#8b73c5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pol. Sci</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3">Response — Federalist 10</span></div>
+            <div style="font-size:9.5px;line-height:1.4;color:#5c5c5c;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden">300 words, post to the discussion board before section.</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:f1f1ee;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c;opacity:0.5"></span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Journalism</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em">5:00p</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3;color:#5c5c5c;text-decoration:line-through">Pitch draft</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);background:#f6f6f4;min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:transparent;border:1px solid transparent;border-bottom-color:rgba(17,17,17,0.14);border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#6a7ecd"></span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Economics</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3">Reading — Smith 1–20</span></div>
+            <div style="font-size:9.5px;line-height:1.4;color:#5c5c5c;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden">Wealth of Nations Book I ch. 1–3. Bring two questions.</div>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:transparent;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960"></span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3">Essay — Hamlet</span></div>
+            <div style="font-size:9.5px;line-height:1.4;color:#5c5c5c">1500 words, submit on Canvas</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(17,17,17,0.14);min-width:0;min-height:0;overflow-y:auto">
+          <div data-toggle="1" style="cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:9px 10px;background:#fff;border:1px solid transparent;border-radius:0" style-hover="color:#111111">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#8b73c5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pol. Sci</span><span style="margin-left:auto;font-family:'DM Sans', sans-serif;font-size:9.5px;flex:none;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">10:00a</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px"><span style="font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;line-height:1.3">Quiz — Ch. 4</span></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 8.5px; font-weight: 500; letter-spacing:0.01em;  border-width: 0px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ Add</div>
+        </div>
+        <div style="border-right:1px solid rgba(17,17,17,0.14)"></div>
+        <div style=""></div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-bottom:1px solid rgba(17,17,17,0.14)"><span style="font-size:9px;font-weight:600;letter-spacing:0.01em">Recurring</span><span style="font-size:9px;color:#5c5c5c">/02</span><span style="margin-left:auto;display:flex;color:#5c5c5c"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 3.5l3 3 3-3"></path></svg></span></div>
+      <div style="flex:100 1 0;min-height:0;position:relative;cursor:crosshair">
+        <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(7,1fr);pointer-events:none"><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style="border-right: 1px solid rgba(17,17,17,0.14); background-color: #FFFFFF"></span><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style="border-right:1px solid rgba(17,17,17,0.14)"></span><span style=""></span></div>
+        <div data-toggle="1" style="position:absolute;left:calc(0% + 6px);width:calc(71.4286% - 12px);top:10px;height:36px;display:flex;align-items:center;background:#ececea;color:#111111;border-radius:3px;overflow:hidden;cursor:pointer" style-hover="background:#e2e2df;color:#111111">
+          <div style="position:absolute;top:0;bottom:0;left:-6px;right:-6px;display:grid;grid-template-columns:repeat(5,1fr)"><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span style="border-right:1px solid rgba(17,17,17,0.08)"></span><span></span></div>
+          <div style="position:relative;display:flex;align-items:center;gap:10px;width:100%;padding:0 12px;min-width:0">
+            <span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960;box-shadow:none"></span>
+            <span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0">History</span>
+            <span style="min-width:0;font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Read 20 pages</span>
+            <span style="margin-left:auto;flex:none;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0">Mon – Fri <span style="font-family:'Newsreader', serif;font-size:10.5px;letter-spacing:0;text-transform:none">3/5</span></span>
+          </div>
+        </div>
+        <div data-toggle="1" style="position:absolute;left:calc(14.2857% + 6px);width:calc(42.8571% - 12px);top:54px;height:36px;display:flex;align-items:center;background:#ececea;color:#111111;border-radius:3px;overflow:hidden;cursor:pointer" style-hover="background:#e2e2df;color:#111111">
+          <div style="position:absolute;top:0;bottom:0;left:-6px;right:-6px;display:grid;grid-template-columns:repeat(3,1fr)"><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span style="background:rgba(17,17,17,0.07);border-right:1px solid rgba(17,17,17,0.08)"></span><span></span></div>
+          <div style="position:relative;display:flex;align-items:center;gap:10px;width:100%;padding:0 12px;min-width:0">
+            <span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c;box-shadow:none"></span>
+            <span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0">Journalism</span>
+            <span style="min-width:0;font-family:'DM Sans', sans-serif;font-weight:500;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">News quiz prep</span>
+            <span style="margin-left:auto;flex:none;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0">Tue – Thu <span style="font-family:'Newsreader', serif;font-size:10.5px;letter-spacing:0;text-transform:none">2/3</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;gap:18px;height:58px;padding:0 24px;border-top:1px solid rgba(17,17,17,0.2)">
+        <span style="flex:none;display:flex;align-items:baseline;gap:6px"><span style="font-family:'Newsreader', Georgia, serif;font-size:19px;letter-spacing:-0.02em;line-height:1">To-do</span><span style="font-size:9px;color:#5c5c5c">/02</span></span>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden">
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;background:#f1f1ee;border-radius:14px;font-size:9.5px;white-space:nowrap">Email TA about extension<span style="color:#5c5c5c;font-size:9.5px">✕</span></span>
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;border:1px solid rgba(17,17,17,0.2);border-radius:14px;font-size:9.5px;white-space:nowrap;color:#5c5c5c;text-decoration:line-through">Buy blue books</span>
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;background:#f1f1ee;border-radius:14px;font-size:9.5px;white-space:nowrap">Print essay</span>
+          <span style="flex:none;padding:0 6px;font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c;white-space:nowrap" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ Add note</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+
+<div id="2d" style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:10px;font-size:10.5px;color:rgba(55,53,47,0.6)"><span style="padding:2px 8px;border-radius:4px;background:#111111;color:#fff;font-weight:600;font-size:9.5px">2d</span>Desktop · List view · 1280×800</div>
+
+<div style="width:1280px;height:800px;display:flex;flex-direction:column;background:#ffffff;color:#111111;border-radius:16px;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,0.10);font-size:10.5px">
+
+  <header style="flex:none;height:76px;display:grid;grid-template-columns:232px minmax(0,1fr);border-bottom:1px solid rgba(17,17,17,0.2)">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;padding:12px 18px 10px 20px;border-right:1px solid rgba(17,17,17,0.2)">
+      <div style="display:flex;gap:8px"><span style="width:12px;height:12px;border-radius:50%;background:#ff5f57"></span><span style="width:12px;height:12px;border-radius:50%;background:#febc2e"></span><span style="width:12px;height:12px;border-radius:50%;background:#28c840"></span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <nav style="display:flex;gap:16px;font-size:9.5px;font-weight:500;letter-spacing:0.01em"><span style="padding-bottom:3px;border-bottom:1px solid transparent" style-hover="border-bottom-color:#111111;color:#111111">Week</span><span style="padding-bottom:3px;border-bottom:1px solid #111111;color:#111111">List</span><span style="padding-bottom:3px;border-bottom:1px solid transparent" style-hover="border-bottom-color:#111111;color:#111111">Today <span style="font-family:'DM Sans', sans-serif;font-size:9.5px;color:#5c5c5c;letter-spacing:0.02em">/03</span></span></nav>
+        <span style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid transparent; border-radius: 0; font-size: 15.5px; line-height: 1" style-hover="border-bottom-color:#111111;color:#111111">«</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:12px 28px 14px 28px">
+      <div style="display:flex;align-items:flex-end;gap:18px">
+        <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 57px; font-weight: 400; letter-spacing: -0.045em; line-height: 0.78; height: 34px; color: #111111">List.</h1>
+        <div style="display:flex;flex-direction:column;gap:4px;padding-bottom:2px;font-size:9px;font-weight:500;letter-spacing:0.01em">
+          
+          <span style="color:#5c5c5c">Oct 12 – 23</span><span>21 items</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:16px">
+        <div style="display:flex;align-items:center;gap:22px">
+          <span style="padding:0 2px;font-size:9.5px;font-weight:500;letter-spacing:0.01em" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">Jump to today</span>
+          <div style="display:flex;align-items:center;gap:8px;font-size:9.5px;font-weight:500;letter-spacing:0.01em"><span style="color:#5c5c5c">Zoom</span><span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11.5px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">−</span><span>100%</span><span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11.5px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+</span></div>
+          <div style="position:relative;display:flex;align-items:center;gap:8px;font-size:9.5px;font-weight:500;letter-spacing:0.01em"><span style="color:#5c5c5c">Show</span><span onClick="{{ toggleFilter }}" style="cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">All subjects<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 3.5l3 3 3-3"></path></svg></span>
+<sc-if value="{{ filterOpen }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:calc(100% + 8px);right:0;z-index:5;display:flex;flex-direction:column;gap:2px;min-width:150px;padding:8px 12px;background:#ffffff;box-shadow:0 8px 24px rgba(0,0,0,0.12)"><span style="padding:5px 0;border-bottom:1px solid rgba(17,17,17,0.08)">✓ All subjects</span><span style="display:flex;align-items:center;gap:7px;padding:5px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;border-radius:50%;background:#6a7ecd"></span>Econ</span><span style="display:flex;align-items:center;gap:7px;padding:5px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;border-radius:50%;background:#8b73c5"></span>Pol. Sci</span><span style="display:flex;align-items:center;gap:7px;padding:5px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;border-radius:50%;background:#b96f2c"></span>Journalism</span><span style="display:flex;align-items:center;gap:7px;padding:5px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;border-radius:50%;background:#3c9960"></span>History</span></div></sc-if></div>
+          <span style="display: flex; align-items: center; gap: 10px; font-family: DM Sans; font-size: 9.5px; font-weight: 500; letter-spacing: 0.01em" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">New item<span style="width: 10px; height: 16px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid transparent; border-radius: 0"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 1v8M1 5h8"></path></svg></span></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div style="flex:1;min-height:0;display:flex">
+    <aside style="flex:none;width:232px;display:flex;flex-direction:column;gap:24px;padding:20px 20px 18px;border-right:1px solid rgba(17,17,17,0.2);overflow:hidden">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'Newsreader', Georgia, serif;font-size:20.5px;letter-spacing:-0.02em;line-height:1;text-decoration:underline;text-decoration-color:#002DFF;text-decoration-thickness:2px;text-underline-offset:4px">Upcoming</span></div>
+        <div style="display:flex;flex-direction:column">
+          <div style="display:flex;align-items:baseline;gap:6px;padding:0 0 2px"><span style="font-size:9px;font-weight:600">Today</span><span style="font-size:9px;color:#5c5c5c">Thu 15</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">Econ</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Reading — Smith 1–20</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">11:59p</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">History</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Essay — Hamlet</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">11:59p</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">History</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Read 20 pages</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">Day 4/5</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">Journalism</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">News quiz prep</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">Day 3/3</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px;padding:10px 0 2px"><span style="font-size:9px;font-weight:600">Tomorrow</span><span style="font-size:9px;color:#5c5c5c">Fri 16</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">Pol. Sci</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Quiz — Ch. 4</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">10:00a</span></div>
+          <div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">History</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Read 20 pages</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">Day 5/5</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'Newsreader', Georgia, serif;font-size:20.5px;letter-spacing:-0.02em;line-height:1;text-decoration:underline;text-decoration-color:#F22525;text-decoration-thickness:2px;text-underline-offset:4px">Missed</span><span style="font-size:9px;color:#5c5c5c">/01</span></div>
+        <div style="display:flex;flex-direction:column"><div data-toggle="1" style="cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 0" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-;color:#111111"><span style="flex:none;font-family:'Newsreader', Georgia, serif;font-size:11px;color:#5c5c5c">Pol. Sci</span><span style="flex:none;font-size:10px;color:#5c5c5c">·</span><span style="min-width:0;font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Response — Federalist 10</span><span style="margin-left:auto;flex:none;font-size:9px;color:#5c5c5c">2d late</span></div></div>
+        <span style="font-size:9.5px;font-weight:500;letter-spacing:0.01em" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">Reschedule all →</span>
+      </div><div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-family:'Newsreader', Georgia, serif;font-size:20.5px;letter-spacing:-0.02em;line-height:1">Subjects</span>
+        <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10px;font-weight:500">
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#6a7ecd"></span>Economics</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#8b73c5"></span>Political Science</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#b96f2c"></span>Journalism</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#3c9960"></span>History</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#9b9a94"></span>Meeting</span>
+          <span style="display:flex;align-items:center;gap:6px" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:#9b9a94"></span>Other</span>
+          <span style="color:#5c5c5c" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ New</span>
+        </div>
+      </div>
+      
+
+      <div style="margin-top:auto;display:flex;font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c">
+        <span style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">Edit planner</span>
+      </div>
+    </aside>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+      <div style="flex:none;display:grid;grid-template-columns:112px 148px minmax(0,1fr) 92px 52px;gap:16px;align-items:center;height:30px;padding:0 28px;border-bottom:1px solid rgba(17,17,17,0.2);font-size:9px;font-weight:600;letter-spacing:0.01em;color:#5c5c5c"><span>Day</span><span>Subject</span><span>Item</span><span>Type</span><span style="text-align:right">Due</span></div>
+      <div data-list-scroll="1" style="position:relative;flex:1;min-height:0;overflow-y:auto">
+        <div style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;padding:16px 28px 14px;border-bottom:1px solid rgba(17,17,17,0.2)">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Mon</span>
+            <span style="font-family:'Newsreader', Georgia, serif;font-size:30px;font-weight:400;letter-spacing:-0.03em;line-height:0.9;color:#5c5c5c">12.</span>
+            <span style="font-size:9px;color:#5c5c5c">/02</span>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08);color:#5c5c5c" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#6a7ecd;opacity:0.5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Economics</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3;text-decoration:line-through">Problem Set 4</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08);color:#5c5c5c" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960;opacity:0.5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3;text-decoration:line-through">Read 20 pages</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Recurring</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">1/5</span>
+          </div>
+          
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;padding:16px 28px 14px;border-bottom:1px solid rgba(17,17,17,0.2)">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Tue</span>
+            <span style="font-family:'Newsreader', Georgia, serif;font-size:30px;font-weight:400;letter-spacing:-0.03em;line-height:0.9;color:#5c5c5c">13.</span>
+            <span style="font-size:9px;color:#5c5c5c">/03</span>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#8b73c5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Political Science</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Response — Federalist 10</span><span style="font-size:9.5px;line-height:1.4;color:#5c5c5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">300 words, post to the discussion board before section.</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#F22525">Missed</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08);color:#5c5c5c" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960;opacity:0.5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3;text-decoration:line-through">Read 20 pages</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Recurring</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">2/5</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08);color:#5c5c5c" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c;opacity:0.5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Journalism</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3;text-decoration:line-through">News quiz prep</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Recurring</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">1/3</span>
+          </div>
+          
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;padding:16px 28px 14px;border-bottom:1px solid rgba(17,17,17,0.2)">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Wed</span>
+            <span style="font-family:'Newsreader', Georgia, serif;font-size:30px;font-weight:400;letter-spacing:-0.03em;line-height:0.9;color:#5c5c5c">14.</span>
+            <span style="font-size:9px;color:#5c5c5c">/03</span>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08);color:#5c5c5c" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c;opacity:0.5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Journalism</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3;text-decoration:line-through">Pitch draft</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">5:00p</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08);color:#5c5c5c" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960;opacity:0.5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3;text-decoration:line-through">Read 20 pages</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Recurring</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">3/5</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08);color:#5c5c5c" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c;opacity:0.5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Journalism</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3;text-decoration:line-through">News quiz prep</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Recurring</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">2/3</span>
+          </div>
+          
+          </div>
+        </div>
+        <div data-today="1" style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;padding:16px 28px 14px;border-bottom:1px solid rgba(17,17,17,0.2);background:#f6f6f4">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:9.5px;font-weight:700;letter-spacing:0.01em;color:#002DFF">Thu</span>
+            <span style="font-family:'Newsreader', Georgia, serif;font-size:30px;font-weight:500;letter-spacing:-0.03em;line-height:0.9;color:#002DFF">15.</span>
+            <span style="margin-top:2px;padding:3px 7px 4px;border-radius:999px;background:#002DFF;color:#ffffff;font-size:8.5px;font-weight:600;letter-spacing:0.01em">Today</span>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#6a7ecd"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Economics</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Reading — Smith 1–20</span><span style="font-size:9.5px;line-height:1.4;color:#5c5c5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Wealth of Nations Book I ch. 1–3. Bring two questions.</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Essay — Hamlet</span><span style="font-size:9.5px;line-height:1.4;color:#5c5c5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">1500 words, submit on Canvas</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Read 20 pages</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Recurring</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">4/5</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Journalism</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">News quiz prep</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Recurring</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">3/3</span>
+          </div>
+          <div style="display:flex;padding:9px 0 0"><span style="font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ New item on this day</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;padding:16px 28px 14px;border-bottom:1px solid rgba(17,17,17,0.2)">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Fri</span>
+            <span style="font-family:'Newsreader', Georgia, serif;font-size:30px;font-weight:400;letter-spacing:-0.03em;line-height:0.9;color:#111111">16.</span>
+            <span style="font-size:9px;color:#5c5c5c">/02</span>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#8b73c5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Political Science</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Quiz — Ch. 4</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">10:00a</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Read 20 pages</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Recurring</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">5/5</span>
+          </div>
+          <div style="display:flex;padding:9px 0 0"><span style="font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ New item on this day</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;padding:16px 28px 14px;border-bottom:1px solid rgba(17,17,17,0.2)">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Mon</span>
+            <span style="font-family:'Newsreader', Georgia, serif;font-size:30px;font-weight:400;letter-spacing:-0.03em;line-height:0.9;color:#111111">19.</span>
+            <span style="font-size:9px;color:#5c5c5c">/02</span>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#6a7ecd"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Economics</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Problem Set 5</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span>
+          </div>
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#b96f2c"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Journalism</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Interview transcript</span><span style="font-size:9.5px;line-height:1.4;color:#5c5c5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Two sources, cleaned and timestamped.</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">5:00p</span>
+          </div>
+          <div style="display:flex;padding:9px 0 0"><span style="font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ New item on this day</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;padding:16px 28px 14px;border-bottom:1px solid rgba(17,17,17,0.2)">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Wed</span>
+            <span style="font-family:'Newsreader', Georgia, serif;font-size:30px;font-weight:400;letter-spacing:-0.03em;line-height:0.9;color:#111111">21.</span>
+            <span style="font-size:9px;color:#5c5c5c">/01</span>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#3c9960"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">History</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Midterm — Units 1–3</span><span style="font-size:9.5px;line-height:1.4;color:#5c5c5c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Blue books, no notes.</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">9:00a</span>
+          </div>
+          <div style="display:flex;padding:9px 0 0"><span style="font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ New item on this day</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;padding:16px 28px 14px;border-bottom:1px solid rgba(17,17,17,0.2)">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:0.01em">Fri</span>
+            <span style="font-family:'Newsreader', Georgia, serif;font-size:30px;font-weight:400;letter-spacing:-0.03em;line-height:0.9;color:#111111">23.</span>
+            <span style="font-size:9px;color:#5c5c5c">/01</span>
+          </div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+          <div data-toggle="1" style="cursor:pointer;display:grid;grid-template-columns:148px minmax(0,1fr) 92px 52px;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid rgba(17,17,17,0.08)" style-hover="color:#111111">
+            <span style="display:flex;align-items:center;gap:7px;min-width:0;font-family:'Newsreader', Georgia, serif;font-size:12px;font-weight:500;letter-spacing:0.01em"><span style="width:9px;height:9px;flex:none;border-radius:1px;background:#8b73c5"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Political Science</span></span>
+            <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:10px;font-weight:500;line-height:1.3">Response — Federalist 51</span></span>
+            <span style="font-size:9px;color:#5c5c5c">Assignment</span>
+            <span style="text-align:right;font-size:9.5px;font-weight:500;letter-spacing:0.04em;color:#5c5c5c">11:59p</span>
+          </div>
+          <div style="display:flex;padding:9px 0 0"><span style="font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ New item on this day</span></div>
+          </div>
+        </div>
+      </div>
+  <div style="flex:none;display:flex;align-items:center;gap:18px;height:58px;padding:0 24px;border-top:1px solid rgba(17,17,17,0.2)">
+        <span style="flex:none;display:flex;align-items:baseline;gap:6px"><span style="font-family:'Newsreader', Georgia, serif;font-size:19px;letter-spacing:-0.02em;line-height:1">To-do</span><span style="font-size:9px;color:#5c5c5c">/02</span></span>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden">
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;background:#f1f1ee;border-radius:14px;font-size:9.5px;white-space:nowrap">Email TA about extension<span style="color:#5c5c5c;font-size:9.5px">✕</span></span>
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;border:1px solid rgba(17,17,17,0.2);border-radius:14px;font-size:9.5px;white-space:nowrap;color:#5c5c5c;text-decoration:line-through">Buy blue books</span>
+          <span style="display:flex;align-items:center;gap:8px;flex:none;height:28px;padding:0 12px;background:#f1f1ee;border-radius:14px;font-size:9.5px;white-space:nowrap">Print essay</span>
+          <span style="flex:none;padding:0 6px;font-size:9px;font-weight:500;letter-spacing:0.01em;color:#5c5c5c;white-space:nowrap" style-hover="text-decoration:underline;text-underline-offset:3px;text-decoration-color:#111111;color:#111111">+ Add note</span>
+        </div>
+      </div>
+    
+    </div>
+  </div>
+</div>
+</div>
+
+</section>
+<section style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 56px; padding: 48px; position: absolute; left: 4254px; top: 123px">
+
+<div id="1a" style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(55,53,47,0.6)"><span style="padding:2px 8px;border-radius:4px;background:#37352f;color:#fff;font-weight:600;font-size:12px">1a</span>Desktop · Week view · 1280×800</div>
+
+<div style="width:1280px;height:800px;display:flex;flex-direction:column;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:10px;overflow:hidden;box-shadow:0 18px 44px rgba(15,15,15,0.10);font-size:13px">
+
+  <header style="position:relative;flex:none;display:flex;align-items:center;height:36px;background:#f7f7f5;border-bottom:1px solid rgba(55,53,47,0.09);user-select:none">
+    <div style="position:absolute;left:80px;top:50%;transform:translateY(-50%);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:rgba(55,53,47,0.4);font-size:18px;line-height:1">«</div>
+    <div style="position:absolute;left:16px;top:50%;transform:translateY(-50%);display:flex;gap:8px">
+      <span style="width:12px;height:12px;border-radius:50%;background:#ff5f57"></span><span style="width:12px;height:12px;border-radius:50%;background:#febc2e"></span><span style="width:12px;height:12px;border-radius:50%;background:#28c840"></span>
+    </div>
+    <div style="flex:1;min-width:0;height:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center">
+      <div style="padding-left:116px"></div>
+      <div style="display:flex;align-items:baseline;gap:12px;min-width:0">
+        <h1 style="margin:0;font-family:'Source Serif 4', Georgia, serif;font-size:21px;font-weight:600;letter-spacing:-0.01em;line-height:1;white-space:nowrap">October<span style="color:rgba(55,53,47,0.4);margin-left:0.25em">2026</span></h1>
+        <span style="font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:rgba(55,53,47,0.45);white-space:nowrap">Week 42 · Oct 12 – 18</span>
+      </div>
+      <div style="justify-self:end;display:flex;align-items:center;gap:8px;padding-right:14px">
+        <div style="display:flex;align-items:center;border:1px solid rgba(55,53,47,0.12);border-radius:6px;overflow:hidden">
+          <span style="display:flex;align-items:center;justify-content:center;width:30px;height:26px;color:rgba(55,53,47,0.6)" style-hover="background:rgba(55,53,47,0.045)"><svg viewBox="0 0 30 30" width="13" height="13" fill="currentColor"><path d="M9.83287 15.0052C9.83702 14.8599 9.86607 14.7271 9.92003 14.6067C9.97398 14.4864 10.057 14.3702 10.1691 14.2581L16.4071 8.21929C16.5856 8.04082 16.8055 7.95159 17.067 7.95159C17.2413 7.95159 17.399 7.99309 17.5401 8.0761C17.6854 8.15911 17.7995 8.27117 17.8826 8.41228C17.9697 8.5534 18.0133 8.71111 18.0133 8.88543C18.0133 9.14275 17.9158 9.36895 17.7207 9.56402L12.0803 14.999L17.7207 20.4401C17.9158 20.6393 18.0133 20.8655 18.0133 21.1187C18.0133 21.2972 17.9697 21.457 17.8826 21.5981C17.7995 21.7392 17.6854 21.8512 17.5401 21.9343C17.399 22.0214 17.2413 22.065 17.067 22.065C16.8055 22.065 16.5856 21.9737 16.4071 21.7911L10.1691 15.7522C10.0528 15.6402 9.96776 15.524 9.9138 15.4036C9.85985 15.2791 9.83287 15.1463 9.83287 15.0052Z"></path></svg></span>
+          <span style="height:26px;line-height:26px;padding:0 12px;font-size:12.5px;font-weight:500;border-left:1px solid rgba(55,53,47,0.09);border-right:1px solid rgba(55,53,47,0.09)" style-hover="background:rgba(55,53,47,0.045)">Today</span>
+          <span style="display:flex;align-items:center;justify-content:center;width:30px;height:26px;color:rgba(55,53,47,0.6)" style-hover="background:rgba(55,53,47,0.045)"><svg viewBox="0 0 30 30" width="13" height="13" fill="currentColor" style="transform:scaleX(-1)"><path d="M9.83287 15.0052C9.83702 14.8599 9.86607 14.7271 9.92003 14.6067C9.97398 14.4864 10.057 14.3702 10.1691 14.2581L16.4071 8.21929C16.5856 8.04082 16.8055 7.95159 17.067 7.95159C17.2413 7.95159 17.399 7.99309 17.5401 8.0761C17.6854 8.15911 17.7995 8.27117 17.8826 8.41228C17.9697 8.5534 18.0133 8.71111 18.0133 8.88543C18.0133 9.14275 17.9158 9.36895 17.7207 9.56402L12.0803 14.999L17.7207 20.4401C17.9158 20.6393 18.0133 20.8655 18.0133 21.1187C18.0133 21.2972 17.9697 21.457 17.8826 21.5981C17.7995 21.7392 17.6854 21.8512 17.5401 21.9343C17.399 22.0214 17.2413 22.065 17.067 22.065C16.8055 22.065 16.5856 21.9737 16.4071 21.7911L10.1691 15.7522C10.0528 15.6402 9.96776 15.524 9.9138 15.4036C9.85985 15.2791 9.83287 15.1463 9.83287 15.0052Z"></path></svg></span>
+        </div>
+        <div style="display:inline-flex;align-items:center;border:1px solid rgba(55,53,47,0.12);border-radius:6px;overflow:hidden">
+          <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(55,53,47,0.6)">−</span>
+          <span style="padding:0 10px;min-width:64px;text-align:center;font-size:12.5px;font-weight:500;border-left:1px solid rgba(55,53,47,0.09);border-right:1px solid rgba(55,53,47,0.09);height:26px;line-height:26px;white-space:nowrap">7 days</span>
+          <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(55,53,47,0.6)">+</span>
+        </div>
+        <span style="display:inline-flex;align-items:center;height:26px;padding:0 12px;border:1px solid #37352f;border-radius:6px;background:#37352f;color:#fff;font-size:12.5px;font-weight:500;white-space:nowrap" style-hover="background:#4a4740">New item</span>
+      </div>
+    </div>
+  </header>
+
+  <div style="flex:1;min-height:0;display:flex">
+    <aside style="flex:none;width:236px;display:flex;flex-direction:column;background:#f7f7f5;border-right:1px solid rgba(55,53,47,0.09);overflow:hidden">
+      <nav style="display:flex;flex-direction:column;gap:1px;padding:8px 8px 6px">
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13.5px;background:rgba(55,53,47,0.07);color:#37352f;font-weight:500"><span style="width:16px;height:16px;flex:none;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5"></rect><path d="M1.75 6.25h12.5M6 6.25v7M10 6.25v7"></path></svg></span>Week</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13.5px;color:rgba(55,53,47,0.7)" style-hover="background:rgba(55,53,47,0.045)"><span style="width:16px;height:16px;flex:none;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"></path></svg></span>List</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13.5px;color:rgba(55,53,47,0.7)" style-hover="background:rgba(55,53,47,0.045)"><span style="width:16px;height:16px;flex:none;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.75"></circle><path d="M8 4.75V8l2.25 1.6"></path></svg></span>Today<span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">3</span></div>
+      </nav>
+
+      <div style="display:flex;flex-direction:column;gap:1px;padding:14px 8px 6px">
+        <div style="padding:0 8px 4px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(55,53,47,0.4)">Subjects</div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.82)" style-hover="background:rgba(55,53,47,0.045)"><span style="width:7px;height:7px;flex:none;border-radius:50%;background:#6a7ecd"></span>Economics<span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">3</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.82)" style-hover="background:rgba(55,53,47,0.045)"><span style="width:7px;height:7px;flex:none;border-radius:50%;background:#8b73c5"></span>Political Science<span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">2</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.82)" style-hover="background:rgba(55,53,47,0.045)"><span style="width:7px;height:7px;flex:none;border-radius:50%;background:#b96f2c"></span>Journalism<span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">4</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.82)" style-hover="background:rgba(55,53,47,0.045)"><span style="width:7px;height:7px;flex:none;border-radius:50%;background:#3c9960"></span>History<span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">2</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.82)" style-hover="background:rgba(55,53,47,0.045)"><span style="width:7px;height:7px;flex:none;border-radius:50%;background:#9b9a94"></span>Meeting<span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">1</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.82)" style-hover="background:rgba(55,53,47,0.045)"><span style="width:7px;height:7px;flex:none;border-radius:50%;background:#9b9a94"></span>Other<span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.35)">0</span></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.45)" style-hover="background:rgba(55,53,47,0.045)"><span style="flex:none;width:7px;text-align:center">+</span>New subject</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:1px;padding:14px 8px 6px">
+        <div style="display:flex;align-items:center;gap:6px;padding:0 8px 4px"><span style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(55,53,47,0.4)">Missed</span><span style="flex:none;padding:1px 6px;border-radius:10px;background:#f7e3e0;color:#8c352a;font-size:10.5px;font-weight:600">1</span></div>
+        <div style="display:flex;flex-direction:column;gap:2px;padding:5px 8px;border-radius:5px" style-hover="background:rgba(55,53,47,0.045)">
+          <span style="display:flex;align-items:center;gap:8px;min-width:0">
+            <span style="flex:none;width:7px;height:7px;border-radius:50%;background:#c25a4b"></span>
+            <span style="flex:1;min-width:0;font-size:13px;color:rgba(55,53,47,0.82);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Response - Federalist 10</span>
+            <span style="flex:none;width:14px;height:14px"></span>
+            <span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span>
+          </span>
+          <span style="padding-left:15px;font-size:11px;color:rgba(55,53,47,0.45)">Political Science · 2 days late</span>
+        </div>
+        <div style="padding:5px 8px;border-radius:5px;font-size:12px;color:rgba(55,53,47,0.45)" style-hover="background:rgba(55,53,47,0.045);color:#37352f">Reschedule all →</div>
+      </div>
+
+      <div style="margin-top:auto;display:flex;flex-direction:column;gap:2px;padding:10px 8px 12px;border-top:1px solid rgba(55,53,47,0.09)">
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.6)" style-hover="background:rgba(55,53,47,0.045)"><span style="flex:none;width:14px;text-align:center;font-size:12px">⚙</span>Edit planner</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.6)" style-hover="background:rgba(55,53,47,0.045)"><span style="flex:none;width:14px;text-align:center;font-size:12px">↧</span>Export backup</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px;color:rgba(55,53,47,0.6)" style-hover="background:rgba(55,53,47,0.045)"><span style="flex:none;width:14px;text-align:center;font-size:12px">⌗</span>Import screenshot</div>
+      </div>
+    </aside>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden">
+        <div style="flex:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid rgba(55,53,47,0.09);background:#fcfcfb">
+          <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.82)">Monday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.45)">12</span></div>
+          <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.82)">Tuesday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.45)">13</span></div>
+          <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.82);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Wednesday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.45)">14</span></div>
+          <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:700;color:#37352f">Thursday</span><span style="font-size:12px;font-weight:600;color:#fff;background:#c25a4b;border-radius:4px;padding:1px 6px">15</span></div>
+          <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.82)">Friday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.45)">16</span></div>
+          <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px;border-right:1px solid rgba(55,53,47,0.07)"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.6)">Saturday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.35)">17</span></div>
+          <div style="display:flex;align-items:baseline;gap:7px;padding:11px 12px"><span style="font-size:14.5px;font-weight:600;color:rgba(55,53,47,0.6)">Sunday</span><span style="font-size:12px;font-weight:500;color:rgba(55,53,47,0.35)">18</span></div>
+        </div>
+
+        <div style="flex:none;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-bottom:1px solid rgba(55,53,47,0.07);background:#fff"><span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Assignments</span><span style="font-size:11px;color:rgba(55,53,47,0.3)">4 due</span><span style="margin-left:4px;font-size:11px;color:rgba(55,53,47,0.3)">▾</span></div>
+        <div style="flex:135 1 0;min-height:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:minmax(0,1fr);border-bottom:1px solid rgba(55,53,47,0.09)">
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fbfbfa;border:1px solid rgba(55,53,47,0.1);border-radius:6px">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#eeeeeb;color:#6a6862">Economics</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;display:flex;align-items:center;justify-content:center;border-radius:3px;background:#37352f;color:#fff;font-size:9px;line-height:1">✓</span></div>
+              <div style="font-size:12.5px;line-height:1.35;color:rgba(55,53,47,0.4);text-decoration:line-through">Problem Set 4</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2);box-shadow:0 2px 6px rgba(15,15,15,0.07)">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#eeebfa;color:#503f75">Political Science</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span></div>
+              <div style="font-size:12.5px;line-height:1.35">Response - Federalist 10</div>
+              <div style="font-size:11px;line-height:1.35;color:rgba(55,53,47,0.45);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden">300 words, post to the discussion board before section.</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.45)">11:59 pm</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fbfbfa;border:1px solid rgba(55,53,47,0.1);border-radius:6px">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#eeeeeb;color:#6a6862">Journalism</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;display:flex;align-items:center;justify-content:center;border-radius:3px;background:#37352f;color:#fff;font-size:9px;line-height:1">✓</span></div>
+              <div style="font-size:12.5px;line-height:1.35;color:rgba(55,53,47,0.4);text-decoration:line-through">Pitch draft</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.35)">5:00 pm</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2);box-shadow:0 2px 6px rgba(15,15,15,0.07)">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#e8edfc;color:#3a477b">Economics</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span></div>
+              <div style="font-size:12.5px;line-height:1.35">Reading - Smith 1–20</div>
+              <div style="font-size:11px;line-height:1.35;color:rgba(55,53,47,0.45);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden">Smith, Wealth of Nations Book I ch. 1–3. Bring two questions to section.</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.45)">11:59 pm</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2);box-shadow:0 2px 6px rgba(15,15,15,0.07)">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#e3f2e7;color:#195933">History</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span></div>
+              <div style="font-size:12.5px;line-height:1.35">Essay - Hamlet</div>
+              <div style="font-size:11px;line-height:1.35;color:rgba(55,53,47,0.45)">1500 words, submit on Canvas</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.45)">11:59 pm</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)" style-hover="border-color:rgba(55,53,47,0.2);box-shadow:0 2px 6px rgba(15,15,15,0.07)">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#eeebfa;color:#503f75">Political Science</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span></div>
+              <div style="font-size:12.5px;line-height:1.35">Quiz - Ch. 4</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.45)">10:00 am</div>
+            </div>
+            <div style="padding:6px 9px;border-radius:6px;font-size:12px;color:rgba(55,53,47,0.6);background:rgba(55,53,47,0.045)">+ Add</div>
+          </div>
+          <div style="padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);background:#fcfcfb"></div>
+          <div style="padding:8px 7px;background:#fcfcfb"></div>
+        </div>
+
+        <div style="flex:none;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-bottom:1px solid rgba(55,53,47,0.07);background:#fff"><span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Events</span><span style="font-size:11px;color:rgba(55,53,47,0.3)">4 this week</span><span style="margin-left:4px;font-size:11px;color:rgba(55,53,47,0.3)">▾</span></div>
+        <div style="flex:95 1 0;min-height:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:minmax(0,1fr);border-bottom:1px solid rgba(55,53,47,0.09)">
+          <div style="padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07)"></div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#f8eae0;color:#6e3d0e">Journalism</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span></div>
+              <div style="font-size:12.5px;line-height:1.35">Lecture: Media ethics</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.45)">2:00 pm</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#eeeeeb;color:#6a6862">Meeting</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span></div>
+              <div style="font-size:12.5px;line-height:1.35">Office hours - Prof. Lee</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.45)">3:30 pm</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#f8eae0;color:#6e3d0e">Journalism</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span></div>
+              <div style="font-size:12.5px;line-height:1.35">Lecture: Media ethics</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.45)">2:00 pm</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:8px 9px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04)">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#e8edfc;color:#3a477b">Economics</span><span style="flex:none;width:14px;height:14px;margin-left:auto"></span><span style="flex:none;width:13px;height:13px;border:1.3px solid rgba(55,53,47,0.3);border-radius:3px"></span></div>
+              <div style="font-size:12.5px;line-height:1.35">Section</div>
+              <div style="font-size:11px;color:rgba(55,53,47,0.45)">9:00 am</div>
+            </div>
+          </div>
+          <div style="padding:8px 7px;border-right:1px solid rgba(55,53,47,0.07);background:#fcfcfb"></div>
+          <div style="padding:8px 7px;background:#fcfcfb"></div>
+        </div>
+
+        <div style="flex:none;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-bottom:1px solid rgba(55,53,47,0.07);background:#fff"><span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Recurring</span><span style="font-size:11px;color:rgba(55,53,47,0.3)">2 active</span><span style="margin-left:4px;font-size:11px;color:rgba(55,53,47,0.3)">▾</span></div>
+        <div style="flex:100 1 0;min-height:0;position:relative;border-bottom:1px solid rgba(55,53,47,0.09);cursor:crosshair">
+          <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(7,1fr);pointer-events:none">
+            <span style="border-right:1px solid rgba(55,53,47,0.07)"></span><span style="border-right:1px solid rgba(55,53,47,0.07)"></span><span style="border-right:1px solid rgba(55,53,47,0.07)"></span><span style="border-right:1px solid rgba(55,53,47,0.07)"></span><span style="border-right:1px solid rgba(55,53,47,0.07)"></span><span style="border-right:1px solid rgba(55,53,47,0.07);background:#fcfcfb"></span><span style="background:#fcfcfb"></span>
+          </div>
+          <div style="position:absolute;left:calc(0% + 4px);width:calc(71.4286% - 8px);top:6px;display:flex;align-items:center;padding:7px 10px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-left:3px solid #3c9960;border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04);overflow:hidden;cursor:pointer" style-hover="border-color:rgba(55,53,47,0.2);border-left-color:#3c9960">
+            <div style="position:absolute;top:0;bottom:0;left:-7px;right:-5px;display:grid;grid-template-columns:repeat(5,1fr)"><span style="background:rgba(55,53,47,0.08)"></span><span style="background:rgba(55,53,47,0.08)"></span><span style="background:rgba(55,53,47,0.08)"></span><span></span><span></span></div>
+            <div style="position:relative;z-index:1;display:flex;align-items:center;gap:8px;min-width:0;width:100%">
+              <span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#e3f2e7;color:#195933">History</span>
+              <span style="min-width:0;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Read 20 pages</span>
+              <span style="margin-left:auto;flex:none;font-size:11px;color:rgba(55,53,47,0.4);white-space:nowrap">Mon – Fri</span>
+              <span style="flex:none;width:14px;height:14px"></span>
+            </div>
+          </div>
+          <div style="position:absolute;left:calc(14.2857% + 4px);width:calc(42.8571% - 8px);top:50px;display:flex;align-items:center;padding:7px 10px;background:#fff;border:1px solid rgba(55,53,47,0.11);border-left:3px solid #b96f2c;border-radius:6px;box-shadow:0 1px 2px rgba(15,15,15,0.04);overflow:hidden;cursor:pointer" style-hover="border-color:rgba(55,53,47,0.2);border-left-color:#b96f2c">
+            <div style="position:absolute;top:0;bottom:0;left:-7px;right:-5px;display:grid;grid-template-columns:repeat(3,1fr)"><span style="background:rgba(55,53,47,0.08)"></span><span style="background:rgba(55,53,47,0.08)"></span><span></span></div>
+            <div style="position:relative;z-index:1;display:flex;align-items:center;gap:8px;min-width:0;width:100%">
+              <span style="padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:600;line-height:1.35;white-space:nowrap;background:#f8eae0;color:#6e3d0e">Journalism</span>
+              <span style="min-width:0;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">News quiz prep</span>
+              <span style="margin-left:auto;flex:none;font-size:11px;color:rgba(55,53,47,0.4);white-space:nowrap">Tue – Thu</span>
+              <span style="flex:none;width:14px;height:14px"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;gap:12px;height:52px;padding:0 26px;border-top:1px solid rgba(55,53,47,0.09);background:#fcfcfb">
+        <span style="flex:none;font-size:11.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:rgba(55,53,47,0.45)">To-do</span>
+        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden">
+          <span style="display:flex;align-items:center;gap:6px;flex:none;padding:4px 9px;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:14px;font-size:12px;white-space:nowrap" style-hover="border-color:rgba(55,53,47,0.35)">Email TA about extension<span style="position:relative;flex:none;width:12px;height:12px;color:rgba(55,53,47,0.3)"><span style="position:absolute;left:50%;top:50%;width:9px;height:1px;background:currentColor;transform:translate(-50%,-50%) rotate(45deg)"></span><span style="position:absolute;left:50%;top:50%;width:9px;height:1px;background:currentColor;transform:translate(-50%,-50%) rotate(-45deg)"></span></span></span>
+          <span style="display:flex;align-items:center;gap:6px;flex:none;padding:4px 9px;background:#f4f4f2;border:1px solid rgba(55,53,47,0.08);border-radius:14px;font-size:12px;white-space:nowrap;color:rgba(55,53,47,0.4);text-decoration:line-through">Buy blue books<span style="position:relative;flex:none;width:12px;height:12px;color:rgba(55,53,47,0.3)"><span style="position:absolute;left:50%;top:50%;width:9px;height:1px;background:currentColor;transform:translate(-50%,-50%) rotate(45deg)"></span><span style="position:absolute;left:50%;top:50%;width:9px;height:1px;background:currentColor;transform:translate(-50%,-50%) rotate(-45deg)"></span></span></span>
+          <span style="display:flex;align-items:center;gap:6px;flex:none;padding:4px 9px;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:14px;font-size:12px;white-space:nowrap" style-hover="border-color:rgba(55,53,47,0.35)">Print essay<span style="position:relative;flex:none;width:12px;height:12px;color:rgba(55,53,47,0.3)"><span style="position:absolute;left:50%;top:50%;width:9px;height:1px;background:currentColor;transform:translate(-50%,-50%) rotate(45deg)"></span><span style="position:absolute;left:50%;top:50%;width:9px;height:1px;background:currentColor;transform:translate(-50%,-50%) rotate(-45deg)"></span></span></span>
+          <span style="flex:none;padding:4px 9px;border:1px dashed rgba(55,53,47,0.16);border-radius:14px;font-size:12px;color:rgba(55,53,47,0.35);white-space:nowrap" style-hover="color:rgba(55,53,47,0.7);border-color:rgba(55,53,47,0.35)">+ Add note</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+
+</section>
+<div id="1b" style="display: flex; flex-direction: column; gap: 14px; position: absolute; left: 3803px; top: 171px">
+<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(55,53,47,0.6)"><span style="padding:2px 8px;border-radius:4px;background:#37352f;color:#fff;font-weight:600;font-size:12px">1b</span>Mobile PWA · Week tab, 1 day · 393×852</div>
+
+<div style="position:relative;width:393px;height:852px;display:flex;flex-direction:column;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:44px;overflow:hidden;box-shadow:0 18px 44px rgba(15,15,15,0.10);padding-top:59px">
+  <div style="position:absolute;top:0;left:0;right:0;height:59px;z-index:25;display:flex;align-items:center;justify-content:space-between;padding:0 34px 0 44px;background:#fff;font-size:16px;font-weight:600">
+    <span>9:41</span>
+    <span style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:124px;height:36px;border-radius:18px;background:#000"></span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:25px;height:12px;border:1px solid rgba(55,53,47,0.4);border-radius:4px;padding:1px"><span style="display:block;width:80%;height:100%;background:#37352f;border-radius:2px"></span></span></span>
+  </div>
+
+  <div style="flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:111px">
+    <div style="position:sticky;top:0;z-index:12;background:#fff">
+      <div style="display:flex;align-items:flex-end;gap:8px;padding:6px 16px 12px">
+        <h1 style="flex:1;min-width:0;margin:0;font-family:'Source Serif 4', Georgia, serif;font-size:25.5px;font-weight:600;letter-spacing:-0.01em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">October <span style="color:rgba(55,53,47,0.4)">2026</span></h1>
+        <div style="display:flex;gap:2px;flex:none;padding:2px;background:#f2f2f0;border-radius:7px">
+          <span style="width:36px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:14px;font-weight:600;color:#37352f;background:#fff;box-shadow:0 1px 2px rgba(15,15,15,0.06)">1</span>
+          <span style="width:36px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:14px;font-weight:500;color:rgba(55,53,47,0.6)">2</span>
+          <span style="width:36px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:14px;font-weight:500;color:rgba(55,53,47,0.6)">3</span>
+        </div>
+        <span style="width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:6px;background:#37352f;color:#fff;font-size:22px;font-weight:300;line-height:1">+</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));padding:0 12px 10px">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px"><span style="font-size:11px;font-weight:500;color:rgba(55,53,47,0.6)">Mon</span><span style="min-width:26px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:15px;font-weight:600">12</span><span style="display:flex;gap:3px;height:5px"><span style="width:5px;height:5px;border-radius:50%;background:#6a7ecd"></span><span style="width:5px;height:5px;border-radius:50%;background:#3c9960"></span></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px"><span style="font-size:11px;font-weight:500;color:rgba(55,53,47,0.6)">Tue</span><span style="min-width:26px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:15px;font-weight:600">13</span><span style="display:flex;gap:3px;height:5px"><span style="width:5px;height:5px;border-radius:50%;background:#8b73c5"></span><span style="width:5px;height:5px;border-radius:50%;background:#b96f2c"></span><span style="width:5px;height:5px;border-radius:50%;background:#3c9960"></span></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px"><span style="font-size:11px;font-weight:500;color:rgba(55,53,47,0.6)">Wed</span><span style="min-width:26px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:15px;font-weight:600">14</span><span style="display:flex;gap:3px;height:5px"><span style="width:5px;height:5px;border-radius:50%;background:#b96f2c"></span><span style="width:5px;height:5px;border-radius:50%;background:#9b9a94"></span><span style="width:5px;height:5px;border-radius:50%;background:#3c9960"></span></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px;background:rgba(55,53,47,0.07);border-radius:8px"><span style="font-size:11px;font-weight:500;color:#37352f">Thu</span><span style="min-width:26px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:15px;font-weight:600;background:#37352f;color:#fff">15</span><span style="display:flex;gap:3px;height:5px"><span style="width:5px;height:5px;border-radius:50%;background:#6a7ecd"></span><span style="width:5px;height:5px;border-radius:50%;background:#3c9960"></span><span style="width:5px;height:5px;border-radius:50%;background:#b96f2c"></span></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px"><span style="font-size:11px;font-weight:500;color:rgba(55,53,47,0.6)">Fri</span><span style="min-width:26px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:15px;font-weight:600">16</span><span style="display:flex;gap:3px;height:5px"><span style="width:5px;height:5px;border-radius:50%;background:#8b73c5"></span><span style="width:5px;height:5px;border-radius:50%;background:#6a7ecd"></span><span style="width:5px;height:5px;border-radius:50%;background:#3c9960"></span></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px"><span style="font-size:11px;font-weight:500;color:rgba(55,53,47,0.35)">Sat</span><span style="min-width:26px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:15px;font-weight:600;color:rgba(55,53,47,0.45)">17</span><span style="display:flex;gap:3px;height:5px"></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px"><span style="font-size:11px;font-weight:500;color:rgba(55,53,47,0.35)">Sun</span><span style="min-width:26px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:15px;font-weight:600;color:rgba(55,53,47,0.45)">18</span><span style="display:flex;gap:3px;height:5px"></span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;height:48px;padding:0 6px 0 16px;border-top:1px solid rgba(55,53,47,0.09)">
+        <span style="display:flex;align-items:center;gap:7px;height:32px;padding:0 10px;border-radius:6px;background:#f7f7f5;border:1px solid rgba(55,53,47,0.09)"><span style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(55,53,47,0.6)">Missed</span><span style="font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:10px;background:#f7e3e0;color:#8c352a">1</span></span>
+        <div style="margin-left:auto;display:flex;align-items:center">
+          <span style="display:flex;align-items:center;height:32px;padding:0 10px;margin-right:4px;border-radius:6px;border:1px solid rgba(55,53,47,0.2);background:rgba(55,53,47,0.07);color:#37352f;font-size:13px;font-weight:500">Details</span>
+          <span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:rgba(55,53,47,0.6)"><svg viewBox="0 0 30 30" width="16" height="16" fill="currentColor"><path d="M9.83287 15.0052C9.83702 14.8599 9.86607 14.7271 9.92003 14.6067C9.97398 14.4864 10.057 14.3702 10.1691 14.2581L16.4071 8.21929C16.5856 8.04082 16.8055 7.95159 17.067 7.95159C17.2413 7.95159 17.399 7.99309 17.5401 8.0761C17.6854 8.15911 17.7995 8.27117 17.8826 8.41228C17.9697 8.5534 18.0133 8.71111 18.0133 8.88543C18.0133 9.14275 17.9158 9.36895 17.7207 9.56402L12.0803 14.999L17.7207 20.4401C17.9158 20.6393 18.0133 20.8655 18.0133 21.1187C18.0133 21.2972 17.9697 21.457 17.8826 21.5981C17.7995 21.7392 17.6854 21.8512 17.5401 21.9343C17.399 22.0214 17.2413 22.065 17.067 22.065C16.8055 22.065 16.5856 21.9737 16.4071 21.7911L10.1691 15.7522C10.0528 15.6402 9.96776 15.524 9.9138 15.4036C9.85985 15.2791 9.83287 15.1463 9.83287 15.0052Z"></path></svg></span>
+          <span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:rgba(55,53,47,0.6)"><svg viewBox="0 0 30 30" width="16" height="16" fill="currentColor" style="transform:scaleX(-1)"><path d="M9.83287 15.0052C9.83702 14.8599 9.86607 14.7271 9.92003 14.6067C9.97398 14.4864 10.057 14.3702 10.1691 14.2581L16.4071 8.21929C16.5856 8.04082 16.8055 7.95159 17.067 7.95159C17.2413 7.95159 17.399 7.99309 17.5401 8.0761C17.6854 8.15911 17.7995 8.27117 17.8826 8.41228C17.9697 8.5534 18.0133 8.71111 18.0133 8.88543C18.0133 9.14275 17.9158 9.36895 17.7207 9.56402L12.0803 14.999L17.7207 20.4401C17.9158 20.6393 18.0133 20.8655 18.0133 21.1187C18.0133 21.2972 17.9697 21.457 17.8826 21.5981C17.7995 21.7392 17.6854 21.8512 17.5401 21.9343C17.399 22.0214 17.2413 22.065 17.067 22.065C16.8055 22.065 16.5856 21.9737 16.4071 21.7911L10.1691 15.7522C10.0528 15.6402 9.96776 15.524 9.9138 15.4036C9.85985 15.2791 9.83287 15.1463 9.83287 15.0052Z"></path></svg></span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 16px;border-top:1px solid rgba(55,53,47,0.09);border-bottom:1px solid rgba(55,53,47,0.07);background:#fcfcfb"><span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Assignments</span><span style="font-size:11px;color:rgba(55,53,47,0.3)">2 due</span><span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.3)">▾</span></div>
+    <div style="display:flex;align-items:flex-start;border-bottom:1px solid rgba(55,53,47,0.06);background:#fff">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:12px 0 12px 16px">
+        <span style="font-size:15px;line-height:1.35;text-wrap:pretty">Reading - Smith 1–20</span>
+        <span style="font-size:13px;line-height:1.45;color:rgba(55,53,47,0.6);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Smith, Wealth of Nations Book I ch. 1–3. Bring two questions to section.</span>
+        <span style="display:flex;align-items:center;gap:8px;margin-top:2px;min-width:0"><span style="flex:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;background:#e8edfc;color:#3a477b">Economics</span><span style="font-size:12px;color:rgba(55,53,47,0.45);white-space:nowrap">11:59 pm</span></span>
+      </div>
+      <div style="width:52px;height:44px;flex:none;display:flex;justify-content:center;padding-top:13px"><span style="width:18px;height:18px;flex:none;border:1.5px solid rgba(55,53,47,0.28);border-radius:4px"></span></div>
+    </div>
+    <div style="display:flex;align-items:flex-start;border-bottom:1px solid rgba(55,53,47,0.06);background:#fff">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:12px 0 12px 16px">
+        <span style="font-size:15px;line-height:1.35;text-wrap:pretty">Essay - Hamlet</span>
+        <span style="font-size:13px;line-height:1.45;color:rgba(55,53,47,0.6)">1500 words, submit on Canvas</span>
+        <span style="display:flex;align-items:center;gap:8px;margin-top:2px;min-width:0"><span style="flex:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;background:#e3f2e7;color:#195933">History</span><span style="font-size:12px;color:rgba(55,53,47,0.45);white-space:nowrap">11:59 pm</span></span>
+      </div>
+      <div style="width:52px;height:44px;flex:none;display:flex;justify-content:center;padding-top:13px"><span style="width:18px;height:18px;flex:none;border:1.5px solid rgba(55,53,47,0.28);border-radius:4px"></span></div>
+    </div>
+    <div style="display:flex;align-items:center;height:44px;padding-left:16px;font-size:14px;color:rgba(55,53,47,0.4)">+ Add assignment</div>
+
+    <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 16px;border-top:1px solid rgba(55,53,47,0.09);border-bottom:1px solid rgba(55,53,47,0.07);background:#fcfcfb"><span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Events</span><span style="font-size:11px;color:rgba(55,53,47,0.3)">1 today</span><span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.3)">▾</span></div>
+    <div style="display:flex;align-items:flex-start;border-bottom:1px solid rgba(55,53,47,0.06);background:#fff">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:12px 0 12px 16px">
+        <span style="font-size:15px;line-height:1.35">Lecture: Media ethics</span>
+        <span style="display:flex;align-items:center;gap:8px;margin-top:2px;min-width:0"><span style="flex:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;background:#f8eae0;color:#6e3d0e">Journalism</span><span style="font-size:12px;color:rgba(55,53,47,0.45);white-space:nowrap">2:00 pm</span></span>
+      </div>
+      <div style="width:52px;height:44px;flex:none;display:flex;justify-content:center;padding-top:13px"><span style="width:18px;height:18px;flex:none;border:1.5px solid rgba(55,53,47,0.28);border-radius:4px"></span></div>
+    </div>
+    <div style="display:flex;align-items:center;height:44px;padding-left:16px;font-size:14px;color:rgba(55,53,47,0.4)">+ Add event</div>
+
+    <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 16px;border-top:1px solid rgba(55,53,47,0.09);border-bottom:1px solid rgba(55,53,47,0.07);background:#fcfcfb"><span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Recurring</span><span style="font-size:11px;color:rgba(55,53,47,0.3)">2 active</span><span style="margin-left:auto;font-size:11px;color:rgba(55,53,47,0.3)">▾</span></div>
+    <div style="display:flex;align-items:flex-start;border-bottom:1px solid rgba(55,53,47,0.06);background:#fff;box-shadow:inset 3px 0 0 #3c9960">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:12px 0 12px 13px">
+        <span style="font-size:15px;line-height:1.35">Read 20 pages</span>
+        <span style="display:flex;align-items:center;gap:8px;margin-top:2px;min-width:0"><span style="flex:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;background:#e3f2e7;color:#195933">History</span><span style="font-size:12px;color:rgba(55,53,47,0.45);white-space:nowrap">Mon – Fri · day 4 of 5</span></span>
+        <span style="display:grid;grid-template-columns:repeat(7,16px);gap:3px;align-items:center;height:8px;margin-top:4px"><span style="height:4px;border-radius:2px;background:#3c9960;opacity:0.35"></span><span style="height:4px;border-radius:2px;background:#3c9960;opacity:0.35"></span><span style="height:4px;border-radius:2px;background:#3c9960;opacity:0.35"></span><span style="height:6px;border-radius:2px;background:#3c9960"></span><span style="height:4px;border-radius:2px;background:#3c9960;opacity:0.35"></span><span style="height:4px;border-radius:2px;background:rgba(55,53,47,0.08)"></span><span style="height:4px;border-radius:2px;background:rgba(55,53,47,0.08)"></span></span>
+      </div>
+      <div style="width:52px;height:44px;flex:none;display:flex;justify-content:center;padding-top:13px"><span style="width:18px;height:18px;flex:none;border:1.5px solid rgba(55,53,47,0.28);border-radius:4px"></span></div>
+    </div>
+    <div style="display:flex;align-items:flex-start;border-bottom:1px solid rgba(55,53,47,0.06);background:#fff;box-shadow:inset 3px 0 0 #b96f2c">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:12px 0 12px 13px">
+        <span style="font-size:15px;line-height:1.35">News quiz prep</span>
+        <span style="display:flex;align-items:center;gap:8px;margin-top:2px;min-width:0"><span style="flex:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;background:#f8eae0;color:#6e3d0e">Journalism</span><span style="font-size:12px;color:rgba(55,53,47,0.45);white-space:nowrap">Tue – Thu · day 3 of 3</span></span>
+        <span style="display:grid;grid-template-columns:repeat(7,16px);gap:3px;align-items:center;height:8px;margin-top:4px"><span style="height:4px;border-radius:2px;background:rgba(55,53,47,0.08)"></span><span style="height:4px;border-radius:2px;background:#b96f2c;opacity:0.35"></span><span style="height:4px;border-radius:2px;background:#b96f2c;opacity:0.35"></span><span style="height:6px;border-radius:2px;background:#b96f2c"></span><span style="height:4px;border-radius:2px;background:rgba(55,53,47,0.08)"></span><span style="height:4px;border-radius:2px;background:rgba(55,53,47,0.08)"></span><span style="height:4px;border-radius:2px;background:rgba(55,53,47,0.08)"></span></span>
+      </div>
+      <div style="width:52px;height:44px;flex:none;display:flex;justify-content:center;padding-top:13px"><span style="width:18px;height:18px;flex:none;border:1.5px solid rgba(55,53,47,0.28);border-radius:4px"></span></div>
+    </div>
+    <div style="display:flex;align-items:center;height:44px;padding-left:16px;font-size:14px;color:rgba(55,53,47,0.4)">+ Add recurring</div>
+
+    <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 16px;border-top:1px solid rgba(55,53,47,0.09);border-bottom:1px solid rgba(55,53,47,0.07);background:#fcfcfb"><span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">To-do</span><span style="font-size:11px;color:rgba(55,53,47,0.3)">2 open</span><span style="margin-left:auto;font-size:12px;color:rgba(55,53,47,0.45)">Clear done</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px">
+      <span style="display:flex;align-items:center;height:36px;padding:0 14px;font-size:14px;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:18px">Email TA about extension</span>
+      <span style="display:flex;align-items:center;height:36px;padding:0 14px;font-size:14px;background:#f4f4f2;border:1px solid rgba(55,53,47,0.07);border-radius:18px;color:rgba(55,53,47,0.4);text-decoration:line-through">Buy blue books</span>
+      <span style="display:flex;align-items:center;height:36px;padding:0 14px;font-size:14px;background:#fff;border:1px solid rgba(55,53,47,0.12);border-radius:18px">Print essay</span>
+      <span style="display:flex;align-items:center;height:36px;padding:0 14px;font-size:14px;background:#fff;border:1px dashed rgba(55,53,47,0.18);border-radius:18px;color:rgba(55,53,47,0.4)">+ Add</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px;padding:4px 16px 0">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:rgba(55,53,47,0.45)">Notes</span>
+      <textarea placeholder="Free text for the day." style="min-height:72px;padding:12px 14px;background:#f7f7f5;border:none;border-radius:8px;font-family:'DM Sans', sans-serif;font-size:16px;line-height:1.5;color:#37352f;resize:none;outline:none"></textarea>
+    </div>
+  </div>
+
+  <nav style="position:absolute;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding-bottom:34px;background:rgba(252,252,251,0.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(55,53,47,0.09)">
+    <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:49px;font-size:10.5px;font-weight:600;color:#37352f"><svg viewBox="0 0 16 16" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5"></rect><path d="M1.75 6.25h12.5M6 6.25v7M10 6.25v7"></path></svg>Week</div>
+    <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:49px;font-size:10.5px;font-weight:500;color:rgba(55,53,47,0.45)"><svg viewBox="0 0 16 16" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"></path></svg>List</div>
+    <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:49px;font-size:10.5px;font-weight:500;color:rgba(55,53,47,0.45)"><svg viewBox="0 0 16 16" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5"></rect><path d="M5.75 2.75v10.5"></path></svg>Planner<span style="position:absolute;top:5px;left:calc(50% + 8px);width:7px;height:7px;border-radius:50%;background:#c25a4b;box-shadow:0 0 0 2px #fcfcfb"></span></div>
+    <span style="position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#000"></span>
+  </nav>
+</div>
+</div></x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const set = (el, done) => {
+      el.dataset.done = done ? '1' : '0';
+      el.style.textDecoration = done ? 'line-through' : 'none';
+      el.style.opacity = done ? '0.5' : '1';
+      el.querySelectorAll('*').forEach(c => { if (!done && c.style.textDecoration.includes('line-through')) c.style.textDecoration = 'none'; });
+    };
+    document.querySelectorAll('[data-toggle]').forEach(el => {
+      if (el.querySelector('[style*="line-through"]')) set(el, true);
+    });
+    this._onClick = e => {
+      const el = e.target.closest('[data-toggle]');
+      if (el) set(el, el.dataset.done !== '1');
+    };
+    document.addEventListener('click', this._onClick);
+    document.querySelectorAll('[data-list-scroll]').forEach(sc => { const t = sc.querySelector('[data-today]'); if (t) sc.scrollTop = t.offsetTop; });
+  }
+  componentWillUnmount() { document.removeEventListener('click', this._onClick); }
+  state = { filterOpen: false };
+  renderVals() { return { filterOpen: this.state.filterOpen, toggleFilter: () => this.setState(s => ({ filterOpen: !s.filterOpen })) }; }
+}
+</script>
+</body>
+</html>

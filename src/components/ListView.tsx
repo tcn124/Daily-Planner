@@ -1,13 +1,19 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { usePlanner } from '../store/plannerStore';
-import { dayName, dayOfMonth, formatSpan, monthShort, todayISO } from '../lib/dates';
+import { dayName, dayOfMonth, formatSpan, todayISO } from '../lib/dates';
 import { activeDates, rowsForDate, type ListRow } from '../lib/listRows';
-import { subjectAccent, subjectChipInk } from '../lib/color';
+import { subjectAccent } from '../lib/color';
 import { uid } from '../store/defaults';
 import { startItemDrag, useDropTarget } from '../lib/dnd';
+import { compactTime, pad2 } from '../lib/format';
+import { recurringProgress } from '../lib/recurring';
+import { MAX_ZOOM, MIN_ZOOM, stepListZoom, useDevicePrefs } from '../store/devicePrefs';
 import { TodoStrip } from './TodoStrip';
 import { ItemComposer, type ComposerValue } from './ItemComposer';
+import { SubjectSquare } from './SubjectSquare';
+import { Menu, MenuItem, MenuLabel } from './Menu';
+import { Plus } from './icons';
 
 type Kind = 'assignment' | 'event' | 'recurring';
 type GroupBy = 'day' | 'subject';
@@ -15,9 +21,10 @@ type SortBy = 'default' | 'time' | 'subject';
 
 type Row = ListRow;
 
-const PILL_LABEL: Record<Kind, string> = {
+/* Events are folded in with assignments in the redesign; the stored type stays. */
+const TYPE_LABEL: Record<Kind, string> = {
   assignment: 'Assignment',
-  event: 'Event',
+  event: 'Assignment',
   recurring: 'Recurring',
 };
 
@@ -42,13 +49,11 @@ function DropSection({ date, draggingId, onDropItem, children }: DropSectionProp
   );
 }
 
-const GROUP_CYCLE: GroupBy[] = ['day', 'subject'];
-const SORT_CYCLE: SortBy[] = ['default', 'time', 'subject'];
 const GROUP_LABEL: Record<GroupBy, string> = { day: 'Day', subject: 'Subject' };
 const SORT_LABEL: Record<SortBy, string> = {
-  default: 'Sort',
-  time: 'Sort: Time',
-  subject: 'Sort: Subject',
+  default: 'Default',
+  time: 'Time',
+  subject: 'Subject',
 };
 
 interface Props {
@@ -63,15 +68,27 @@ export function ListView({ slot }: Props) {
   const [sortBy, setSortBy] = useState<SortBy>('default');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [composingDate, setComposingDate] = useState<string | null>(null);
+  /** Subjects shown; empty means all. Ephemeral, like the grouping. */
+  const [shown, setShown] = useState<Set<string>>(new Set());
+  const { listZoom } = useDevicePrefs();
 
   const today = todayISO();
 
   /*
    * The list has no window: it shows every day that has anything on it, from
    * the earliest to the latest, so nothing is ever out of reach. Days with
-   * nothing scheduled are simply absent rather than padded in.
+   * nothing scheduled are simply absent rather than padded in — except today,
+   * which is always there so the list always has its bearings (and an empty
+   * today says so), and a day a new item is being composed on, which needs
+   * somewhere to appear.
    */
-  const dates = activeDates(items, recurring);
+  const dates = [
+    ...new Set([
+      ...activeDates(items, recurring),
+      today,
+      ...(composingDate ? [composingDate] : []),
+    ]),
+  ].sort();
 
   function sortRows(rows: Row[]): Row[] {
     return rows.slice().sort((a, b) => {
@@ -92,8 +109,10 @@ export function ListView({ slot }: Props) {
     });
   }
 
+  const passes = (row: Row) => shown.size === 0 || (row.subjectId !== null && shown.has(row.subjectId));
+
   function rowsFor(date: string): Row[] {
-    return sortRows(rowsForDate(date, items, recurring, subjects));
+    return sortRows(rowsForDate(date, items, recurring, subjects).filter(passes));
   }
 
   const allRows = dates.flatMap(rowsFor);
@@ -104,32 +123,81 @@ export function ListView({ slot }: Props) {
       ? dates.map((date) => ({
           key: date,
           date: date as string | null,
-          title: dayName(date),
-          badge: `${monthShort(date)} ${dayOfMonth(date)}`,
+          title: dayName(date).slice(0, 3),
+          badge: `${dayOfMonth(date)}.`,
+          hue: null as number | null,
           isToday: date === today,
+          isPast: date < today,
           rows: rowsFor(date),
         }))
+          // A filtered-out day disappears, unless it's the one being composed on.
+          .filter((s) => s.rows.length > 0 || s.isToday || s.date === composingDate)
       : [...subjects, null]
           .map((s) => ({
             key: s?.id ?? 'none',
             date: null as string | null,
             title: s?.name ?? 'No subject',
             badge: '',
+            hue: s?.hue ?? null,
             isToday: false,
+            isPast: false,
             rows: allRows.filter((r) => r.subjectId === (s?.id ?? null)),
           }))
           .filter((s) => s.rows.length > 0);
 
   const bodyRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (groupBy !== 'day') return;
-    const target = dates.find((d) => d >= today);
+
+  /** Brings the first day on or after `from` to the top of the list. */
+  function scrollToDate(from: string) {
+    const target = dates.find((d) => d >= from);
     if (!target) return;
     const el = bodyRef.current?.querySelector<HTMLElement>(`[data-date="${target}"]`);
     el?.scrollIntoView({ block: 'start' });
+  }
+
+  useEffect(() => {
+    if (groupBy !== 'day') return;
+    scrollToDate(today);
     // Only on first open: later re-renders must not yank the scroll position.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Header "New item": compose on today, grouped by day so today has a home. */
+  function newItemToday() {
+    setGroupBy('day');
+    setEditingId(null);
+    setComposingDate(today);
+    // After the render that adds today's section.
+    requestAnimationFrame(() => scrollToDate(today));
+  }
+
+  function toggleShown(id: string) {
+    setShown((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      // Every subject ticked is the same as no filter.
+      return next.size === subjects.length ? new Set() : next;
+    });
+  }
+
+  const showLabel =
+    shown.size === 0
+      ? 'All subjects'
+      : shown.size === 1
+        ? subjects.find((s) => shown.has(s.id))?.name ?? '1 subject'
+        : `${shown.size} subjects`;
+
+  /** The Due column: the time, the day of a span, or "Missed". */
+  function dueFor(row: Row): { text: string; late: boolean } {
+    if (row.kind === 'recurring') {
+      const span = recurring.find((r) => r.id === row.id);
+      const p = span ? recurringProgress(span, row.date) : null;
+      return { text: p ? `${p.dayIndex}/${p.total}` : '', late: false };
+    }
+    if (!row.done && row.date < today) return { text: 'Missed', late: true };
+    return { text: compactTime(row.time), late: false };
+  }
 
   function toggle(row: Row) {
     dispatch(
@@ -201,41 +269,89 @@ export function ListView({ slot }: Props) {
     <div className="list">
       {slot && createPortal(
       <div className="viewbar">
-        <div className="viewbar__lead" />
-        <div className="viewbar__center">
-          <h1 className="viewbar__title">List</h1>
-          <span className="viewbar__eyebrow">
-            {dates.length
-              ? `${formatSpan([dates[0], dates[dates.length - 1]])} · `
-              : ''}
-            {allRows.length} item{allRows.length === 1 ? '' : 's'}
-          </span>
+        <div className="viewbar__lead">
+          <h1 className="viewbar__title">List.</h1>
+          <div className="viewbar__eyebrow">
+            <span className="viewbar__eyebrow-soft">
+              {dates.length ? formatSpan([dates[0], dates[dates.length - 1]]) : 'Nothing yet'}
+            </span>
+            <span>
+              {allRows.length} item{allRows.length === 1 ? '' : 's'}
+            </span>
+          </div>
         </div>
         <div className="viewbar__actions">
-          <button
-            type="button"
-            className="btn"
-            onClick={() =>
-              setGroupBy(
-                GROUP_CYCLE[(GROUP_CYCLE.indexOf(groupBy) + 1) % GROUP_CYCLE.length],
-              )
-            }
-          >
-            Group: {GROUP_LABEL[groupBy]}
+          <button type="button" className="link" onClick={() => {
+            setGroupBy('day');
+            requestAnimationFrame(() => scrollToDate(today));
+          }}>
+            Jump to today
           </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() =>
-              setSortBy(SORT_CYCLE[(SORT_CYCLE.indexOf(sortBy) + 1) % SORT_CYCLE.length])
-            }
-          >
-            {SORT_LABEL[sortBy]}
+
+          <div className="stepper" role="group" aria-label="Zoom">
+            <span className="viewbar__muted">Zoom</span>
+            <button type="button" className="stepper__btn" aria-label="Zoom out"
+              disabled={listZoom <= MIN_ZOOM} onClick={() => stepListZoom(-1)}>
+              −
+            </button>
+            <span className="stepper__value">{Math.round(listZoom * 100)}%</span>
+            <button type="button" className="stepper__btn" aria-label="Zoom in"
+              disabled={listZoom >= MAX_ZOOM} onClick={() => stepListZoom(1)}>
+              +
+            </button>
+          </div>
+
+          <Menu prefix="Show" label={showLabel}>
+            {() => (
+              <>
+                <MenuItem checked={shown.size === 0} onSelect={() => setShown(new Set())}>
+                  All subjects
+                </MenuItem>
+                {subjects.map((s) => (
+                  <MenuItem key={s.id} checked={shown.has(s.id)} onSelect={() => toggleShown(s.id)}>
+                    <span className="dot" style={{ background: subjectAccent(s.hue) }} />
+                    {s.name}
+                  </MenuItem>
+                ))}
+              </>
+            )}
+          </Menu>
+
+          <Menu prefix="View" label={GROUP_LABEL[groupBy]}>
+            {(close) => (
+              <>
+                <MenuLabel>Group by</MenuLabel>
+                {(Object.keys(GROUP_LABEL) as GroupBy[]).map((g) => (
+                  <MenuItem key={g} checked={groupBy === g} onSelect={() => { setGroupBy(g); close(); }}>
+                    {GROUP_LABEL[g]}
+                  </MenuItem>
+                ))}
+                <MenuLabel>Sort</MenuLabel>
+                {(Object.keys(SORT_LABEL) as SortBy[]).map((k) => (
+                  <MenuItem key={k} checked={sortBy === k} onSelect={() => { setSortBy(k); close(); }}>
+                    {SORT_LABEL[k]}
+                  </MenuItem>
+                ))}
+              </>
+            )}
+          </Menu>
+
+          <button type="button" className="link viewbar__new" onClick={newItemToday}>
+            New item <Plus />
           </button>
         </div>
       </div>,
         slot,
       )}
+
+      <div className="list__zoom" style={{ zoom: listZoom }}>
+      <div className="list__colheads" aria-hidden="true">
+        <span>{groupBy === 'day' ? 'Day' : 'Subject'}</span>
+        <span>{groupBy === 'day' ? 'Subject' : 'Day'}</span>
+        <span>Item</span>
+        <span>Type</span>
+        <span className="list__colhead-due">Due</span>
+      </div>
 
       <div className="list__body" ref={bodyRef}>
         {sections.map((section) => (
@@ -246,16 +362,34 @@ export function ListView({ slot }: Props) {
             onDropItem={(id) => onDropItem(id, section)}
           >
             <div
-              className={
-                section.isToday ? 'list__group list__group--today' : 'list__group'
-              }
+              className="list__group"
+              data-today={section.isToday || undefined}
+              data-past={section.isPast || undefined}
             >
-              <span className="list__group-name">{section.title}</span>
-              {section.badge && <span className="list__group-date">{section.badge}</span>}
-              {section.isToday && <span className="list__group-today">today</span>}
-              <span className="count">{section.rows.length}</span>
+              {section.date ? (
+                <>
+                  <span className="list__group-name">{section.title}</span>
+                  <span className="list__group-date">{section.badge}</span>
+                </>
+              ) : (
+                <span className="list__group-subject">
+                  <SubjectSquare hue={section.hue} />
+                  {section.title}
+                </span>
+              )}
+              {section.isToday ? (
+                <span className="list__group-today">Today</span>
+              ) : (
+                <span className="count">{pad2(section.rows.length)}</span>
+              )}
             </div>
 
+            <div className="list__rows">
+            {section.isToday && section.rows.length === 0 && composingDate !== today && (
+              <p className="list__nothing">
+                {shown.size ? 'Nothing due today for these subjects.' : 'Nothing due today.'}
+              </p>
+            )}
             {section.rows.map((row) =>
               editingId === row.id ? (
                 <div className="list__composer" key={row.id}>
@@ -305,23 +439,23 @@ export function ListView({ slot }: Props) {
                     }
                   }}
                 >
-                  <span className="chip list__pill">{PILL_LABEL[row.kind]}</span>
-                  <span
-                    className="list__subject"
-                    style={{ color: subjectChipInk(row.hue) }}
-                  >
-                    <span
-                      className="list__subject-dot"
-                      style={{ background: subjectAccent(row.hue) }}
-                    />
-                    {row.subject}
+                  <span className="list__subject">
+                    <SubjectSquare hue={row.hue} dim={row.done} />
+                    <span className="list__subject-name">
+                      {groupBy === 'day'
+                        ? row.subject
+                        : `${dayName(row.date).slice(0, 3)} ${dayOfMonth(row.date)}`}
+                    </span>
                   </span>
                   <span className="list__desc">
-                    {row.desc}
-                    {row.time && <span className="list__time"> · {row.time}</span>}
+                    <span className="list__title">{row.desc}</span>
                     {row.details && (
                       <span className="list__details" title={row.details}>{row.details}</span>
                     )}
+                  </span>
+                  <span className="list__type">{TYPE_LABEL[row.kind]}</span>
+                  <span className="list__due" data-late={dueFor(row).late || undefined}>
+                    {dueFor(row).text}
                   </span>
                   <span className="list__row-actions">
                     <button
@@ -372,8 +506,15 @@ export function ListView({ slot }: Props) {
                   + New item on this day
                 </button>
               ))}
+            </div>
           </DropSection>
         ))}
+        {sections.length === 0 && (
+          <p className="list__empty">
+            {shown.size ? 'Nothing for these subjects.' : 'Nothing planned yet.'}
+          </p>
+        )}
+      </div>
       </div>
 
       <TodoStrip

@@ -1,7 +1,8 @@
 import type { DragEvent } from 'react';
 import type { Item, Subject } from '../types';
-import { subjectChipBg, subjectChipInk } from '../lib/color';
 import { startItemDrag } from '../lib/dnd';
+import { SubjectSquare } from './SubjectSquare';
+import { compactTime } from '../lib/format';
 
 interface Props {
   item: Item;
@@ -15,6 +16,12 @@ interface Props {
   onDragEnd: () => void;
 }
 
+/**
+ * A white panel with a serif subject line, the title, and clamped details —
+ * the redesign's card. At rest it carries no controls at all; the square
+ * checkbox and ✕ take the time's place on hover, and a click opens the
+ * editor as it always has.
+ */
 export function ItemCard({
   item,
   subject,
@@ -25,13 +32,12 @@ export function ItemCard({
   onDragStart,
   onDragEnd,
 }: Props) {
-  // Completed cards drop to the neutral chip, as in the design.
-  const hue = item.done ? null : subject?.hue ?? null;
-
   function startDrag(e: DragEvent<HTMLDivElement>) {
     startItemDrag(e, item.id);
     onDragStart();
   }
+
+  const title = item.description || 'Untitled';
 
   return (
     <div
@@ -48,7 +54,9 @@ export function ItemCard({
       onClick={onEdit}
       role="button"
       tabIndex={0}
+      aria-label={`${subject?.name ?? 'No subject'}: ${title}${item.done ? ', done' : ''}`}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onEdit();
@@ -56,42 +64,39 @@ export function ItemCard({
       }}
     >
       <div className="card__head">
-        <span
-          className="chip"
-          style={{ background: subjectChipBg(hue), color: subjectChipInk(hue) }}
-        >
-          {subject?.name ?? 'No subject'}
+        <SubjectSquare hue={subject?.hue ?? null} dim={item.done} />
+        <span className="card__subject">{subject?.name ?? 'No subject'}</span>
+        {item.time && <span className="card__time">{compactTime(item.time)}</span>}
+        <span className="card__actions">
+          <button
+            type="button"
+            className="kill"
+            aria-label={`Delete ${title}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          />
+          <button
+            type="button"
+            className="checkbox"
+            data-checked={item.done}
+            aria-label={item.done ? 'Mark as not done' : 'Mark as done'}
+            aria-pressed={item.done}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
+          />
         </span>
-
-        <button
-          type="button"
-          className="kill card__kill"
-          aria-label={`Delete ${item.description || 'item'}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-        />
-        <button
-          type="button"
-          className="checkbox"
-          data-checked={item.done}
-          aria-label={item.done ? 'Mark as not done' : 'Mark as done'}
-          aria-pressed={item.done}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggle();
-          }}
-        />
       </div>
 
-      {item.description && <div className="card__desc">{item.description}</div>}
+      <div className="card__desc">{title}</div>
       {item.details && (
         <div className="card__details" title={item.details}>
           {item.details}
         </div>
       )}
-      {item.time && <div className="card__time">{item.time}</div>}
     </div>
   );
 }

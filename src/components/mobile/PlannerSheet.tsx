@@ -15,6 +15,7 @@ interface Props {
 }
 
 interface Pending {
+  title: string;
   message: string;
   confirmLabel: string;
   resolve: (ok: boolean) => void;
@@ -38,8 +39,8 @@ export function PlannerSheet({ onClose }: Props) {
   const [pending, setPending] = useState<Pending | null>(null);
 
   /** Promise-shaped, so the call sites below read top to bottom. */
-  function confirm(message: string, confirmLabel: string): Promise<boolean> {
-    return new Promise((resolve) => setPending({ message, confirmLabel, resolve }));
+  function confirm(title: string, message: string, confirmLabel: string): Promise<boolean> {
+    return new Promise((resolve) => setPending({ title, message, confirmLabel, resolve }));
   }
 
   const countFor = (id: string) =>
@@ -49,9 +50,9 @@ export function PlannerSheet({ onClose }: Props) {
   async function deleteSubject(id: string, name: string) {
     const used = countFor(id);
     const message = used
-      ? `Delete "${name}"? ${used} item${used === 1 ? '' : 's'} will keep their text but lose the subject.`
-      : `Delete "${name}"?`;
-    if (await confirm(message, 'Delete')) dispatch({ type: 'subject/delete', id });
+      ? `${used} item${used === 1 ? '' : 's'} will keep their text but lose the subject.`
+      : 'Nothing is filed under it yet.';
+    if (await confirm(`Delete ${name}?`, message, 'Delete')) dispatch({ type: 'subject/delete', id });
   }
 
   async function onImport() {
@@ -59,7 +60,9 @@ export function PlannerSheet({ onClose }: Props) {
     try {
       const next = await importState();
       if (!next) return; // cancelled
-      if (await confirm('Replace all current planner data with this backup?', 'Replace')) {
+      if (
+        await confirm('Import this backup?', 'Everything in this planner is replaced by the backup.', 'Replace')
+      ) {
         dispatch({ type: 'state/replace', state: next });
       }
     } catch (err) {
@@ -70,19 +73,20 @@ export function PlannerSheet({ onClose }: Props) {
   return (
     <>
       <Sheet title="Edit planner" onClose={onClose}>
-        <span className="m-sheet__eyebrow">Subjects</span>
-        <div className="m-sheet__group">
+        <span className="m-label">Subjects</span>
+        <div className="m-rows">
           {state.subjects.map((s) => (
             <div key={s.id} className="m-subject" data-open={open === s.id}>
               <div className="m-subject__row">
                 <button
                   type="button"
-                  className="m-subject__dot"
-                  style={{ background: subjectAccent(s.hue) }}
+                  className="m-subject__swatch"
                   aria-label={`Colour for ${s.name}`}
                   aria-expanded={open === s.id}
                   onClick={() => setOpen(open === s.id ? null : s.id)}
-                />
+                >
+                  <span style={{ background: subjectAccent(s.hue) }} />
+                </button>
                 <input
                   className="m-subject__name"
                   value={s.name}
@@ -117,7 +121,7 @@ export function PlannerSheet({ onClose }: Props) {
           ))}
           <button
             type="button"
-            className="m-listrow m-listrow--action"
+            className="m-action m-action--muted"
             onClick={() =>
               dispatch({
                 type: 'subject/add',
@@ -127,26 +131,32 @@ export function PlannerSheet({ onClose }: Props) {
               })
             }
           >
-            <span className="m-listrow__plus">+</span>New subject
+            + New subject
           </button>
         </div>
 
-        <span className="m-sheet__eyebrow">Data</span>
-        <div className="m-sheet__group">
-          <button type="button" className="m-listrow" onClick={() => void exportState(state)}>
-            <span className="m-listrow__glyph">↧</span>
-            <span className="m-listrow__title">Export backup</span>
+        <span className="m-label">Data</span>
+        <div className="m-actions">
+          <button type="button" className="m-action" onClick={() => void exportState(state)}>
+            <span className="m-action__glyph" aria-hidden="true">↧</span>
+            <span className="m-action__label">Export backup</span>
           </button>
-          <button type="button" className="m-listrow" onClick={() => void onImport()}>
-            <span className="m-listrow__glyph">↥</span>
-            <span className="m-listrow__title">Import backup</span>
+          <button type="button" className="m-action" onClick={() => void onImport()}>
+            <span className="m-action__glyph" aria-hidden="true">↥</span>
+            <span className="m-action__label">Import backup</span>
           </button>
           <button
             type="button"
-            className="m-listrow m-listrow--danger"
+            className="m-action m-action--danger"
             onClick={() => {
               void (async () => {
-                if (await confirm('Erase all planner data? This cannot be undone.', 'Erase everything')) {
+                if (
+                  await confirm(
+                    'Reset all data?',
+                    'Every subject, item and to-do is erased. This cannot be undone.',
+                    'Erase everything',
+                  )
+                ) {
                   clearState();
                   dispatch({ type: 'state/reset' });
                   onClose();
@@ -154,8 +164,8 @@ export function PlannerSheet({ onClose }: Props) {
               })();
             }}
           >
-            <span className="m-listrow__glyph">⌫</span>
-            <span className="m-listrow__title">Reset all data</span>
+            <span className="m-action__glyph" aria-hidden="true">⌫</span>
+            <span className="m-action__label">Reset all data</span>
           </button>
         </div>
 
@@ -168,10 +178,10 @@ export function PlannerSheet({ onClose }: Props) {
 
         {sync.status.phase !== 'unconfigured' && (
           <>
-            <span className="m-sheet__eyebrow">Sync</span>
+            <span className="m-label">Sync</span>
             {sync.status.phase === 'signed-out' ? (
               <form
-                className="m-form"
+                className="m-form m-form__pad"
                 onSubmit={(e) => {
                   e.preventDefault();
                   sync.signIn();
@@ -195,30 +205,28 @@ export function PlannerSheet({ onClose }: Props) {
                     onChange={(e) => sync.setPassword(e.target.value)}
                   />
                 </SheetField>
-                <div className="m-sheet__group">
-                  <button type="submit" className="m-listrow m-listrow--action" disabled={sync.submitting}>
-                    {sync.submitting ? 'Signing in…' : 'Sign in'}
-                  </button>
-                </div>
+                <button type="submit" className="m-primary" disabled={sync.submitting}>
+                  {sync.submitting ? 'Signing in…' : 'Sign in'}
+                </button>
                 {sync.error && <p className="m-sheet__note m-sheet__note--error">{sync.error}</p>}
               </form>
             ) : (
-              <div className="m-sheet__group">
-                <div className="m-listrow">
-                  <span className="m-listrow__body">
-                    <span className="m-listrow__title">{sync.status.email}</span>
-                    <span className="m-listrow__sub">
-                      {sync.status.phase === 'first-sync' && 'Doing the first sync…'}
-                      {sync.status.phase === 'offline' && 'Offline'}
-                      {sync.status.phase === 'synced' &&
-                        (sync.status.lastSyncedAt == null
-                          ? 'Synced'
-                          : `Synced · ${formatRelativeTime(sync.status.lastSyncedAt)}`)}
-                    </span>
+              <div className="m-actions">
+                <div className="m-action m-action--static">
+                  <span className="m-action__glyph" aria-hidden="true">●</span>
+                  <span className="m-action__label">{sync.status.email}</span>
+                  <span className="m-action__meta">
+                    {sync.status.phase === 'first-sync' && 'Doing the first sync…'}
+                    {sync.status.phase === 'offline' && 'Offline'}
+                    {sync.status.phase === 'synced' &&
+                      (sync.status.lastSyncedAt == null
+                        ? 'Synced'
+                        : `Synced · ${formatRelativeTime(sync.status.lastSyncedAt)}`)}
                   </span>
                 </div>
-                <button type="button" className="m-listrow m-listrow--danger" onClick={sync.signOut}>
-                  <span className="m-listrow__title">Sign out</span>
+                <button type="button" className="m-action" onClick={sync.signOut}>
+                  <span className="m-action__glyph" aria-hidden="true">→</span>
+                  <span className="m-action__label">Sign out</span>
                 </button>
               </div>
             )}
@@ -228,6 +236,7 @@ export function PlannerSheet({ onClose }: Props) {
 
       {pending && (
         <ConfirmDialog
+          title={pending.title}
           message={pending.message}
           confirmLabel={pending.confirmLabel}
           danger

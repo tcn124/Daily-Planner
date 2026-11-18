@@ -70,7 +70,11 @@ is a perfectly normal way to work on everything else in this file.
   your screen to their day or hand your device their tombstones.
 - **Types** (`src/types.ts`): `Subject {hue|null, updatedAt}`, `Item
   {assignment|event, description (the title), details (specifics, clamped to 2
-  lines on cards), date, time (free text), done, createdAt, updatedAt}`,
+  lines on cards), date, time (free text), done, createdAt, updatedAt}`
+  (**events are hidden in the UI** since the redesign: every surface draws and
+  creates assignments only, but `'event'` stays a valid stored type so old
+  backups and other devices still read — never rewrite an item's `type` just
+  because it was edited or moved),
   `RecurringItem {startDate, endDate, doneDates[], updatedAt}` (done per day;
   fully done only when every day is ticked — but see **Sync** for why
   `doneDates` is not the whole story), `TodoItem {..., updatedAt}`, `notes:
@@ -83,10 +87,16 @@ is a perfectly normal way to work on everything else in this file.
 - **Dates** (`src/lib/dates.ts`): everything is a `'YYYY-MM-DD'` string.
   `parseISO` yields a local-noon `Date` to avoid DST rollovers. Weeks start
   Monday. Never construct `Date` objects for calendar math outside this file.
-- **Views** (`src/App.tsx`): a `topbar` (window drag handle + sidebar toggle +
-  a portal `slot`) over `Sidebar` + one of `WeekView` / `ListView` / `DayPage`.
-  Each view portals its own header controls into the topbar slot. Day focus
-  and sidebar collapse are ephemeral React state, deliberately not persisted.
+- **Views** (`src/App.tsx`): a 76px `topbar` (window drag handle) split on the
+  sidebar's rule — its left column holds the Week · List · Today text nav
+  (`TopNav`) and the « toggle, its right column is a portal `slot` — over
+  `Sidebar` (Upcoming, Missed, Subjects) + one of `WeekView` / `ListView` /
+  `DayPage` / `MissedPage` (every overdue item, opened from the sidebar's
+  Missed heading, "See all" or the collapsed rail's Missed count). Each view portals its `.viewbar` (serif "October." title, eyebrow,
+  text controls) into the slot. Day focus and sidebar collapse are ephemeral
+  React state (as is whether the Missed page is open), deliberately not
+  persisted. Export and screenshot import live in
+  `SettingsPanel` ("Edit planner"), not the sidebar.
 - **WeekView**: a horizontally scrolling track with a 7-day `BUFFER` either
   side of the visible window. On `scrollend` it re-bases `anchorDate` and
   re-parks `scrollLeft` so the re-base is invisible. Scroll events within
@@ -123,9 +133,10 @@ window chrome. Desktop components are untouched by it.
 - **Three tabs, no nested navigation**: Week · List · Planner, held in
   `devicePrefs.tab`. Everything else is a sheet over them. There is no Today
   tab — Week opens on today at one day.
-- **Two row shapes on purpose**: flat rows at one day, the desktop card at two
-  and three. At three days a column is ~120pt, close enough to the desktop's
-  that its card is the right component.
+- **Two row shapes on purpose**: open rows with no boxes at one day and in the
+  List, soft grey cards at two and three days. Neither has a checkbox: done is a
+  swipe right or the item sheet, both of which leave an undo. The single + is in
+  the tab bar; the Missed row under the Week/List headers opens `MissedSheet`.
 - **Pinned header** (`useStickyHead`): the Week's masthead, strip, day row and
   column heads, and the List's masthead and controls, are each wrapped in one
   `.m-stickyhead` and pinned to the top of the pane. One wrapper, not one sticky
@@ -135,10 +146,15 @@ window chrome. Desktop components are untouched by it.
   as `scroll-margin-top`. Anything added to a shelf changes its height, which is
   why the height is measured and not written down.
 - **Sheets** (`Sheet.tsx`): one bottom-sheet primitive — scrim, drag to dismiss,
-  focus trap, body-scroll lock — with `ItemSheet`, `ComposerSheet` and
-  `PlannerSheet` inside it. Which one is open, and the undo toast, live in
-  `SheetHost` (`sheets.tsx`); reach them with `useSheets()`. The affirmative
-  action goes in the sheet *header*: the keyboard covers the bottom third.
+  focus trap, body-scroll lock — with `ItemSheet`, `ComposerSheet`,
+  `PlannerSheet` and `MissedSheet` inside it (`FilterSheet` is opened by the
+  List itself). Which one is open, and the undo toast, live in `SheetHost`
+  (`sheets.tsx`); reach them with `useSheets()`. A sheet replaces another, never
+  stacks. The affirmative action is a full-width black pill at the sheet's
+  *foot*, outside the scroller; because the keyboard covers the bottom third,
+  `Sheet` sizes itself to `visualViewport` (`--m-kb`) so the pill rides above
+  it — keep that if you touch the frame. Days are picked on `DayStrip`, the
+  header's week strip reused, with "Other date…" for anything else.
 - **Gestures**: `useSwipeX` flings a region horizontally (bands change the day,
   the strip changes the week); `SwipeRow` gives a one-day row its actions —
   right for done, left for Move and Delete. They are told apart by where the
@@ -154,8 +170,10 @@ window chrome. Desktop components are untouched by it.
   gap before widening one: overlapping targets mean the wrong one gets the tap.
 - **16px minimum on every input**, or iOS zooms the page on focus and leaves the
   sheet half off screen. `--m-fs-input` exists to make that hard to forget.
-- Two features exist only here: **Hide done**, and filtering the List by
-  subject from the Planner tab.
+- Phone-only: **Hide done**, the 1-day **Notes** box, and the List's
+  Ongoing/Earlier sections. Both shells filter the List by subject (desktop:
+  the header's Show menu; phone: `FilterSheet`, which also holds the Group /
+  Hide done / Details toggles the redesign took off the List header).
 - **Sync chrome lives only here too**: the Planner tab's "Synced with desktop"
   line (`MobilePlanner.tsx`, only rendered once `useSyncStatus()` has
   something true to say), and `MobileShell.tsx`'s offline bar and blocking
@@ -244,17 +262,24 @@ separate `dist-pwa/` rather than overwriting the committed `dist/`.
 
 ## Styling
 
-- Tokens live in `src/styles/tokens.css`, measured from the design canvas in
-  `design/*.dc.html` — that canvas is the source of truth for sizes and
-  colours. Read its inline `style` attributes for exact values before
-  inventing new ones.
-- One ink colour `#37352f` at varying alpha over warm surfaces. Chrome is
-  DM Sans, mastheads are Source Serif 4 (both vendored in `src/assets/fonts`).
+- Tokens live in `src/styles/tokens.css`, measured from the design canvases
+  `design/Weekly Planner - Desktop.dc.html` (frames 2a, 2c, 2d) and
+  `design/Weekly Planner - Phone.dc.html` (4a–5m) — those are the source of
+  truth for sizes and colours; where a canvas's written notes and its frames
+  disagree, the frames win. Read their inline `style` attributes for exact
+  values before inventing new ones. (`Main Page` / `Supporting Screens` are the
+  pre-redesign canvases, kept for history.)
+- "Planner, in print": ink `#111` with one secondary grey `#5c5c5c`, hairline
+  rules, white panels, ultramarine `#002DFF` only for today, red `#F22525` only
+  for missed/late/delete. Subject colour is a small square (`SubjectSquare`),
+  never a chip. Desktop type is set at the canvas's literal 9–12px sizes.
+  Chrome is DM Sans, display type is Newsreader (an opsz+wght variable font) —
+  both vendored in `src/assets/fonts`.
 - Subject colours are derived from a single hue in OKLCH (`src/lib/oklch.ts`,
   `src/lib/color.ts`) and emitted as hex from JS — do not hand-write subject
   colours or use CSS `oklch()`.
 - CSS files are imported in cascade order via `global.css`: base → shell →
-  week → list → day → overlays → **mobile**. `mobile.css` is last so the phone
+  week → day → list → overlays → **mobile**. `mobile.css` is last so the phone
   layer wins without editing a desktop rule; its sizes come from the `--m-*`
   block in `tokens.css`.
 

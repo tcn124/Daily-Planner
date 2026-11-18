@@ -3,6 +3,7 @@ import type { ItemType } from '../../types';
 import { ItemSheet } from './ItemSheet';
 import { ComposerSheet } from './ComposerSheet';
 import { PlannerSheet } from './PlannerSheet';
+import { MissedSheet } from './MissedSheet';
 
 /**
  * Which sheet is open, and the undo toast — one place, above all three tabs.
@@ -31,6 +32,8 @@ interface SheetsApi {
   openItem: (target: ItemTarget) => void;
   openCompose: (target: ComposeTarget) => void;
   openPlanner: () => void;
+  /** The missed list (frame 5g), from the Missed row under a header. */
+  openMissed: () => void;
   /**
    * A line above the tab bar, with Undo when the action can be taken back.
    * Every destructive thing on the phone goes through here instead of a
@@ -62,6 +65,7 @@ export function SheetHost({ children }: { children: ReactNode }) {
   const [item, setItem] = useState<ItemTarget | null>(null);
   const [compose, setCompose] = useState<ComposeTarget | null>(null);
   const [planner, setPlanner] = useState(false);
+  const [missed, setMissed] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
   useEffect(() => {
@@ -72,17 +76,35 @@ export function SheetHost({ children }: { children: ReactNode }) {
 
   const api = useMemo<SheetsApi>(
     () => ({
+      /*
+       * A sheet replaces another sheet; it never stacks (frame 5e's note). Two
+       * sheets deep is the nested navigation the design does without, so each
+       * opener closes whatever else is up.
+       */
       openItem: (target) => {
         setCompose(null);
+        setMissed(false);
+        setPlanner(false);
         setItem(target);
       },
-      // Editing replaces the item sheet rather than stacking on it: two sheets
-      // deep is the nested navigation the design does without.
       openCompose: (target) => {
         setItem(null);
+        setMissed(false);
+        setPlanner(false);
         setCompose(target);
       },
-      openPlanner: () => setPlanner(true),
+      openPlanner: () => {
+        setItem(null);
+        setCompose(null);
+        setMissed(false);
+        setPlanner(true);
+      },
+      openMissed: () => {
+        setItem(null);
+        setCompose(null);
+        setPlanner(false);
+        setMissed(true);
+      },
       toast: (message, undo) => setToast((t) => ({ seq: (t?.seq ?? 0) + 1, message, undo })),
     }),
     [],
@@ -101,6 +123,7 @@ export function SheetHost({ children }: { children: ReactNode }) {
       )}
       {compose && <ComposerSheet target={compose} onClose={() => setCompose(null)} />}
       {planner && <PlannerSheet onClose={() => setPlanner(false)} />}
+      {missed && <MissedSheet onClose={() => setMissed(false)} />}
 
       {toast && (
         <div className="m-toast" role="status">

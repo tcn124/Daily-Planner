@@ -1,8 +1,8 @@
 import type { MouseEvent } from 'react';
 import type { RecurringItem, Subject } from '../types';
-import { subjectAccent, subjectChipBg, subjectChipInk } from '../lib/color';
 import { dayName, dayOfMonth } from '../lib/dates';
-import { ROW_H, isFullyDone } from '../lib/recurring';
+import { BAR_INSET, BAR_TOP, ROW_H, isFullyDone, recurringProgress } from '../lib/recurring';
+import { SubjectSquare } from './SubjectSquare';
 
 interface Props {
   item: RecurringItem;
@@ -34,17 +34,16 @@ export function RecurringBar({
   onMoveStart,
 }: Props) {
   const done = isFullyDone(item);
-  const hue = done ? null : subject?.hue ?? null;
+  const { doneCount, total } = recurringProgress(item);
   const short = (iso: string) => dayName(iso).slice(0, 3);
 
   return (
     <div
       className={done ? 'rec-bar rec-bar--done' : 'rec-bar'}
       style={{
-        left: `calc(${leftFrac * 100}% + 4px)`,
-        width: `calc(${widthFrac * 100}% - 8px)`,
-        top: 6 + row * ROW_H,
-        borderLeftColor: subjectAccent(subject?.hue ?? null),
+        left: `calc(${leftFrac * 100}% + ${BAR_INSET}px)`,
+        width: `calc(${widthFrac * 100}% - ${BAR_INSET * 2}px)`,
+        top: BAR_TOP + row * ROW_H,
       }}
       onMouseDown={(e) => {
         // Controls and the resize grips handle their own presses.
@@ -98,17 +97,16 @@ export function RecurringBar({
       </div>
 
       <div className="rec-bar__main">
-        <span
-          className="chip"
-          style={{ background: subjectChipBg(hue), color: subjectChipInk(hue) }}
-        >
-          {subject?.name ?? 'No subject'}
-        </span>
+        <SubjectSquare hue={subject?.hue ?? null} dim={done} />
+        <span className="rec-bar__subject">{subject?.name ?? 'No subject'}</span>
 
         {item.title && <span className="rec-bar__title">{item.title}</span>}
 
         <span className="rec-bar__range">
-          {short(item.startDate)} – {short(item.endDate)}
+          {short(item.startDate)} – {short(item.endDate)}{' '}
+          <span className="rec-bar__count">
+            {doneCount}/{total}
+          </span>
         </span>
 
         <button

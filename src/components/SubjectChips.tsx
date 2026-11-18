@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Subject } from '../types';
-import { subjectAccent, subjectChipBg, subjectChipInk } from '../lib/color';
 import { DEFAULT_HUE } from '../store/defaults';
+import { SubjectSquare } from './SubjectSquare';
 
 interface Props {
   subjects: Subject[];
@@ -11,9 +11,11 @@ interface Props {
 }
 
 /**
- * The design picks a subject from a wrapped row of chips rather than a
- * dropdown. "+ New" opens an inline name field so creating a named subject
- * mid-compose still works.
+ * The design picks a subject from a wrapped row of pills rather than a
+ * dropdown: grey pills carrying the subject's colour square, the chosen one
+ * filled in ink. "+ New" opens an inline name field so creating a named
+ * subject mid-compose still works. Shared by the desktop composer and the
+ * phone's composer sheet, which sizes it up for touch.
  */
 export function SubjectChips({ subjects, value, onChange, onCreate }: Props) {
   const [creating, setCreating] = useState(false);
@@ -39,6 +41,7 @@ export function SubjectChips({ subjects, value, onChange, onCreate }: Props) {
         type="button"
         className="chip chips__option chips__option--none"
         data-selected={value === null}
+        aria-pressed={value === null}
         onClick={() => onChange(null)}
       >
         None
@@ -50,16 +53,10 @@ export function SubjectChips({ subjects, value, onChange, onCreate }: Props) {
           type="button"
           className="chip chips__option"
           data-selected={value === s.id}
-          style={{
-            background: subjectChipBg(s.hue),
-            color: subjectChipInk(s.hue),
-            // The selected chip gets a ring in its own accent colour.
-            ...(value === s.id
-              ? { boxShadow: `0 0 0 1.5px ${subjectAccent(s.hue)}` }
-              : null),
-          }}
+          aria-pressed={value === s.id}
           onClick={() => onChange(s.id)}
         >
+          <SubjectSquare hue={s.hue} size={7} />
           {s.name}
         </button>
       ))}
@@ -89,7 +86,7 @@ export function SubjectChips({ subjects, value, onChange, onCreate }: Props) {
       ) : (
         <button
           type="button"
-          className="chip chips__new"
+          className="chip chips__new link link--muted"
           onClick={() => setCreating(true)}
         >
           + New

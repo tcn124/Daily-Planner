@@ -1,236 +1,228 @@
-/* Day detail page — reached by clicking a day header in the week grid. */
+/*
+ * Day page — one day on its own. There is no frame for it in the redesign, so
+ * it is set in the same language as the List (frame 2d): the weekday as the
+ * display title, a ruled table of the day's items, and the day's notes.
+ */
 
 .daypage {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface);
 }
 
-.daypage__crumb:hover {
-  color: var(--ink);
-  text-decoration: underline;
-}
-
-.daypage__crumb-current {
-  color: var(--ink);
-}
-
-.daypage__bar-nav {
-  gap: 10px;
-  color: var(--ink-45);
-}
-
-.daypage__bar-nav button:hover {
-  color: var(--ink);
-}
-
-.daypage__next svg {
-  transform: scaleX(-1);
-}
-
 .daypage__body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  width: 100%;
+  max-width: 760px;
+  padding: 24px 28px 40px;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 26px 56px 32px;
-  max-width: 760px;
-  width: 100%;
-}
-
-.daypage__heading {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.daypage__eyebrow {
-  font-size: var(--fs-11-5);
-  font-weight: 500;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-40);
-}
-
-.daypage__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--fs-day-title);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.05;
 }
 
 .daypage__meta {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line-strong);
+  font-size: var(--fs-10);
 }
 
 .daypage__meta-row {
   display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 12px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
   align-items: baseline;
-  font-size: var(--fs-13);
-}
-
-/* Several recurring spans share one "Recurring" key rather than repeating it. */
-.daypage__meta-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 
 .daypage__meta-key {
-  color: var(--ink-45);
-}
-
-.daypage__meta-soft {
-  color: var(--ink-70);
+  font-size: var(--fs-9);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  color: var(--ink-2);
 }
 
 .daypage__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px 14px;
 }
 
-.daypage__rule {
-  height: 1px;
-  background: var(--line);
+.daypage__meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.daypage__rec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.daypage__rec[data-done='true'] span {
+  color: var(--ink-2);
+  text-decoration: line-through;
+}
+
+.daypage__head {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: var(--fs-20-5);
+  font-weight: 400;
+  letter-spacing: var(--track-head);
+  line-height: 1;
+}
+
+.daypage__head .count {
+  font-family: var(--font-ui);
 }
 
 .daypage__items {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  margin-top: -8px;
 }
 
 .daypage__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) 52px;
+  gap: 16px;
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line-row);
+}
+
+.daypage__item-subject {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 5px 0;
+  gap: 7px;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-12);
+  font-weight: 500;
+}
+
+.daypage__item-subject span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daypage__item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   min-width: 0;
 }
 
-.daypage__item .checkbox {
-  width: 15px;
-  height: 15px;
+.daypage__item-text {
+  font-size: var(--fs-10-5);
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+  overflow-wrap: anywhere;
+  text-underline-offset: 3px;
+}
+
+.daypage__item-text:hover {
+  text-decoration: underline;
+}
+
+.daypage__item-details {
+  font-size: var(--fs-9-5);
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.daypage__item-time {
+  text-align: right;
+  font-size: var(--fs-9-5);
+  font-weight: 500;
+  letter-spacing: var(--track-time);
+  color: var(--ink-2);
+}
+
+.daypage__item-actions {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding-left: 8px;
+  background: var(--surface);
+}
+
+.daypage__item:hover .daypage__item-actions,
+.daypage__item:focus-within .daypage__item-actions {
+  display: flex;
 }
 
 .daypage__item--done {
-  opacity: 0.5;
+  color: var(--ink-2);
 }
 
 .daypage__item--done .daypage__item-text {
   text-decoration: line-through;
 }
 
-.daypage__item-body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.daypage__composer {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-row);
 }
 
-.daypage__item-details {
-  font-size: var(--fs-11-5);
-  color: var(--ink-45);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.daypage__item-text {
-  font-size: var(--fs-14);
-  text-align: left;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.daypage__item-text:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--ink-30);
-}
-
-.daypage__item-time {
-  flex: none;
-  font-size: var(--fs-11-5);
-  color: var(--ink-40);
-}
-
-.daypage__item-chip {
-  margin-left: auto;
-}
-
-/* Delete stays hidden until hover — the design gives rows no delete control. */
-.daypage__item-kill {
-  flex: none;
-  opacity: 0;
-  transition: opacity 120ms ease;
-}
-
-.daypage__item:hover .daypage__item-kill,
-.daypage__item-kill:focus-visible {
-  opacity: 1;
+.daypage__composer .composer {
+  position: static;
+  width: 340px;
 }
 
 .daypage__add {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 0;
-  font-size: var(--fs-13-5);
-  color: var(--ink-30);
-  text-align: left;
+  align-self: flex-start;
+  padding: 9px 0 0;
+  font-size: var(--fs-9);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
+  color: var(--ink-2);
+  text-underline-offset: 3px;
 }
 
 .daypage__add:hover {
-  color: var(--ink-60);
-}
-
-.daypage__add-plus {
-  width: 15px;
-  text-align: center;
+  color: var(--ink);
+  text-decoration: underline;
 }
 
 .daypage__notes {
-  margin-top: auto;
-  display: block;
-  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
 }
 
 .daypage__notes-field {
-  display: block;
   width: 100%;
-  min-height: 72px;
-  resize: vertical;
+  min-height: 140px;
   padding: 12px 14px;
-  background: var(--surface-sunken);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  font-size: var(--fs-12-5);
-  color: var(--ink-70);
+  border: none;
+  border-radius: var(--radius-field);
+  background: var(--surface-field);
+  font-size: var(--fs-10-5);
   line-height: 1.5;
-}
-
-.daypage__notes-field::placeholder {
-  color: var(--ink-35);
+  resize: vertical;
 }
 
 .daypage__notes-field:focus {
   outline: none;
-  border-color: var(--line-strong);
-  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
 }
 
 .sr-only {

@@ -32,10 +32,15 @@ export interface DevicePrefs {
   anchorDate: string;
   view: ViewMode;
   /**
-   * Relative heights of the Assignments / Events / Recurring bands. Weights
-   * rather than pixels, so the grid still stretches to fill any window size.
+   * Relative heights of the Assignments and Recurring bands, in that order.
+   * Weights rather than pixels, so the grid still stretches to fill any window
+   * size. Still a 3-tuple: it held an Events band too before the redesign
+   * folded events into Assignments, and keeping the shape means a stored value
+   * from either build reads cleanly. The third entry is unused.
    */
   bandWeights: [number, number, number];
+  /** The desktop List's zoom, 0.8–1.5. A screen property, so it lives here. */
+  listZoom: number;
   /**
    * Set only while the Today tab is selected: the day count to put back when
    * it is deselected. Its presence is what marks that tab active, so both the
@@ -70,6 +75,7 @@ function defaults(): DevicePrefs {
     view: 'grid',
     bandWeights: [...DEFAULT_BAND_WEIGHTS] as [number, number, number],
     daysBeforeToday: null,
+    listZoom: 1,
     mobileDays: 1,
     detailsVisible: true,
     tab: 'week',
@@ -86,6 +92,14 @@ function isMobileDays(v: unknown): v is MobileDays {
 
 function isView(v: unknown): v is ViewMode {
   return v === 'grid' || v === 'list';
+}
+
+export const MIN_ZOOM = 0.8;
+export const MAX_ZOOM = 1.5;
+
+/** Rounded to a tenth so repeated ± presses never drift to 0.30000000004. */
+function clampZoom(z: number): number {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(z * 10) / 10));
 }
 
 function isWeights(v: unknown): v is [number, number, number] {
@@ -106,6 +120,7 @@ function coerce(raw: unknown, base: DevicePrefs): DevicePrefs {
     bandWeights: isWeights(p.bandWeights) ? p.bandWeights : base.bandWeights,
     daysBeforeToday:
       typeof p.daysBeforeToday === 'number' ? clampDays(p.daysBeforeToday) : null,
+    listZoom: typeof p.listZoom === 'number' ? clampZoom(p.listZoom) : base.listZoom,
     mobileDays: isMobileDays(p.mobileDays) ? p.mobileDays : base.mobileDays,
     detailsVisible:
       typeof p.detailsVisible === 'boolean' ? p.detailsVisible : base.detailsVisible,
@@ -190,6 +205,10 @@ export function setDays(days: number): void {
   // Picking a count by hand takes over from the Today tab, which deselects it
   // and drops the count it was holding.
   setDevicePrefs({ daysVisible: clampDays(days), daysBeforeToday: null });
+}
+
+export function stepListZoom(direction: -1 | 1): void {
+  setDevicePrefs({ listZoom: clampZoom(current.listZoom + direction * 0.1) });
 }
 
 export function setBandWeights(weights: [number, number, number]): void {

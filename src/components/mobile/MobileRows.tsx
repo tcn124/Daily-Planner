@@ -1,66 +1,32 @@
-import { subjectChipBg, subjectChipInk, subjectAccent } from '../../lib/color';
-import { buildWindow, daysBetween, isWithin, startOfWeek } from '../../lib/dates';
-import { spanDates } from '../../lib/recurring';
+import { dayName } from '../../lib/dates';
+import { recurringProgress } from '../../lib/recurring';
 import type { Item, RecurringItem, Subject } from '../../types';
+import { SubjectSquare } from '../SubjectSquare';
 
 /**
  * The row and card shapes the phone uses, and the pieces they share.
  *
- * One day gets flat rows; two and three days get the desktop card at phone
- * sizes. That is deliberate rather than responsive: at three days a column is
- * about 120pt, close enough to the desktop's own column that its card is the
- * right component, while at one day a full-width card would be a box drawn
- * around the whole screen.
+ * One day gets open rows with no boxes — title first, subject and time on one
+ * line under it (frame 4a). Two and three days get soft grey cards with no
+ * borders (4b, 4c). Neither carries a checkbox: done is a swipe right or the
+ * item sheet, both of which leave an undo behind.
  */
 
 export function subjectOf(subjects: Subject[], id: string | null): Subject | null {
   return subjects.find((s) => s.id === id) ?? null;
 }
 
-interface ChipProps {
-  subject: Subject | null;
-  /** A finished item drops to the neutral chip, as on the desktop. */
-  done: boolean;
-}
-
-export function MobileChip({ subject, done }: ChipProps) {
-  const hue = done ? null : subject?.hue ?? null;
+/**
+ * A span's progress as short ticks, one per day: ink once ticked, faint until
+ * then. The design's "Recurring shows a progress tick".
+ */
+export function TickTrack({ ticks, wide = false }: { ticks: boolean[]; wide?: boolean }) {
   return (
-    <span
-      className="m-chip"
-      style={{ background: subjectChipBg(hue), color: subjectChipInk(hue) }}
-    >
-      {subject?.name ?? 'No subject'}
+    <span className={wide ? 'm-ticks m-ticks--wide' : 'm-ticks'} aria-hidden="true">
+      {ticks.map((on, i) => (
+        <span key={i} className="m-ticks__seg" data-on={on} />
+      ))}
     </span>
-  );
-}
-
-export function MobileCheckbox({
-  done,
-  label,
-  onToggle,
-  small = false,
-}: {
-  done: boolean;
-  label: string;
-  onToggle: () => void;
-  small?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      className={small ? 'm-check m-check--sm' : 'm-check'}
-      role="checkbox"
-      aria-checked={done}
-      aria-label={label}
-      data-checked={done}
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggle();
-      }}
-    >
-      {done ? '✓' : ''}
-    </button>
   );
 }
 
@@ -70,136 +36,95 @@ interface RowProps {
   item: Item;
   subject: Subject | null;
   showDetails: boolean;
-  onToggle: () => void;
   onOpen: () => void;
 }
 
-/** The flat row used when one day fills the screen. */
-export function MobileItemRow({ item, subject, showDetails, onToggle, onOpen }: RowProps) {
-  const meta = item.done ? 'Done' : item.time;
+/** The open row used when one day fills the screen, and in the List. */
+export function MobileItemRow({ item, subject, showDetails, onOpen }: RowProps) {
+  const meta = [subject?.name ?? 'No subject', item.done ? 'Done' : item.time]
+    .filter(Boolean)
+    .join(' · ');
   return (
-    <div className="m-row" data-done={item.done}>
-      <button type="button" className="m-row__body" onClick={onOpen}>
+    <button type="button" className="m-row" data-done={item.done} onClick={onOpen}>
+      <span className="m-row__mark">
+        <SubjectSquare hue={subject?.hue ?? null} dim={item.done} />
+      </span>
+      <span className="m-row__body">
         <span className="m-row__title">{item.description || 'Untitled'}</span>
+        <span className="m-row__meta">{meta}</span>
         {showDetails && item.details && <span className="m-row__details">{item.details}</span>}
-        <span className="m-row__meta">
-          <MobileChip subject={subject} done={item.done} />
-          {meta && <span className="m-row__time">{meta}</span>}
-        </span>
-      </button>
-      <div className="m-row__check">
-        <MobileCheckbox
-          done={item.done}
-          label={item.done ? 'Mark as not done' : 'Mark as done'}
-          onToggle={onToggle}
-        />
-      </div>
-    </div>
+      </span>
+    </button>
   );
 }
 
-/** How a recurring item's span reads in the meta line: "Mon – Fri · day 2 of 5". */
-export function recurringMeta(r: RecurringItem, date: string): string {
-  const span = spanDates(r);
-  const position = daysBetween(r.startDate, date) + 1;
-  const first = new Date(`${r.startDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short' });
-  const last = new Date(`${r.endDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short' });
-  return `${first} – ${last} · day ${position} of ${span.length}`;
+/** "Mon – Fri" for a span. */
+export function spanLabel(r: RecurringItem): string {
+  return `${dayName(r.startDate).slice(0, 3)} – ${dayName(r.endDate).slice(0, 3)}`;
 }
 
 interface RecurringRowProps {
   item: RecurringItem;
   subject: Subject | null;
-  /** The day being viewed — the one the checkbox ticks off. */
+  /** The day being viewed — the one a swipe or the sheet ticks off. */
   date: string;
-  onToggleDay: () => void;
+  /** "Day 4 of 5" on the Week; "Mon – Fri" in the List's Ongoing section. */
+  meta: 'day' | 'span';
   onOpen: () => void;
 }
 
-/**
- * Recurring at one day. The desktop's spanning bar has nowhere to span, so the
- * week it covers is drawn as a seven-segment track underneath instead: the day
- * you are looking at stands taller, the rest of the span sits back at 35%.
- */
-export function MobileRecurringRow({ item, subject, date, onToggleDay, onOpen }: RecurringRowProps) {
-  const week = buildWindow(startOfWeek(date), 7);
-  const accent = subjectAccent(subject?.hue ?? null);
+/** Recurring as a row: title, where the day falls in the span, and its ticks. */
+export function MobileRecurringRow({ item, subject, date, meta, onOpen }: RecurringRowProps) {
+  const p = recurringProgress(item, date);
   const done = item.doneDates.includes(date);
-
+  const where = meta === 'day' ? `Day ${p.dayIndex} of ${p.total}` : spanLabel(item);
   return (
-    <div className="m-row m-row--recurring" data-done={done} style={{ boxShadow: `inset 3px 0 0 ${accent}` }}>
-      <button type="button" className="m-row__body" onClick={onOpen}>
+    <button
+      type="button"
+      className="m-row m-row--recurring"
+      data-done={meta === 'day' && done}
+      onClick={onOpen}
+    >
+      <span className="m-row__mark">
+        <SubjectSquare hue={subject?.hue ?? null} />
+      </span>
+      <span className="m-row__body">
         <span className="m-row__title">{item.title || 'Untitled'}</span>
         <span className="m-row__meta">
-          <MobileChip subject={subject} done={done} />
-          <span className="m-row__time">{recurringMeta(item, date)}</span>
+          {subject?.name ?? 'No subject'} · {where}
         </span>
-        <span className="m-track" aria-hidden="true">
-          {week.map((d) => {
-            const inSpan = isWithin(d, item.startDate, item.endDate);
-            const current = d === date;
-            return (
-              <span
-                key={d}
-                className="m-track__seg"
-                style={{
-                  height: current ? 6 : 4,
-                  background: inSpan ? accent : 'rgba(55, 53, 47, 0.08)',
-                  opacity: inSpan && !current ? 0.35 : 1,
-                }}
-              />
-            );
-          })}
-        </span>
-      </button>
-      <div className="m-row__check">
-        <MobileCheckbox
-          done={done}
-          label={done ? 'Mark this day as not done' : 'Mark this day as done'}
-          onToggle={onToggleDay}
-        />
-      </div>
-    </div>
+      </span>
+      <TickTrack ticks={p.ticks} />
+    </button>
   );
 }
 
 /* ------------------------------------------------------------ 2–3 days */
 
-/** The desktop card at phone size. `tight` is the three-day column. */
+/** A soft grey card, at least 64pt tall. `tight` is the three-day column. */
 export function MobileItemCard({
   item,
   subject,
   showDetails,
   tight,
-  onToggle,
   onOpen,
 }: RowProps & { tight: boolean }) {
   return (
-    <div
+    <button
+      type="button"
       className={tight ? 'm-card m-card--tight' : 'm-card'}
       data-done={item.done}
-      role="button"
-      tabIndex={0}
       onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
     >
-      <div className="m-card__head">
-        <MobileChip subject={subject} done={item.done} />
-        <MobileCheckbox
-          done={item.done}
-          label={item.done ? 'Mark as not done' : 'Mark as done'}
-          onToggle={onToggle}
-          small={tight}
-        />
-      </div>
-      <div className="m-card__title">{item.description || 'Untitled'}</div>
-      {showDetails && item.details && <div className="m-card__details">{item.details}</div>}
-      {!item.done && item.time && <div className="m-card__meta">{item.time}</div>}
-    </div>
+      <span className="m-card__subject">
+        <SubjectSquare hue={subject?.hue ?? null} size={7} dim={item.done} />
+        <span className="m-card__subject-name">{subject?.name ?? 'No subject'}</span>
+      </span>
+      <span className="m-card__title">{item.description || 'Untitled'}</span>
+      {showDetails && item.details && <span className="m-card__details">{item.details}</span>}
+      {(item.time || item.done) && (
+        <span className="m-card__meta">{item.done ? 'Done' : item.time}</span>
+      )}
+    </button>
   );
 }

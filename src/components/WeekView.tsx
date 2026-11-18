@@ -27,9 +27,9 @@ import { DayCell, type ComposerTarget } from './DayCell';
 import { RecurringBand } from './RecurringBand';
 import { TodoStrip } from './TodoStrip';
 import type { ComposerValue } from './ItemComposer';
-import type { ItemType } from '../types';
 import { WeekBar } from './WeekBar';
 import { BandHeader } from './BandHeader';
+import { pad2 } from '../lib/format';
 
 interface Props {
   /** The top bar's content slot; the week's controls render into it. */
@@ -37,7 +37,7 @@ interface Props {
   onOpenDay: (date: string) => void;
 }
 
-type BandKey = 'assignments' | 'events' | 'recurring';
+type BandKey = 'assignments' | 'recurring';
 
 /**
  * Days rendered off-screen either side of the visible window, so sideways
@@ -68,7 +68,6 @@ export function WeekView({ slot, onOpenDay }: Props) {
   const [composer, setComposer] = useState<ComposerTarget | null>(null);
   const [collapsed, setCollapsed] = useState<Record<BandKey, boolean>>({
     assignments: false,
-    events: false,
     recurring: false,
   });
 
@@ -265,11 +264,13 @@ export function WeekView({ slot, onOpenDay }: Props) {
    * reaches React. Relying on it left the moved card stuck in its faded
    * "being dragged" state.
    */
-  function onDropItem(id: string, date: string, type: ItemType) {
+  function onDropItem(id: string, date: string) {
     finishDrag();
     const item = items.find((i) => i.id === id);
-    if (!item || (item.date === date && item.type === type)) return;
-    dispatch({ type: 'item/update', id, patch: { date, type } });
+    // Only the day moves. An item stored as an event stays one: the UI no
+    // longer draws events apart, but other devices and backups still read it.
+    if (!item || item.date === date) return;
+    dispatch({ type: 'item/update', id, patch: { date } });
   }
 
   /** Still needed for drags that end without a drop — cancelled, or released off-grid. */
@@ -290,16 +291,15 @@ export function WeekView({ slot, onOpenDay }: Props) {
     onDropItem,
   };
 
-  const itemsFor = (date: string, type: 'assignment' | 'event') =>
-    items
-      .filter((i) => i.date === date && i.type === type)
-      .sort((a, b) => a.createdAt - b.createdAt);
+  /*
+   * Events are folded in with assignments: the redesign draws one band of
+   * things due. The stored type is left alone (see `onDropItem`).
+   */
+  const itemsFor = (date: string) =>
+    items.filter((i) => i.date === date).sort((a, b) => a.createdAt - b.createdAt);
 
   const inWindow = (date: string) => window_.includes(date);
-  const dueCount = items.filter(
-    (i) => i.type === 'assignment' && !i.done && inWindow(i.date),
-  ).length;
-  const eventCount = items.filter((i) => i.type === 'event' && inWindow(i.date)).length;
+  const dueCount = items.filter((i) => !i.done && inWindow(i.date)).length;
   const activeCount = recurring.filter((r) =>
     window_.some((d) => isWithin(d, r.startDate, r.endDate)),
   ).length;
@@ -379,10 +379,12 @@ export function WeekView({ slot, onOpenDay }: Props) {
               title={`Open ${dayName(date)}`}
               onClick={() => onOpenDay(date)}
             >
-              <span className="dayhead__name">
-                {settings.daysVisible > 7 ? dayName(date).slice(0, 3) : dayName(date)}
+              <span className="dayhead__name">{dayName(date).slice(0, 3)}</span>
+              <span className="dayhead__date">
+                {dayOfMonth(date)}
+                {date === today ? '.' : ''}
               </span>
-              <span className="dayhead__date">{dayOfMonth(date)}</span>
+              {date === today && <span className="dayhead__pill">Today</span>}
             </button>
           );
         })}
@@ -390,7 +392,7 @@ export function WeekView({ slot, onOpenDay }: Props) {
 
       <BandHeader
         label="Assignments"
-        count={`${dueCount} due`}
+        count={pad2(dueCount)}
         collapsed={collapsed.assignments}
         onToggleCollapsed={() => toggleBand('assignments')}
       />
@@ -401,32 +403,9 @@ export function WeekView({ slot, onOpenDay }: Props) {
               key={i}
               date={date}
               type="assignment"
-              tinted={isWeekend(date)}
+              tinted={date === today}
               flipComposer={flipsComposer(i)}
-              items={itemsFor(date, 'assignment')}
-              {...cellProps}
-            />
-          ))}
-        </div>
-      )}
-
-      <BandHeader
-        label="Events"
-        count={`${eventCount} this week`}
-        collapsed={collapsed.events}
-        onToggleCollapsed={() => toggleBand('events')}
-        resizer={resizerFor(0)}
-      />
-      {!collapsed.events && (
-        <div className="band band--events" style={bandStyle(1, 'events')}>
-          {trackWindow.map((date, i) => (
-            <DayCell
-              key={i}
-              date={date}
-              type="event"
-              tinted={isWeekend(date)}
-              flipComposer={flipsComposer(i)}
-              items={itemsFor(date, 'event')}
+              items={itemsFor(date)}
               {...cellProps}
             />
           ))}
@@ -435,13 +414,13 @@ export function WeekView({ slot, onOpenDay }: Props) {
 
       <BandHeader
         label="Recurring"
-        count={`${activeCount} active`}
+        count={pad2(activeCount)}
         collapsed={collapsed.recurring}
         onToggleCollapsed={() => toggleBand('recurring')}
-        resizer={resizerFor(1)}
+        resizer={resizerFor(0)}
       />
       {!collapsed.recurring && (
-        <div className="band band--recurring" style={bandStyle(2, 'recurring')}>
+        <div className="band band--recurring" style={bandStyle(1, 'recurring')}>
           <RecurringBand
             anchorDate={trackStart}
             days={totalDays}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { TodoItem } from '../types';
+import { pad2 } from '../lib/format';
 
 interface Props {
   todos: TodoItem[];
@@ -30,7 +31,9 @@ export function TodoStrip({ todos, onAddTodo, onToggleTodo, onDeleteTodo }: Prop
 
   return (
     <div className="todo">
-      <span className="todo__label">To-do</span>
+      <span className="todo__label">
+        To-do<span className="count">{pad2(todos.filter((t) => !t.done).length)}</span>
+      </span>
 
       <div className="todo__list">
         {todos.map((todo) => (

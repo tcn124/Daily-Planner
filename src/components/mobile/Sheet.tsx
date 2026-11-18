@@ -1,5 +1,6 @@
 import { useEffect, useRef, type PointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { Close } from '../icons';
 
 /**
  * The phone's one modal surface.
@@ -11,9 +12,11 @@ import { createPortal } from 'react-dom';
  *
  * Three things it has to get right. It comes up from the bottom, so a thumb
  * can reach the dismiss. It can be flung away, because reaching the header is
- * a stretch on a large phone. And its affirmative action sits in the *header* —
- * the keyboard covers the bottom third of the screen, which is exactly where a
- * form's submit button would otherwise be.
+ * a stretch on a large phone. And its affirmative action — one black pill,
+ * full width, at the foot (frame 5a) — has to stay reachable with the keyboard
+ * up. The keyboard covers the bottom third of the screen, which is exactly
+ * where that pill is drawn, so the sheet sizes itself to the *visual*
+ * viewport (what the keyboard leaves showing) and pins the pill to its foot.
  */
 
 interface SheetAction {
@@ -26,10 +29,14 @@ interface Props {
   title: string;
   /** A date, a span, a count — whatever names the thing being edited. */
   subtitle?: string;
-  /** "Cancel" where there is unsaved work to lose, "Close" where there is not. */
+  /** The text button beside the pill. */
   closeLabel?: string;
-  /** The header's right-hand button: Add, Save. */
+  /** The footer's pill: Add item, Save, Show 11 items. */
   action?: SheetAction;
+  /** Drops the text button beside the pill, where ✕ already says it. */
+  hideCancel?: boolean;
+  /** A grey line under the footer, explaining what the sheet will do. */
+  footnote?: string;
   onClose: () => void;
   children: ReactNode;
 }
@@ -41,9 +48,43 @@ const FOCUSABLE =
 /** Past this much downward travel, letting go dismisses rather than springs back. */
 const DISMISS_AT = 90;
 
-export function Sheet({ title, subtitle, closeLabel = 'Close', action, onClose, children }: Props) {
+export function Sheet({
+  title,
+  subtitle,
+  closeLabel = 'Cancel',
+  action,
+  hideCancel = false,
+  footnote,
+  onClose,
+  children,
+}: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; dy: number } | null>(null);
+
+  /*
+   * Fit the sheet into whatever the keyboard leaves. iOS doesn't shrink the
+   * layout viewport when the keyboard opens — only the visual one — so a
+   * bottom-anchored sheet would otherwise keep its foot, and its pill, under
+   * the keys. Written to a custom property rather than state so a keyboard
+   * animation doesn't re-render the form inside.
+   */
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const panel = panelRef.current;
+    if (!vv || !panel) return;
+    function fit() {
+      if (!vv || !panel) return;
+      const hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      panel.style.setProperty('--m-kb', `${hidden}px`);
+    }
+    fit();
+    vv.addEventListener('resize', fit);
+    vv.addEventListener('scroll', fit);
+    return () => {
+      vv.removeEventListener('resize', fit);
+      vv.removeEventListener('scroll', fit);
+    };
+  }, []);
 
   /*
    * Focus moves into the sheet and comes back to whatever opened it. The panel
@@ -153,28 +194,42 @@ export function Sheet({ title, subtitle, closeLabel = 'Close', action, onClose, 
         </div>
 
         <div className="m-sheet__head">
-          <button type="button" className="m-sheet__close" onClick={onClose}>
-            {closeLabel}
-          </button>
           <span className="m-sheet__titles">
             <span className="m-sheet__title">{title}</span>
             {subtitle && <span className="m-sheet__sub">{subtitle}</span>}
           </span>
-          {action ? (
-            <button
-              type="button"
-              className="m-sheet__action"
-              disabled={action.disabled}
-              onClick={action.onClick}
-            >
-              {action.label}
-            </button>
-          ) : (
-            <span className="m-sheet__action m-sheet__action--empty" aria-hidden="true" />
-          )}
+          <button type="button" className="m-sheet__close" aria-label="Close" onClick={onClose}>
+            <Close />
+          </button>
         </div>
 
-        <div className="m-sheet__body">{children}</div>
+        <div className="m-sheet__body" data-footed={!!(action || footnote) || undefined}>
+          {children}
+        </div>
+
+        {/* Outside the scroller, so the pill stays put however long the form. */}
+        {(action || footnote) && (
+          <div className="m-sheet__footer">
+            {action && (
+              <div className="m-sheet__foot">
+                <button
+                  type="button"
+                  className="m-primary"
+                  disabled={action.disabled}
+                  onClick={action.onClick}
+                >
+                  {action.label}
+                </button>
+                {!hideCancel && (
+                  <button type="button" className="m-sheet__cancel" onClick={onClose}>
+                    {closeLabel}
+                  </button>
+                )}
+              </div>
+            )}
+            {footnote && <p className="m-sheet__note">{footnote}</p>}
+          </div>
+        )}
       </div>
     </div>,
     document.body,

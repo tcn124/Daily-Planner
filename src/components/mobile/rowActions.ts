@@ -1,6 +1,6 @@
 import { usePlanner } from '../../store/plannerStore';
 import { useSheets, type ItemTarget } from './sheets';
-import { shortDate } from '../../lib/dates';
+import { shortDate, todayISO } from '../../lib/dates';
 
 /**
  * Done and Delete, with the undo that goes with them.
@@ -50,5 +50,22 @@ export function useRowActions() {
     toast('Deleted', () => dispatch({ type: 'recurring/add', item: span }));
   }
 
-  return { toggleDone, remove };
+  /**
+   * Missed items back onto today, one or all of them. The old dates go into
+   * the undo, so "Move all to today" is as reversible as a single swipe.
+   */
+  function moveToToday(ids: string[]): void {
+    const today = todayISO();
+    const before = ids
+      .map((id) => state.items.find((i) => i.id === id))
+      .filter((i): i is NonNullable<typeof i> => !!i)
+      .map((i) => ({ id: i.id, date: i.date }));
+    if (before.length === 0) return;
+    for (const { id } of before) dispatch({ type: 'item/update', id, patch: { date: today } });
+    toast(before.length === 1 ? 'Moved to today' : `Moved ${before.length} to today`, () => {
+      for (const { id, date } of before) dispatch({ type: 'item/update', id, patch: { date } });
+    });
+  }
+
+  return { toggleDone, remove, moveToToday };
 }

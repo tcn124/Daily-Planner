@@ -27,7 +27,7 @@ body {
 body {
   margin: 0;
   font-family: var(--font-ui);
-  font-size: var(--fs-13);
+  font-size: var(--fs-10-5);
   color: var(--ink);
   background: var(--surface);
   -webkit-font-smoothing: antialiased;
@@ -46,52 +46,93 @@ button {
   border: none;
   padding: 0;
   cursor: pointer;
+  text-align: inherit;
+}
+
+::placeholder {
+  color: var(--ink-faint);
 }
 
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 1.5px solid var(--ink);
   outline-offset: 2px;
-  border-radius: 3px;
 }
 
 /* Shared primitives ------------------------------------------------------ */
 
-/* Pale pill carrying a subject name. Colours are applied inline per subject. */
+/*
+ * The subject's colour, shrunk to a small square so the page stays two-tone.
+ * Colour is applied inline per subject; done items dim it.
+ */
+.square {
+  flex: none;
+  display: inline-block;
+  width: var(--square);
+  height: var(--square);
+  border-radius: 1px;
+}
+
+.square[data-dim='true'] {
+  opacity: 0.5;
+}
+
+/* Small subject pill — kept for the few places that still name a subject in a box. */
 .chip {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   flex: none;
-  padding: 2px 6px;
-  border-radius: var(--radius-chip);
-  font-size: var(--fs-10-5);
-  font-weight: 600;
-  line-height: 1.35;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: var(--fs-9-5);
+  font-weight: 500;
 }
 
 .dot {
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
 }
 
+/* "/04" — a count written the way the design writes it. */
 .count {
-  margin-left: auto;
   flex: none;
-  font-size: var(--fs-11);
-  color: var(--ink-35);
+  font-size: var(--fs-9);
+  font-weight: 400;
+  color: var(--ink-2);
+  letter-spacing: 0;
 }
 
 .eyebrow {
-  font-size: var(--fs-11);
+  font-size: var(--fs-9);
   font-weight: 600;
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  color: var(--ink-40);
+  letter-spacing: var(--track-label);
+  color: var(--ink);
+}
+
+/* A control drawn as text: underlines on hover rather than filling. */
+.link {
+  font-size: var(--fs-9-5);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
+  white-space: nowrap;
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--ink);
+}
+
+.link--muted {
+  color: var(--ink-2);
+}
+
+.link--muted:hover {
+  color: var(--ink);
 }
 
 /* Buttons ---------------------------------------------------------------- */
@@ -101,49 +142,46 @@ button {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 6px 11px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-card);
-  font-size: var(--fs-12-5);
+  min-height: 28px;
+  padding: 0 4px;
+  font-size: var(--fs-10-5);
   font-weight: 500;
-  color: var(--ink-70);
+  letter-spacing: var(--track-label);
+  color: var(--ink);
   white-space: nowrap;
+  text-underline-offset: 3px;
 }
 
 .btn:hover {
-  background: var(--surface-hover);
-  color: var(--ink);
+  text-decoration: underline;
 }
 
 .btn--primary {
-  background: var(--accent-solid);
-  border-color: var(--accent-solid);
-  color: var(--on-accent);
-  padding: 6px 12px;
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
 }
 
 .btn--primary:hover {
-  background: var(--accent-solid-hover);
-  border-color: var(--accent-solid-hover);
-  color: var(--on-accent);
+  background: var(--primary-hover);
+  text-decoration: none;
 }
 
-.btn--ghost {
-  border-color: transparent;
+.btn--primary:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .btn--danger {
-  color: var(--danger);
-  border-color: var(--danger-line);
-}
-
-.btn--danger:hover {
-  background: var(--missed-badge-bg);
   color: var(--danger);
 }
 
 /* Checkbox --------------------------------------------------------------- */
 
+/* Square, like the print checkbox the design calls for. */
 .checkbox {
   flex: none;
   width: var(--checkbox-size);
@@ -151,25 +189,27 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.3px solid var(--ink-30);
-  border-radius: 3px;
-  background: transparent;
+  border: 1px solid var(--ink);
+  border-radius: 1px;
+  background: var(--surface);
 }
 
 .checkbox:hover {
-  border-color: var(--ink-45);
+  background: var(--surface-chip);
 }
 
 .checkbox[data-checked='true'] {
-  background: var(--accent-solid);
-  border-color: var(--accent-solid);
+  background: var(--ink);
 }
 
 .checkbox[data-checked='true']::after {
-  content: '✓';
-  font-size: 9px;
-  line-height: 1;
-  color: var(--on-accent);
+  content: '';
+  width: 6px;
+  height: 3px;
+  margin-top: -2px;
+  border-left: 1.3px solid var(--on-primary);
+  border-bottom: 1.3px solid var(--on-primary);
+  transform: rotate(-45deg);
 }
 
 /* Delete control ---------------------------------------------------------- */
@@ -183,13 +223,11 @@ button {
   flex: none;
   width: 14px;
   height: 14px;
-  border-radius: 3px;
-  color: var(--ink-30);
+  color: var(--ink-2);
 }
 
 .kill:hover {
-  background: var(--surface-active);
-  color: var(--ink-70);
+  color: var(--danger);
 }
 
 .kill::before,
@@ -198,7 +236,7 @@ button {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 9px;
+  width: 8px;
   height: 1px;
   background: currentColor;
 }

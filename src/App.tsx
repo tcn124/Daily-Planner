@@ -2,12 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { WeekView } from './components/WeekView';
 import { ListView } from './components/ListView';
 import { DayPage } from './components/DayPage';
+import { MissedPage } from './components/MissedPage';
 import { Sidebar } from './components/Sidebar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { ScreenshotImport } from './components/ScreenshotImport';
 import { MobileShell } from './components/mobile/MobileShell';
 import { useIsMobile } from './lib/useIsMobile';
-import { useDevicePrefs } from './store/devicePrefs';
+import { focusToday, setView, useDevicePrefs } from './store/devicePrefs';
+import { usePlanner } from './store/plannerStore';
+import { todayISO } from './lib/dates';
+import { pad2 } from './lib/format';
 import { isTauri } from './lib/platform';
 import { pickSources, sourcesFromFiles, type ImportSource } from './lib/ocr';
 import { invoke } from '@tauri-apps/api/core';
@@ -98,6 +102,42 @@ function useImageIntake(onSources: (sources: ImportSource[]) => void) {
   }, [onSources]);
 }
 
+/**
+ * Week · List · Today, set as small text in the header's left column — the
+ * design's print-style nav, standing where the sidebar's nav rows used to.
+ * The Today tab borrows the day count while it is selected; that borrowed value
+ * is also what marks it active.
+ */
+function TopNav({ onNavigate }: { onNavigate: () => void }) {
+  const { state } = usePlanner();
+  const { view, daysBeforeToday } = useDevicePrefs();
+  const inToday = daysBeforeToday !== null;
+  const today = todayISO();
+  const todayCount = state.items.filter((i) => i.date === today).length;
+
+  function go(action: () => void) {
+    onNavigate();
+    action();
+  }
+
+  return (
+    <nav className="topnav" aria-label="Views">
+      <button type="button" className="topnav__item" data-active={view === 'grid' && !inToday}
+        onClick={() => go(() => setView('grid'))}>
+        Week
+      </button>
+      <button type="button" className="topnav__item" data-active={view === 'list'}
+        onClick={() => go(() => setView('list'))}>
+        List
+      </button>
+      <button type="button" className="topnav__item" data-active={inToday}
+        onClick={() => go(focusToday)}>
+        Today <span className="topnav__count">{pad2(todayCount)}</span>
+      </button>
+    </nav>
+  );
+}
+
 export function App() {
   const { view: activeView } = useDevicePrefs();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -116,6 +156,12 @@ export function App() {
   // Day detail and sidebar collapse are view state, not saved preferences, so
   // they live here rather than in `settings` — no schema change, no migration.
   const [focusedDate, setFocusedDate] = useState<string | null>(null);
+  // The Missed page sits over the views the same way the day page does.
+  const [missedOpen, setMissedOpen] = useState(false);
+  function openDay(date: string | null) {
+    setMissedOpen(false);
+    setFocusedDate(date);
+  }
 
   /*
    * The top bar has a slot the current view fills with its own controls (month
@@ -145,15 +191,17 @@ export function App() {
    */
   if (isMobile) return <MobileShell />;
 
-  const view = focusedDate ? (
+  const view = missedOpen ? (
+    <MissedPage slot={slot} onClose={() => setMissedOpen(false)} onOpenDay={openDay} />
+  ) : focusedDate ? (
     <DayPage
       date={focusedDate}
       slot={slot}
-      onClose={() => setFocusedDate(null)}
-      onNavigate={setFocusedDate}
+      onClose={() => openDay(null)}
+      onNavigate={openDay}
     />
   ) : activeView === 'grid' ? (
-    <WeekView slot={slot} onOpenDay={setFocusedDate} />
+    <WeekView slot={slot} onOpenDay={openDay} />
   ) : (
     <ListView slot={slot} />
   );
@@ -162,24 +210,34 @@ export function App() {
     <div className="app">
       {/* Owns the title zone: on the desktop this is where the traffic lights
           float, and the whole bar doubles as the window's drag handle. */}
-      <header className="topbar" ref={barRef}>
-        <button
-          type="button"
-          className="topbar__toggle"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={() => setCollapsed((c) => !c)}
-        >
-          {collapsed ? '»' : '«'}
-        </button>
+      <header className="topbar" ref={barRef} data-collapsed={collapsed}>
+        <div className="topbar__brand">
+          <TopNav onNavigate={() => openDay(null)} />
+          {!collapsed && (
+            <button
+              type="button"
+              className="topbar__toggle"
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+              onClick={() => setCollapsed(true)}
+            >
+              «
+            </button>
+          )}
+        </div>
         <div className="topbar__slot" ref={setSlot} />
       </header>
 
       <div className="app__body">
         <Sidebar
           collapsed={collapsed}
+          onExpand={() => setCollapsed(false)}
           onOpenSettings={() => setSettingsOpen(true)}
-          onImportScreenshot={importScreenshot}
+          onOpenDay={openDay}
+          onOpenMissed={() => {
+            setFocusedDate(null);
+            setMissedOpen(true);
+          }}
         />
         {view}
       </div>

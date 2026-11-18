@@ -28,8 +28,11 @@ export function clampDays(n: unknown): number {
 /** Starting hue offered when a new subject is created. */
 export const DEFAULT_HUE = 210;
 
-/** The design's 1.35 / 0.95 / 1 band flex ratios, scaled to whole numbers. */
-export const DEFAULT_BAND_WEIGHTS: [number, number, number] = [135, 95, 100];
+/**
+ * The design's Assignments / Recurring flex ratio (220 : 100). The third slot
+ * once held the Events band and is kept only so the stored shape is stable.
+ */
+export const DEFAULT_BAND_WEIGHTS: [number, number, number] = [220, 100, 100];
 
 export function createInitialState(): PlannerState {
   return {

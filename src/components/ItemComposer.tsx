@@ -3,6 +3,7 @@ import type { ItemType, Subject } from '../types';
 import { dayOfMonth, dayName, monthShort } from '../lib/dates';
 import { formatTimeInput } from '../lib/time';
 import { SubjectChips } from './SubjectChips';
+import { Close } from './icons';
 
 export interface ComposerValue {
   subjectId: string | null;
@@ -11,7 +12,11 @@ export interface ComposerValue {
   /** The specifics under it — pages, prompt, where to submit. */
   details: string;
   time: string;
-  /** Which band the item belongs to — editable, so items can move between them. */
+  /**
+   * Carried through untouched. The redesign shows no event/assignment choice
+   * — everything new is an assignment — but an item stored as an event keeps
+   * its type when edited, so other devices and backups still agree on it.
+   */
   type: ItemType;
 }
 
@@ -28,11 +33,6 @@ interface Props {
   onCreateSubject: (name: string, hue: number | null) => string;
 }
 
-const BAND_LABEL: Record<ItemType, string> = {
-  assignment: 'Assignments',
-  event: 'Events',
-};
-
 export function ItemComposer({
   subjects,
   initial,
@@ -47,7 +47,7 @@ export function ItemComposer({
   const [description, setDescription] = useState(initial?.description ?? '');
   const [details, setDetails] = useState(initial?.details ?? '');
   const [time, setTime] = useState(initial?.time ?? '');
-  const [type, setType] = useState<ItemType>(initial?.type ?? 'assignment');
+  const type: ItemType = initial?.type ?? 'assignment';
   const descRef = useRef<HTMLTextAreaElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -108,10 +108,12 @@ export function ItemComposer({
         )}
         <button
           type="button"
-          className="kill composer__close"
+          className="composer__close"
           aria-label="Cancel"
           onClick={onCancel}
-        />
+        >
+          <Close size={10} />
+        </button>
       </div>
 
       <div className="composer__field">
@@ -144,8 +146,7 @@ export function ItemComposer({
         />
       </div>
 
-      <div className="composer__row">
-        <div className="composer__field">
+      <div className="composer__field">
           <span className="composer__label">Time</span>
           <input
             className="field"
@@ -156,28 +157,13 @@ export function ItemComposer({
             // "30" arrives, so it waits until the field is left.
             onBlur={() => setTime(formatTimeInput(time))}
           />
-        </div>
-        <div className="composer__field">
-          <span className="composer__label">Band</span>
-          <select
-            className="field composer__band"
-            value={type}
-            onChange={(e) => setType(e.target.value as ItemType)}
-          >
-            {(Object.keys(BAND_LABEL) as ItemType[]).map((t) => (
-              <option key={t} value={t}>
-                {BAND_LABEL[t]}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
       <div className="composer__actions">
         <button type="button" className="btn btn--primary" onClick={submit}>
           {submitLabel}
         </button>
-        <button type="button" className="btn" onClick={onCancel}>
+        <button type="button" className="link link--muted" onClick={onCancel}>
           Cancel
         </button>
         <span className="composer__hint" aria-hidden="true">
