@@ -42,6 +42,13 @@ export interface DevicePrefs {
   /** The desktop List's zoom, 0.8–1.5. A screen property, so it lives here. */
   listZoom: number;
   /**
+   * The desktop app's page zoom (⌘+ / ⌘−), as the user last chose it. What is
+   * applied can be less: `useAppZoom` caps it so the page never gets narrower
+   * than the desktop shell's 900px, and keeps this so widening the window
+   * gives the chosen size back.
+   */
+  appZoom: number;
+  /**
    * Set only while the Today tab is selected: the day count to put back when
    * it is deselected. Its presence is what marks that tab active, so both the
    * mode and the count it borrowed survive a restart.
@@ -76,6 +83,7 @@ function defaults(): DevicePrefs {
     bandWeights: [...DEFAULT_BAND_WEIGHTS] as [number, number, number],
     daysBeforeToday: null,
     listZoom: 1,
+    appZoom: 1,
     mobileDays: 1,
     detailsVisible: true,
     tab: 'week',
@@ -102,6 +110,16 @@ function clampZoom(z: number): number {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(z * 10) / 10));
 }
 
+/**
+ * The ⌘+ / ⌘− ladder, the same uneven steps a browser takes: fine near 100%,
+ * coarser further out. Below 75% the 9–12px desktop type stops being legible.
+ */
+export const APP_ZOOM_STEPS = [0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5] as const;
+
+function clampAppZoom(z: number): number {
+  return Math.min(APP_ZOOM_STEPS[APP_ZOOM_STEPS.length - 1], Math.max(APP_ZOOM_STEPS[0], z));
+}
+
 function isWeights(v: unknown): v is [number, number, number] {
   return Array.isArray(v) && v.length === 3 && v.every((n) => typeof n === 'number');
 }
@@ -121,6 +139,7 @@ function coerce(raw: unknown, base: DevicePrefs): DevicePrefs {
     daysBeforeToday:
       typeof p.daysBeforeToday === 'number' ? clampDays(p.daysBeforeToday) : null,
     listZoom: typeof p.listZoom === 'number' ? clampZoom(p.listZoom) : base.listZoom,
+    appZoom: typeof p.appZoom === 'number' ? clampAppZoom(p.appZoom) : base.appZoom,
     mobileDays: isMobileDays(p.mobileDays) ? p.mobileDays : base.mobileDays,
     detailsVisible:
       typeof p.detailsVisible === 'boolean' ? p.detailsVisible : base.detailsVisible,
@@ -209,6 +228,10 @@ export function setDays(days: number): void {
 
 export function stepListZoom(direction: -1 | 1): void {
   setDevicePrefs({ listZoom: clampZoom(current.listZoom + direction * 0.1) });
+}
+
+export function setAppZoom(zoom: number): void {
+  setDevicePrefs({ appZoom: clampAppZoom(zoom) });
 }
 
 export function setBandWeights(weights: [number, number, number]): void {

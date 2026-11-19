@@ -8,6 +8,7 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { ScreenshotImport } from './components/ScreenshotImport';
 import { MobileShell } from './components/mobile/MobileShell';
 import { useIsMobile } from './lib/useIsMobile';
+import { useAppZoom } from './lib/useAppZoom';
 import { focusToday, setView, useDevicePrefs } from './store/devicePrefs';
 import { usePlanner } from './store/plannerStore';
 import { todayISO } from './lib/dates';
@@ -171,6 +172,7 @@ export function App() {
    */
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const barRef = useWindowDrag();
+  useAppZoom();
   const isMobile = useIsMobile();
 
   /*

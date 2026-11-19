@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Save and open a planner backup, or pick a screenshot to import, in a native dialog; let the frameless window be zoomed from its top bar (dragging goes through the app's own drag_window command).",
+  "description": "Save and open a planner backup, or pick a screenshot to import, in a native dialog; let the frameless window be zoomed from its top bar (dragging goes through the app's own drag_window command); scale the page with ⌘+ / ⌘−.",
   "windows": [
     "main"
   ],
@@ -14,6 +14,7 @@
     "fs:allow-read-text-file",
     "fs:allow-read-file",
     "fs:allow-write-text-file",
-    "core:window:allow-toggle-maximize"
+    "core:window:allow-toggle-maximize",
+    "core:webview:allow-set-webview-zoom"
   ]
 }
