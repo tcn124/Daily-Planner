@@ -14,3 +14,6 @@
 
 /* Last: the phone layer overrides the desktop rules above it. */
 @import './mobile.css';
+
+/* The desktop app only: translucent surfaces over the window's Liquid Glass. */
+@import './glass.css';

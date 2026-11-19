@@ -1,0 +1,71 @@
+/*
+ * Liquid Glass — the desktop app only.
+ *
+ * In the Tauri window the page is transparent and macOS draws an
+ * NSGlassEffectView behind it (`install_glass` in src-tauri/src/lib.rs), so
+ * the desktop shows through, blurred and tinted, wherever the page lets it.
+ *
+ * Only the sidebar column lets it: the sidebar itself and the header strip
+ * above it (Week · List · Today), as one translucent column down the window's
+ * left edge, the way a macOS source list sits on glass. Everything to its
+ * right — the header's title and controls, the week, list, day and missed
+ * pages, and every popover — stays solid white, as the print design draws it.
+ *
+ * Keyed off `html[data-glass]`, which `main.tsx` sets only under Tauri, so a
+ * browser tab keeps its plain white page.
+ */
+
+html[data-glass] {
+  --glass-fill: rgba(255, 255, 255, 0.32);
+  background: transparent;
+}
+
+/* Clear down to the glass, so each region below chooses whether to cover it. */
+html[data-glass] body,
+html[data-glass] #root,
+html[data-glass] .app,
+html[data-glass] .topbar {
+  background: transparent;
+}
+
+/* ------------------------------------------------------- glass column */
+
+html[data-glass] .topbar__brand,
+html[data-glass] .sidebar {
+  background: var(--glass-fill);
+}
+
+/* ------------------------------------------------------------- solid */
+
+/* The header's right side, over the content. */
+html[data-glass] .topbar__slot {
+  background: var(--surface);
+}
+
+/*
+ * Collapsed, the brand column narrows to the rail's 52px but the nav keeps its
+ * place and runs on over the slot (frame 2c). Glass behind half of it and
+ * white behind the rest would cut "Week · List · Today" in two, so the whole
+ * header goes solid; only the rail below stays glass.
+ */
+html[data-glass] .topbar[data-collapsed='true'] .topbar__brand {
+  background: var(--surface);
+}
+
+/* The week, list, day and missed pages. */
+html[data-glass] .planner,
+html[data-glass] .list,
+html[data-glass] .daypage {
+  background: var(--surface);
+}
+
+/* Side panels (Edit planner, screenshot import) dock to the window's right
+   edge, full height, rather than floating inset from it. */
+html[data-glass] .panel {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-left: 1px solid var(--line-strong);
+  border-radius: 0;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.1);
+}

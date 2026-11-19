@@ -197,6 +197,57 @@ fn ocr_pdf(request: tauri::ipc::Request<'_>) -> Result<Vec<Vec<OcrLine>>, String
     }
 }
 
+/// Puts Apple's Liquid Glass behind the whole window, under the webview.
+///
+/// The window and its webview are transparent (`transparent` in
+/// tauri.conf.json, via `macos-private-api`), so whatever sits beneath the
+/// webview in the window's content view is the app's background. On macOS 26
+/// and later that is an `NSGlassEffectView` — the real material, refracting
+/// and tinting the desktop behind the window. Earlier systems have no such
+/// class, so they get the closest older material, a behind-window
+/// `NSVisualEffectView`. The class is looked up at runtime rather than linked,
+/// because the app still launches on 10.15.
+///
+/// The web layer then paints its panels as translucent white over this (see
+/// `glass.css`), keyed off `html[data-glass]`, which `main.tsx` sets.
+#[cfg(target_os = "macos")]
+fn install_glass(window: &tauri::WebviewWindow) -> Result<(), String> {
+    use objc2::rc::Retained;
+    use objc2::runtime::AnyClass;
+    use objc2::MainThreadMarker;
+    use objc2_app_kit::{
+        NSAutoresizingMaskOptions, NSGlassEffectView, NSGlassEffectViewStyle, NSView,
+        NSVisualEffectBlendingMode, NSVisualEffectMaterial, NSVisualEffectState,
+        NSVisualEffectView, NSWindow, NSWindowOrderingMode,
+    };
+
+    // `setup` runs on the main thread, the only place AppKit may be touched.
+    let mtm = MainThreadMarker::new().ok_or("glass must be installed on the main thread")?;
+    let ns_window: &NSWindow =
+        unsafe { &*(window.ns_window().map_err(|e| e.to_string())? as *const NSWindow) };
+    let content = ns_window.contentView().ok_or("the window has no content view")?;
+    let frame = content.bounds();
+
+    let backdrop: Retained<NSView> = if AnyClass::get(c"NSGlassEffectView").is_some() {
+        let glass = NSGlassEffectView::initWithFrame(mtm.alloc(), frame);
+        glass.setStyle(NSGlassEffectViewStyle::Regular);
+        Retained::into_super(glass)
+    } else {
+        let effect = NSVisualEffectView::initWithFrame(mtm.alloc(), frame);
+        effect.setMaterial(NSVisualEffectMaterial::UnderWindowBackground);
+        effect.setBlendingMode(NSVisualEffectBlendingMode::BehindWindow);
+        // Stays frosted when the window loses focus, instead of going grey.
+        effect.setState(NSVisualEffectState::Active);
+        Retained::into_super(effect)
+    };
+    backdrop.setAutoresizingMask(
+        NSAutoresizingMaskOptions::ViewWidthSizable | NSAutoresizingMaskOptions::ViewHeightSizable,
+    );
+    // Below every other subview, so the webview draws on top of the glass.
+    content.addSubview_positioned_relativeTo(&backdrop, NSWindowOrderingMode::Below, None);
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     use tauri::Manager;
@@ -205,6 +256,18 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![drag_window, ocr_image, ocr_pdf])
+        .setup(|app| {
+            #[cfg(target_os = "macos")]
+            if let Some(window) = app.get_webview_window("main") {
+                // A missing backdrop is cosmetic; the app runs without it.
+                if let Err(err) = install_glass(&window) {
+                    eprintln!("Liquid Glass backdrop unavailable: {err}");
+                }
+            }
+            #[cfg(not(target_os = "macos"))]
+            let _ = app;
+            Ok(())
+        })
         // ⌘W and the native close button both route through this same close
         // request on macOS — there is no way to tell them apart, and no
         // reason to: hiding either way keeps the process (and its state)

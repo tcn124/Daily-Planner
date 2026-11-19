@@ -10,6 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "Weekly Planner",
@@ -21,7 +22,8 @@
         "center": true,
         "titleBarStyle": "Overlay",
         "dragDropEnabled": false,
-        "hiddenTitle": true
+        "hiddenTitle": true,
+        "transparent": true
       }
     ],
     "security": {

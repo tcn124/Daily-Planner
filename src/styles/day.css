@@ -160,12 +160,16 @@
   align-items: center;
   gap: 6px;
   padding-left: 8px;
-  background: var(--surface);
 }
 
 .daypage__item:hover .daypage__item-actions,
 .daypage__item:focus-within .daypage__item-actions {
   display: flex;
+}
+
+.daypage__item:hover .daypage__item-time,
+.daypage__item:focus-within .daypage__item-time {
+  visibility: hidden;
 }
 
 .daypage__item--done {

@@ -13,7 +13,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+# `macos-private-api` is what lets the webview be transparent, so the
+# window's Liquid Glass backdrop (see `install_glass` in lib.rs) shows through.
+tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 serde = { version = "1", features = ["derive"] }
@@ -22,7 +24,7 @@ serde = { version = "1", features = ["derive"] }
 # command can call AppKit directly. Versions pinned to what the lockfile holds.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
-objc2-app-kit = { version = "0.3", features = ["NSEvent", "NSWindow", "NSResponder", "NSGraphicsContext", "NSImage"] }
+objc2-app-kit = { version = "0.3", features = ["NSEvent", "NSWindow", "NSResponder", "NSGraphicsContext", "NSImage", "NSView", "NSGraphics", "NSGlassEffectView", "NSVisualEffectView"] }
 objc2-foundation = { version = "0.3", features = ["NSGeometry", "NSData", "NSArray", "NSDictionary", "NSString", "NSError"] }
 # Apple's Vision framework, for on-device text recognition in screenshot
 # import, and PDFKit to rasterise PDF pages so they can go through the same path.

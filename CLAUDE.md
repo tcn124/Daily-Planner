@@ -301,7 +301,21 @@ separate `dist-pwa/` rather than overwriting the committed `dist/`.
   any future addition in the built `.app`, not just `npm run dev`.
 - Window is frameless: `titleBarStyle: Overlay`, `hiddenTitle: true`,
   `dragDropEnabled: false` (which is also what lets HTML5 file drops reach the
-  page). `--brand-inset` leaves room for the traffic lights.
+  page). The 76px header leaves room for the traffic lights above its nav.
+- **Liquid Glass**: the window and webview are `transparent` (which needs
+  `macOSPrivateApi` in tauri.conf.json and tauri's `macos-private-api`
+  feature), and `install_glass` in `lib.rs` puts an `NSGlassEffectView` under
+  the webview from `setup` — or a behind-window `NSVisualEffectView` before
+  macOS 26, looked up at runtime because the app still targets 10.15.
+  `main.tsx` sets `html[data-glass]` under Tauri, and `src/styles/glass.css`
+  (imported last) clears the page down to the glass and lets it show through
+  only the sidebar column — the sidebar and the header strip above it
+  (`.topbar__brand`). The header's slot, every view and every popover paint
+  solid white over it. A browser tab never gets `data-glass`, so it stays
+  opaque. A new top-level region in the desktop shell needs its own solid
+  background, or the glass will show through it. Anything that must cover text on hover
+  should hide that text, not paint a `--surface` patch over it — on glass
+  `--surface` is translucent.
 - Any new native API the frontend calls must be added to
   `capabilities/default.json`.
 - macOS-only deps (`objc2-app-kit` etc.) are behind `cfg(target_os = "macos")`.

@@ -397,12 +397,17 @@
   align-items: center;
   gap: 6px;
   padding-left: 8px;
-  background: var(--surface);
 }
 
 .srow:hover .srow__actions,
 .srow:focus-within .srow__actions {
   display: flex;
+}
+
+/* The controls take the note's place rather than painting over it. */
+.srow:hover .srow__meta,
+.srow:focus-within .srow__meta {
+  visibility: hidden;
 }
 
 .srow[data-done='true'] {

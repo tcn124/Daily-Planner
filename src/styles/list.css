@@ -248,16 +248,17 @@
   align-items: center;
   gap: 6px;
   padding-left: 8px;
-  background: var(--surface);
-}
-
-.list__section:has(.list__group[data-today]) .list__row-actions {
-  background: var(--surface-today);
 }
 
 .list__row:hover .list__row-actions,
 .list__row:focus-within .list__row-actions {
   display: flex;
+}
+
+/* The controls take the Due cell's place rather than painting over it. */
+.list__row:hover .list__due,
+.list__row:focus-within .list__due {
+  visibility: hidden;
 }
 
 .list__row--done {
