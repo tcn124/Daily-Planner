@@ -109,27 +109,60 @@ export function WeekView({ slot, onOpenDay }: Props) {
    * after. Those events land within a frame, so the window is kept short.
    */
   const parkedOnce = useRef(false);
-  useLayoutEffect(() => {
+  /**
+   * The column width the current park was made at. `scrollLeft` is in pixels,
+   * so it only means "the anchor is leftmost" at this width — see
+   * `widthChanged`.
+   */
+  const parkedWidth = useRef(0);
+  const repark = (quietMs: number) => {
     const el = scrollerRef.current;
     const w = columnWidth();
     if (!el || !w) return;
     window.clearTimeout(settleRef.current);
+    parkedWidth.current = w;
+    ignoreScrollUntil.current = performance.now() + quietMs;
     const target = BUFFER * w;
-    const park = () => {
-      if (Math.abs(el.scrollLeft - target) >= 1) el.scrollLeft = target;
-    };
+    if (Math.abs(el.scrollLeft - target) >= 1) el.scrollLeft = target;
+  };
+  const reparkRef = useRef(repark);
+  reparkRef.current = repark;
+
+  useLayoutEffect(() => {
     // On a page reload the browser may restore a stale scroll position a frame
     // or two after we first park, and a settle would then honour it. Give the
     // first park a longer quiet window and re-assert it once layout is stable.
     const first = !parkedOnce.current;
     parkedOnce.current = true;
-    ignoreScrollUntil.current = performance.now() + (first ? 400 : 120);
-    park();
+    repark(first ? 400 : 120);
     if (first) {
-      requestAnimationFrame(() => requestAnimationFrame(park));
+      requestAnimationFrame(() => requestAnimationFrame(() => reparkRef.current(400)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.anchorDate, settings.daysVisible]);
+
+  /** True when the columns are no longer the width the last park was made at. */
+  const widthChanged = () => Math.abs(columnWidth() - parkedWidth.current) > 0.5;
+
+  /**
+   * Zooming (⌘+ / ⌘−), resizing the window and collapsing the sidebar all
+   * change the column width while `scrollLeft` keeps its old pixel value — so
+   * the same offset now lands on a different day, and the next settle would
+   * re-anchor there: zooming to 125% used to jump the week six days back. The
+   * anchor is still right; only the pixels are stale. So re-park on any width
+   * change, which keeps the same day in the same column at the new size.
+   */
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (widthChangedRef.current()) reparkRef.current(120);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const widthChangedRef = useRef(widthChanged);
+  widthChangedRef.current = widthChanged;
 
   useEffect(() => () => window.clearTimeout(settleRef.current), []);
 
@@ -150,6 +183,13 @@ export function WeekView({ slot, onOpenDay }: Props) {
     const el = scrollerRef.current;
     const w = columnWidth();
     if (!el || !w) return;
+    // The browser fires scroll events for a relayout before ResizeObserver
+    // reports it, so a settle can see the new width against the old offset.
+    // That is not the user scrolling — put the anchor back where it was.
+    if (widthChanged()) {
+      repark(120);
+      return;
+    }
     const column = Math.round(el.scrollLeft / w);
     if (column === BUFFER) return;
     // Absolute, not relative: read the date actually sitting in that column.
